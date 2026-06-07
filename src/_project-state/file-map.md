@@ -49,6 +49,21 @@
 | `src/components/ui/button.tsx` | shadcn/ui Button primitive. |
 | `src/lib/utils.ts` | `cn()` class-merge helper (clsx + tailwind-merge). |
 
+## Supabase leads pipeline (phase 1.05)
+
+| Path | Description |
+|---|---|
+| `supabase/config.toml` | Supabase CLI project config (default template; `project_id = "iqup-web"`; no secrets). |
+| `supabase/.gitignore` | Ignores CLI working files (`.branches`, `.temp`) and local env files. |
+| `supabase/migrations/20260607204206_create_leads.sql` | Creates `public.leads` (12 cols + CHECK constraints), `created_at DESC` index, enables RLS with no anon policies, revokes anon/authenticated grants. |
+| `src/lib/supabase/server.ts` | Server-only service-role client (`getServiceRoleClient()`); `import 'server-only'` guard; reads `SUPABASE_SERVICE_ROLE_KEY`. |
+| `src/lib/supabase/client.ts` | Browser anon client (`createBrowserSupabaseClient()`), for future non-leads use; reads the public anon key. |
+| `src/lib/supabase/types.ts` | Typed `Database` for the `leads` schema (mirrors `supabase gen types`; verified against the live schema). |
+| `src/lib/validation/lead.ts` | zod 4 `leadSchema` + `topStrengthsSchema` (`.strict()`) and `Lead` / `LeadInput` types; the validation source of truth. |
+| `src/lib/leads/insert-lead.ts` | `insertLead(input: unknown)` — validates every field, then inserts via the service-role client (server-only). |
+| `scripts/test-insert.ts` | Throwaway live end-to-end test (`npm run test:insert`): insert via `insertLead()`, service read, anon read+insert blocked, cleanup. |
+| `.env.local.example` | Committed env template (placeholders only) for the three Supabase keys. |
+
 ## Project-state docs
 
 | Path | Description |
@@ -68,5 +83,6 @@
 | `public/og/.gitkeep` | Open Graph share images. |
 | `src/content/test/.gitkeep` | Question banks per age band (MK/EN). |
 | `src/content/results/.gitkeep` | Strengths-profile result templates (MK/EN). |
-| `src/lib/supabase/.gitkeep` | Supabase client + lead insert (phase 1.05). |
-| `src/lib/scoring/.gitkeep` | Rule-based scoring + strengths mapping. |
+| `src/lib/scoring/.gitkeep` | Rule-based scoring + strengths mapping (phase 1.07). |
+
+*(`src/lib/supabase/.gitkeep` was removed in phase 1.05 now that the folder holds real files.)*

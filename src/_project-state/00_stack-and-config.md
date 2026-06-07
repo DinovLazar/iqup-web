@@ -79,3 +79,47 @@ caret ranges in `package.json`):
 - Build: `npm run build`
 - Lint: `npm run lint`
 - Type-check: `npm run typecheck` (`tsc --noEmit`)
+
+---
+
+## 2026-06-07 — Phase 1.05 Supabase leads pipeline
+
+**Packages added (exact resolved versions):**
+
+| Package | Version | Scope |
+|---|---|---|
+| @supabase/supabase-js | 2.107.0 | dependency |
+| zod | 4.4.3 | dependency |
+| server-only | 0.0.1 | dependency (build-time client/server tripwire) |
+| supabase (CLI) | 2.105.0 | devDependency |
+| tsx | 4.22.4 | devDependency (runs the TS test script) |
+
+**Supabase project:** `iqup-web`, ref `cpxssfodboukznzaksnb`, region **`eu-central-1`**
+(Frankfurt, AWS), Free plan. Legacy anon/service_role API keys in use (the new
+publishable/secret key system is noted for a later migration).
+
+**Security model (one line):** RLS enabled on `public.leads` with **no anon/
+authenticated policies** + a defense-in-depth `revoke all … from anon, authenticated`,
+so the public anon key can neither read nor write leads; **all inserts are
+server-side** via the `service_role` key (bypasses RLS) through the validated
+`insertLead()` helper. The service-role key lives only in `SUPABASE_SERVICE_ROLE_KEY`
+(server env, never `NEXT_PUBLIC_`) and `server.ts` carries `import 'server-only'`.
+
+**New scripts (`package.json`):**
+- `npm run db:push` → `supabase db push --linked` (needs a one-time `supabase login` + `link`).
+- `npm run db:types` → `supabase gen types --lang typescript --linked --schema public > src/lib/supabase/types.ts`.
+- `npm run test:insert` → `tsx --conditions=react-server scripts/test-insert.ts` (the
+  `--conditions=react-server` flag is required so the `server-only` import resolves).
+
+**Env vars:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (public),
+`SUPABASE_SERVICE_ROLE_KEY` (server-only). Template in `.env.local.example`; real
+values in git-ignored `.env.local`.
+
+**Config notes:**
+- `supabase/config.toml` committed (CLI default template, `project_id = "iqup-web"`,
+  no secrets — uses `env(...)` substitution).
+- Migration applied this session via the **dashboard SQL editor** (the sandbox cannot
+  reach the Postgres port); `supabase db push` / `gen types` are wired for use once
+  the project is linked from an environment with DB access.
+- npm flagged 2 moderate advisories in **dev-only** deps (CLI/tsx tree); not shipped
+  to production. `audit fix --force` would introduce breaking changes — not applied.
