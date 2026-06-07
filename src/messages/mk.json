@@ -1,0 +1,13 @@
+{
+  "Meta": {
+    "title": "IqUp",
+    "description": "Веб-страницата е во изработка."
+  },
+  "HomePage": {
+    "siteName": "IqUp",
+    "inProgress": "Страницата е во изработка."
+  },
+  "LanguageToggle": {
+    "label": "Избор на јазик"
+  }
+}

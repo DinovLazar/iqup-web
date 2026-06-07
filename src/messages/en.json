@@ -1,0 +1,13 @@
+{
+  "Meta": {
+    "title": "IqUp",
+    "description": "Website in progress."
+  },
+  "HomePage": {
+    "siteName": "IqUp",
+    "inProgress": "Site in progress."
+  },
+  "LanguageToggle": {
+    "label": "Language"
+  }
+}
