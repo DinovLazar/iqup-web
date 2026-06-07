@@ -1,13 +1,89 @@
 {
   "Meta": {
-    "title": "IqUp",
-    "description": "Website in progress."
-  },
-  "HomePage": {
-    "siteName": "IqUp",
-    "inProgress": "Site in progress."
+    "title": "IqUp — Discover your child's brain superpowers",
+    "description": "A free, playful 5–10 minute game that reveals what your child is great at. No scores, no numbers. In Macedonian and English."
   },
   "LanguageToggle": {
-    "label": "Language"
+    "label": "Language",
+    "footerLabel": "Language, in the footer"
+  },
+  "A11y": {
+    "skipToContent": "Skip to content"
+  },
+  "Landing": {
+    "header": {
+      "home": "Home page"
+    },
+    "hero": {
+      "eyebrow": "Free brain games · 5–10 minutes",
+      "title": "Discover your child's brain superpowers",
+      "explainer": "A short, playful game that shows what your child is great at. You get a warm profile of their strengths, never a score, a percentage, or an IQ number.",
+      "trust": {
+        "free": "Free",
+        "time": "5–10 minutes",
+        "noScore": "No scores"
+      }
+    },
+    "age": {
+      "question": "How old is your child?",
+      "hint": "Pick an age to start the right adventure.",
+      "ariaAge": "{age} years old",
+      "bands": {
+        "3-5": "Little Explorers",
+        "6-9": "Young Scientists",
+        "10-13": "Young Innovators"
+      },
+      "start": "Start the adventure",
+      "startHint": "Choose an age first",
+      "noSignup": "No sign-up to begin."
+    },
+    "how": {
+      "title": "How it works",
+      "step1": {
+        "title": "Choose an age",
+        "body": "Tell us how old your child is, so they get the right games."
+      },
+      "step2": {
+        "title": "Play short brain games",
+        "body": "Your child solves playful puzzles for about 5 to 10 minutes."
+      },
+      "step3": {
+        "title": "See their strengths profile",
+        "body": "You get a warm profile of your child's strengths and a certificate to share. For younger ages, there's an invite to a free trial class too."
+      }
+    },
+    "trust": {
+      "title": "Safe and encouraging",
+      "free": {
+        "title": "Completely free",
+        "body": "No hidden costs."
+      },
+      "time": {
+        "title": "Just 5–10 minutes",
+        "body": "Short and playful, made for small hands."
+      },
+      "encouraging": {
+        "title": "Encouraging, with no scary numbers",
+        "body": "The result is a strengths profile, never a grade, a percentage, or an IQ."
+      },
+      "data": {
+        "title": "Data kept in the EU",
+        "body": "Stored securely, with a parent's consent."
+      }
+    },
+    "reassurance": {
+      "quote": "We awaken the genius in every child.",
+      "attribution": "From the world of Bibi · IqUp"
+    },
+    "footer": {
+      "line": "Free brain games that reveal your child's strengths.",
+      "tagline": "Education that inspires.",
+      "org": "The first Macedonian educational franchise for children.",
+      "rights": "© {year} IqUp. All rights reserved."
+    },
+    "og": {
+      "headline": "Discover your child's brain superpowers",
+      "tagline": "Free brain games · 5–10 minutes"
+    }
   }
 }

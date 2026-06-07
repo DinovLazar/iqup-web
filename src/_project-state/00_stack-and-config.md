@@ -123,3 +123,51 @@ values in git-ignored `.env.local`.
   the project is linked from an environment with DB access.
 - npm flagged 2 moderate advisories in **dev-only** deps (CLI/tsx tree); not shipped
   to production. `audit fix --force` would introduce breaking changes — not applied.
+
+---
+
+## 2026-06-08 — Phase 1.06 landing page + design-foundation wiring
+
+**Packages added (exact resolved versions):**
+
+| Package | Version | Scope |
+|---|---|---|
+| framer-motion | 12.40.0 | dependency (entrance animation, used via `LazyMotion` + `m`) |
+| @fontsource/rubik | 5.2.8 | dependency (Cyrillic Rubik woff read by the OG image generator) |
+| vitest | 4.1.8 | devDependency (unit test runner) |
+
+**Fonts:** switched the app from Geist to **Rubik** (display/headings) + **Nunito Sans** (body)
+via `next/font/google`, subsets `['latin','cyrillic']`. Rubik is preloaded with `display: 'swap'`;
+Nunito Sans is `display: 'swap'` with **`preload: false`** (it isn't the LCP element, so it must not
+compete with the heading font for critical bandwidth). Both expose CSS vars
+(`--font-rubik`, `--font-nunito-sans`) mapped to `--font-display` / `--font-sans` in `globals.css`.
+
+**Design tokens:** `globals.css` `:root` replaced the scaffold's neutral oklch tokens with the
+1.03 handover's brand hex tokens (surfaces, brand→semantic, status, per-strength + chart slots,
+radii, `--shadow-hero`, `--ease-spring`) mapped through `@theme inline`; added a
+`prefers-reduced-motion` reset; **removed the dead `.dark` block** (light-only site — `dark:`
+utilities stay inert via the kept `@custom-variant dark`).
+
+**New script (`package.json`):** `npm test` → `vitest run`. Config: `vitest.config.ts`
+(node environment, `include: ['src/**/*.test.ts']`).
+
+**shadcn components added via CLI:** `card`, `radio-group`, `label` (radix-nova style, importing
+from the unified `radix-ui` package). `card` is in use; `radio-group` + `label` are design-system
+primitives for 1.07/1.08.
+
+**Animation:** Framer Motion is loaded through a `LazyMotion` provider with the `domAnimation`
+feature set and the `m` component (smaller than the full `motion` import), gated on
+`prefers-reduced-motion`, and kept off the LCP path.
+
+**OG image:** `src/app/[locale]/opengraph-image.tsx` uses `next/og` `ImageResponse` (1200×630) with
+Rubik latin + cyrillic `.woff` buffers read from `@fontsource/rubik/files` via `fs` — Cyrillic
+renders correctly (verified visually). Hex values are inlined there by necessity (satori cannot
+resolve CSS theme tokens) — the one documented exception to the no-hardcoded-hex rule.
+
+**Env:** `NEXT_PUBLIC_SITE_URL` (optional) feeds `metadataBase`; falls back to
+`http://localhost:3000` when unset (set the real domain in 2.06).
+
+**Perf note:** mobile Lighthouse Performance ~87 (<95) — gated by the brand heading web-font under
+the simulated slow-4G + 4× CPU throttle on a modest machine; real-world LCP ~1.2 s. Optimizations
+applied (LazyMotion, trimmed animation, body-font not preloaded, server-resolved island copy). See
+`Part-1-Phase-06-Completion.md`; finalize in 1.11.

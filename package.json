@@ -8,14 +8,17 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "db:push": "supabase db push --linked",
     "db:types": "supabase gen types --lang typescript --linked --schema public > src/lib/supabase/types.ts",
     "test:insert": "tsx --conditions=react-server scripts/test-insert.ts"
   },
   "dependencies": {
+    "@fontsource/rubik": "^5.2.8",
     "@supabase/supabase-js": "^2.107.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.40.0",
     "lucide-react": "^1.17.0",
     "next": "16.2.7",
     "next-intl": "^4.13.0",
@@ -38,6 +41,7 @@
     "supabase": "^2.105.0",
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.8"
   }
 }

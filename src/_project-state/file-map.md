@@ -24,6 +24,7 @@
 | `eslint.config.mjs` | ESLint flat config (next core-web-vitals + TypeScript). |
 | `postcss.config.mjs` | PostCSS config loading `@tailwindcss/postcss` (Tailwind v4). |
 | `components.json` | shadcn/ui config (radix-nova style, neutral base, lucide icons). |
+| `vitest.config.ts` | Vitest config (node env; runs `src/**/*.test.ts`). |
 | `next-env.d.ts` | Next.js TypeScript ambient types (generated, git-ignored). |
 
 ## next-intl bilingual config
@@ -34,20 +35,42 @@
 | `src/i18n/request.ts` | Per-request next-intl config; loads `src/messages/<locale>.json`. |
 | `src/i18n/navigation.ts` | Locale-aware navigation APIs (`Link`, `redirect`, `usePathname`, …). |
 | `src/proxy.ts` | Next.js 16 proxy (ex-middleware) applying next-intl locale routing. |
-| `src/messages/mk.json` | Macedonian UI strings (default locale). |
-| `src/messages/en.json` | English UI strings. |
+| `src/messages/mk.json` | Macedonian UI strings (Meta + Landing namespaces; default locale; draft). |
+| `src/messages/en.json` | English UI strings (mirror of mk.json; draft). |
 
 ## App shell & components
 
 | Path | Description |
 |---|---|
-| `src/app/[locale]/layout.tsx` | Root layout per locale: `<html lang>`, fonts, hreflang, NextIntlClientProvider. |
-| `src/app/[locale]/page.tsx` | Temporary bilingual placeholder landing page (proves routing + toggle). |
-| `src/app/globals.css` | Tailwind v4 + shadcn theme tokens (radix-nova, neutral). |
+| `src/app/[locale]/layout.tsx` | Root layout per locale: `<html lang>`, Rubik + Nunito Sans (`next/font`), `metadataBase`, hreflang, NextIntlClientProvider. |
+| `src/app/[locale]/page.tsx` | The landing page (Server Component) — composes the landing sections; per-locale `generateMetadata` (title/description/canonical/hreflang/OG/Twitter). |
+| `src/app/[locale]/opengraph-image.tsx` | Dynamic per-locale OG image (1200×630, `next/og` + Cyrillic Rubik woff from `@fontsource/rubik`). |
+| `src/app/globals.css` | Tailwind v4 + the 1.03 brand tokens (palette, status, strengths, radii, shadows, motion) via `@theme inline`; reduced-motion reset; light-only (no `.dark`). |
 | `src/app/favicon.ico` | Default favicon (placeholder until brand asset lands). |
-| `src/components/LanguageToggle.tsx` | Accessible MK/EN switcher; preserves the current path. |
+| `src/components/LanguageToggle.tsx` | Accessible MK/EN pill switcher; preserves the current path; label via prop. |
 | `src/components/ui/button.tsx` | shadcn/ui Button primitive. |
+| `src/components/ui/card.tsx` | shadcn/ui Card primitive (used by the hero + step/trust cards). |
+| `src/components/ui/radio-group.tsx` | shadcn/ui RadioGroup primitive (design-system; consumed in 1.07). |
+| `src/components/ui/label.tsx` | shadcn/ui Label primitive (design-system; consumed in 1.08 form). |
 | `src/lib/utils.ts` | `cn()` class-merge helper (clsx + tailwind-merge). |
+| `src/lib/bands.ts` | Canonical age bands (`3-5`/`6-9`/`10-13`), `getBandForAge`/`getBand`/`isValidAge`, `BANDS`/`AGES`. |
+| `src/lib/bands.test.ts` | Vitest unit tests for band boundaries + out-of-range. |
+
+## Landing page (phase 1.06)
+
+| Path | Description |
+|---|---|
+| `src/components/landing/SiteHeader.tsx` | Sticky funnel header: wordmark stand-in (home link) + language toggle. |
+| `src/components/landing/Hero.tsx` | Hero: eyebrow, h1 hook, honest explainer, age-picker card, trust row, decorative art; resolves age copy server-side. |
+| `src/components/landing/AgeStart.tsx` | Client island: age radiogroup (3–13, grouped by band) + gated Start CTA → `/test?age=N`. |
+| `src/components/landing/HowItWorks.tsx` | Three-step "how it works" (Lucide icons, numbered). |
+| `src/components/landing/TrustCues.tsx` | Four honest parent trust cues. |
+| `src/components/landing/Reassurance.tsx` | Reassurance strip with a verified IqUp brand line. |
+| `src/components/landing/SiteFooter.tsx` | Minimal footer (wordmark + line + toggle); /about + /privacy intentionally omitted. |
+| `src/components/landing/Wordmark.tsx` | `IQ UP!` wordmark stand-in (token-styled) — placeholder for the official logo. |
+| `src/components/landing/HeroArt.tsx` | Abstract decorative hero visual (`aria-hidden`) — placeholder for licensed Bibi art (never generated). |
+| `src/components/landing/Reveal.tsx` | Reduced-motion-safe entrance wrapper (Framer Motion `m`). |
+| `src/components/landing/MotionProvider.tsx` | LazyMotion provider (`domAnimation`) wrapping the page. |
 
 ## Supabase leads pipeline (phase 1.05)
 
@@ -73,14 +96,20 @@
 | `src/_project-state/00_stack-and-config.md` | Append-only stack + config log with pinned versions. |
 | `src/_project-state/Part-X-Phase-YY-Completion.template.md` | Reusable completion-report template. |
 | `src/_project-state/Part-1-Phase-02-Completion.md` | Phase 1.02 completion report. |
+| `src/_project-state/Part-1-Phase-06-Completion.md` | Phase 1.06 completion report. |
+
+## Design handovers
+
+| Path | Description |
+|---|---|
+| `docs/design-handovers/Part-1-Phase-03-Handover.md` | 1.03 Design Foundation: tokens, type, components, landing + test layout. |
 
 ## Reserved folders (tracked, filled in later phases)
 
 | Path | Description |
 |---|---|
-| `docs/design-handovers/.gitkeep` | Holds Design handover files Code reads before building screens. |
-| `public/bibi/.gitkeep` | Licensed Bibi image assets (gathered by Cowork). |
-| `public/og/.gitkeep` | Open Graph share images. |
+| `public/bibi/.gitkeep` | Licensed Bibi image assets (gathered by Cowork) — still awaiting; `HeroArt` is a placeholder until then. |
+| `public/og/.gitkeep` | Static OG images (not needed — the OG image is generated dynamically per locale). |
 | `src/content/test/.gitkeep` | Question banks per age band (MK/EN). |
 | `src/content/results/.gitkeep` | Strengths-profile result templates (MK/EN). |
 | `src/lib/scoring/.gitkeep` | Rule-based scoring + strengths mapping (phase 1.07). |
