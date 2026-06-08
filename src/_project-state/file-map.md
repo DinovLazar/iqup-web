@@ -24,7 +24,7 @@
 | `eslint.config.mjs` | ESLint flat config (next core-web-vitals + TypeScript). |
 | `postcss.config.mjs` | PostCSS config loading `@tailwindcss/postcss` (Tailwind v4). |
 | `components.json` | shadcn/ui config (radix-nova style, neutral base, lucide icons). |
-| `vitest.config.ts` | Vitest config (node env; runs `src/**/*.test.ts`). |
+| `vitest.config.ts` | Vitest config (node env; `@/*`→`src/*` alias; runs `src/**/*.test.ts`). |
 | `next-env.d.ts` | Next.js TypeScript ambient types (generated, git-ignored). |
 
 ## next-intl bilingual config
@@ -72,6 +72,39 @@
 | `src/components/landing/Reveal.tsx` | Reduced-motion-safe entrance wrapper (Framer Motion `m`). |
 | `src/components/landing/MotionProvider.tsx` | LazyMotion provider (`domAnimation`) wrapping the page. |
 
+## Test engine (phase 1.07)
+
+| Path | Description |
+|---|---|
+| `src/content/locale.ts` | Tiny shared `Locale`/`Localized` types (no i18n-runtime import) for content + scoring. |
+| `src/content/strengths.ts` | The six strengths (spec §1): codes, 1.03 colour-token binding, bilingual display names; shared by scoring + 1.10. |
+| `src/content/test/types.ts` | Content schema (spec §4, extended): `GlyphSpec`/`StemSpec` visual model, `TestOption`, `TestQuestion`, `BandContent`. |
+| `src/content/test/band-3-5.ts` | Band 3–5 bank — 10 image-only items, transcribed verbatim from spec §5A. |
+| `src/content/test/band-6-9.ts` | Band 6–9 bank — 12 text+image items, transcribed verbatim from spec §5B. |
+| `src/content/test/band-10-13.ts` | Band 10–13 bank — 14 text+abstract items, transcribed verbatim from spec §5C. |
+| `src/content/test/index.ts` | Question-bank registry: `TEST_CONTENT`, `getQuestionsForBand`, `ALL_QUESTIONS`. |
+| `src/content/test/content.test.ts` | Vitest content-integrity suite (counts, distribution, one-strength-per-Q, MK/EN parity, reveal items). |
+| `src/lib/scoring/types.ts` | `Answers`, `Tier`, `StrengthScore`, and the `TestResult` hand-off contract (no total, no IQ). |
+| `src/lib/scoring/score.ts` | Deterministic `score(answers, band, locale)` per spec §3 + the fixed `TIE_BREAK_ORDER`. |
+| `src/lib/scoring/storage.ts` | `TEST_RESULT_STORAGE_KEY = 'iqup.testResult.v1'` (the sessionStorage hand-off key). |
+| `src/lib/scoring/index.ts` | Scoring public surface (`score`, `TIE_BREAK_ORDER`, `TEST_RESULT_STORAGE_KEY`, types). |
+| `src/lib/scoring/score.test.ts` | Vitest scoring suite (ranking, tiers, determinism, no-total/no-IQ invariants). |
+| `src/app/[locale]/test/page.tsx` | Server shell for `/test`: per-locale metadata, `?age=N`→band, runner mount, age-picker fallback. |
+| `src/components/test/TestRunner.tsx` | Client island: phases (start/running/complete), answers, sessionStorage hand-off, dev preview wiring. |
+| `src/components/test/QuestionView.tsx` | One question: strength chip, prompt (h1), stem, radio-group options, + the reveal mechanic (spec §7). |
+| `src/components/test/OptionTile.tsx` | Accessible answer tile (Radix RadioGroup.Item) — image or text variant; icon+colour selected feedback. |
+| `src/components/test/ProgressHeader.tsx` | Back affordance + progress bar + "Question X of Y" (aria-live). |
+| `src/components/test/StartScreen.tsx` | Calm-play start screen: band pill, headline, meta, "Let's play" CTA. |
+| `src/components/test/CompletionView.tsx` | Temporary completion view + the `// HANDOFF (1.08)` seam; dev-only strengths summary. |
+| `src/components/test/DevBar.tsx` | Dev-only band-jump + auto-finish bar (stripped in production). |
+| `src/components/test/StrengthChip.tsx` | Colour-coded strength chip (icon dot + colour + name). |
+| `src/components/test/copy.ts` | `TestCopy` type + `fillTemplate` (server-resolved chrome strings for the island). |
+| `src/components/test/visuals/Glyph.tsx` | One puzzle glyph: Lucide for objects, original inline SVG for abstract/missing figures. |
+| `src/components/test/visuals/StemVisual.tsx` | Composes glyphs into stems (sequence/grid/count/scene/…); `role="img"` + generated alt. |
+| `src/components/test/visuals/lexicon.ts` | `toyVar`, default glyph colours, and locale-aware `stemAlt()` text-alternative generator. |
+| `src/components/test/visuals/index.ts` | Visuals barrel (`Glyph`, `StemVisual`, `stemAlt`, `toyVar`). |
+| `.claude/launch.json` | Local preview launch config (dev/prod) for the Claude preview tool (no app effect). |
+
 ## Supabase leads pipeline (phase 1.05)
 
 | Path | Description |
@@ -110,8 +143,6 @@
 |---|---|
 | `public/bibi/.gitkeep` | Licensed Bibi image assets (gathered by Cowork) — still awaiting; `HeroArt` is a placeholder until then. |
 | `public/og/.gitkeep` | Static OG images (not needed — the OG image is generated dynamically per locale). |
-| `src/content/test/.gitkeep` | Question banks per age band (MK/EN). |
-| `src/content/results/.gitkeep` | Strengths-profile result templates (MK/EN). |
-| `src/lib/scoring/.gitkeep` | Rule-based scoring + strengths mapping (phase 1.07). |
+| `src/content/results/.gitkeep` | Strengths-profile result templates (MK/EN) — phase 1.10. |
 
-*(`src/lib/supabase/.gitkeep` was removed in phase 1.05 now that the folder holds real files.)*
+*(`src/lib/supabase/.gitkeep` was removed in phase 1.05, and `src/content/test/.gitkeep` + `src/lib/scoring/.gitkeep` in phase 1.07, now that those folders hold real files.)*

@@ -171,3 +171,27 @@ resolve CSS theme tokens) — the one documented exception to the no-hardcoded-h
 the simulated slow-4G + 4× CPU throttle on a modest machine; real-world LCP ~1.2 s. Optimizations
 applied (LazyMotion, trimmed animation, body-font not preloaded, server-resolved island copy). See
 `Part-1-Phase-06-Completion.md`; finalize in 1.11.
+
+---
+
+## 2026-06-08 — Phase 1.07 test engine
+
+**No new dependencies.** The runner reuses the already-installed stack: `radix-ui` (RadioGroup),
+`lucide-react` (object icons + UI glyphs), `tw-animate-css` (`animate-in` question entrances), and
+`framer-motion`'s `useReducedMotion` hook (reveal timer branch — no `LazyMotion`/`MotionProvider`
+needed in the runner). Vitest unchanged as the test runner.
+
+**Config changes:**
+- `vitest.config.ts`: added a `resolve.alias` mapping `@` → `./src` (via `fileURLToPath`), so the new
+  content/scoring tests use the same `@/…` imports as the app (Vitest doesn't read tsconfig paths).
+- `src/app/globals.css`: added a tokenised `--toy-*` puzzle palette (red/blue/yellow/green/purple/
+  orange/pink/teal/neutral) for the test graphics — *content* colours, referenced only via tokens.
+- `.claude/launch.json` (new, dev-tooling only): `dev` + `prod` configs for the local preview tool;
+  no effect on the app build.
+
+**Routing:** `/[locale]/test` is a **dynamic** route (`ƒ`) — it reads `?age=N` from `searchParams`,
+which opts the segment out of static prerender (expected; the landing stays static).
+
+**Lighthouse (`/test`, production `next start`):** A11y / Best-Practices / SEO = **100** on mobile +
+desktop, both locales; Performance **desktop 100** both locales, **mobile 88–97** (at/above the
+landing's documented ~87 web-font-gated baseline — same root cause, no regression). Finalize in 1.11.

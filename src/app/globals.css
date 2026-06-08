@@ -61,6 +61,14 @@
   --strength-spatial: #109b8e;  --strength-spatial-tint: #ddf3f0;  --strength-spatial-ink: #0a625a;
   --strength-numeracy:#e08a12;  --strength-numeracy-tint:#fcefd6;  --strength-numeracy-ink:#8a5206;
   --strength-verbal:  #2e9e58;  --strength-verbal-tint:  #e2f4e8;  --strength-verbal-ink:  #1a6638;
+
+  /* ---- toy palette (test-engine puzzle graphics, Phase 1.07) ----
+     These are *content* colours: a "red circle" must read as red. Kept as
+     tokens (no literal hex in components) and chosen vivid + child-friendly,
+     each carrying a shared dark ink outline (var(--ink)) for edge definition. */
+  --toy-red: #e5484d;     --toy-blue: #1e88c7;   --toy-yellow: #f5b50a;
+  --toy-green: #1e9e5a;   --toy-purple: #7a5af0; --toy-orange: #ef7d28;
+  --toy-pink: #e05a8a;    --toy-teal: #109b8e;   --toy-neutral: #6b6680;
 }
 
 @theme inline {

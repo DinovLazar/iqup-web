@@ -85,5 +85,40 @@
       "headline": "Discover your child's brain superpowers",
       "tagline": "Free brain games · 5–10 minutes"
     }
+  },
+  "Test": {
+    "meta": {
+      "title": "IqUp Brain Games — play the test",
+      "description": "Play the free IqUp brain games. Short, playful puzzles that reveal what your child is great at — no scores, no IQ number."
+    },
+    "start": {
+      "title": "Ready for an adventure?",
+      "subtitle": "There are no right or wrong answers — just look, think, and have fun.",
+      "metaCount": "{count} short games",
+      "metaTime": "about 5–10 minutes",
+      "cta": "Let's play"
+    },
+    "progress": "Question {current} of {total}",
+    "progressAria": "Question {current} of {total}",
+    "back": "Back",
+    "next": "Next",
+    "finish": "See your results",
+    "reveal": {
+      "title": "Memory game",
+      "intro": "Look carefully and remember what you see.",
+      "ready": "Ready?",
+      "show": "Show me",
+      "watching": "Remember this…",
+      "hide": "I'm ready"
+    },
+    "completion": {
+      "title": "All done — great playing!",
+      "body": "We're putting your child's strengths together now.",
+      "note": "Your results are on the way."
+    },
+    "age": {
+      "title": "Let's start — how old is your child?",
+      "lead": "Pick an age to play the right games."
+    }
   }
 }
