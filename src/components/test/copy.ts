@@ -27,11 +27,6 @@ export interface TestCopy {
     watching: string;
     hide: string;
   };
-  completion: {
-    title: string;
-    body: string;
-    note: string;
-  };
 }
 
 /** Fill `{name}` placeholders in a template string. */

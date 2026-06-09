@@ -111,14 +111,51 @@
       "watching": "Remember this…",
       "hide": "I'm ready"
     },
-    "completion": {
-      "title": "All done — great playing!",
-      "body": "We're putting your child's strengths together now.",
-      "note": "Your results are on the way."
-    },
     "age": {
       "title": "Let's start — how old is your child?",
       "lead": "Pick an age to play the right games."
     }
+  },
+  "Gate": {
+    "forParent": "A grown-up step",
+    "heading": "Just one last step",
+    "intro": "Enter your email to see your child's results. We only use it to send the results and information about IqUp — no spam.",
+    "preview": "Unlock {name}'s strengths.",
+    "email": {
+      "label": "Parent's email",
+      "placeholder": "you@example.com",
+      "errorRequired": "Enter an email so we can send the results.",
+      "errorInvalid": "Enter a valid email address."
+    },
+    "childName": {
+      "label": "Child's first name",
+      "placeholder": "e.g. Ana",
+      "errorRequired": "Enter your child's first name.",
+      "errorTooLong": "That name is too long."
+    },
+    "consent": {
+      "label": "I'm the parent or guardian and I agree to IqUp using this information to send the results and details about IqUp's programs. See our Privacy Policy.",
+      "error": "Please tick the box to continue."
+    },
+    "marketing": {
+      "label": "Send me occasional tips and news from IqUp."
+    },
+    "privacyNote": "Your data is stored securely in the EU and is only used for the results and information about IqUp.",
+    "submit": "See the results",
+    "submitting": "Sending…",
+    "error": "Something went wrong sending your details. Your child's results are safe — please try again.",
+    "honeypotLabel": "Leave this field empty"
+  },
+  "Result": {
+    "meta": {
+      "title": "Results — IqUp brain games",
+      "description": "A warm look at your child's strengths from the IqUp game."
+    },
+    "badge": "Temporary preview",
+    "heading": "{name}'s strengths",
+    "intro": "Here's a first look at what shines.",
+    "topStrengthsLabel": "Top strengths",
+    "note": "This is a temporary preview — the full strengths profile and certificate are coming soon.",
+    "home": "Back to start"
   }
 }

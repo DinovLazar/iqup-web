@@ -195,3 +195,45 @@ which opts the segment out of static prerender (expected; the landing stays stat
 **Lighthouse (`/test`, production `next start`):** A11y / Best-Practices / SEO = **100** on mobile +
 desktop, both locales; Performance **desktop 100** both locales, **mobile 88–97** (at/above the
 landing's documented ~87 web-font-gated baseline — same root cause, no regression). Finalize in 1.11.
+
+---
+
+## 2026-06-09 — Phase 1.08 email gate + lead capture
+
+**No new dependencies.** The gate reuses the already-installed stack: the unified **`radix-ui`**
+package (the new `Checkbox` primitive imports `Checkbox` from it — the brief had anticipated adding
+`@radix-ui/react-checkbox`, but the unified package already re-exports it, so **zero** deps added),
+`lucide-react` (Lock / Loader2 / Check icons), `zod`/`@supabase/supabase-js` (the existing leads
+pipeline), and React 19 built-ins. Vitest unchanged.
+
+**New UI primitives (shadcn radix-nova style):** `src/components/ui/input.tsx` (handover §B.5: 52px,
+2px border, `--field` fill, focus → white + blue ring, `aria-invalid` error state) and
+`src/components/ui/checkbox.tsx` (radix `Checkbox`, `data-[state=checked]` → `--secondary` fill +
+white check). Both reference tokens only — no hardcoded hex.
+
+**New routes / structure:**
+- `/[locale]/result` — a **static (SSG)** route: a Server-Component shell + a client island
+  (`ResultPlaceholder`) that reads sessionStorage on the client (`useSyncExternalStore`, so no
+  hydration mismatch and no `set-state-in-effect` lint violation) and guards direct access. Temporary
+  (1.10 replaces the island). Per-locale `generateMetadata` (title/description/canonical/hreflang/OG).
+- `src/lib/leads/{lead-mapping,submit-lead,lead-context}.ts` — the gate's logic layer.
+  `submit-lead.ts` is a `'use server'` action; `lead-mapping.ts` + `lead-context.ts` are pure/
+  isomorphic (no `server-only` import) so they run on the client and in Vitest.
+
+**Server action:** `submitLead` (`'use server'`) is the gate's submit entry point; it builds the lead
+and calls the existing service-role `insertLead()` — the anon key still never writes leads.
+
+**Code-splitting:** `TestRunner` loads `EmailGate` via `next/dynamic` (`ssr:false`), keeping the
+gate's JS out of the initial `/test` bundle until the `gate` phase (a measured mobile-perf win:
+`/test` mobile Performance returned to the ~88 web-font-gated baseline).
+
+**Env:** unchanged — the gate writes through the existing `SUPABASE_SERVICE_ROLE_KEY` /
+`NEXT_PUBLIC_SUPABASE_URL` path from 1.05. (`NEXT_PUBLIC_SITE_URL` remains unset → `metadataBase`
+falls back to `http://localhost:3000`; this also surfaces as a local Lighthouse SEO canonical
+artifact when the prod server runs on a different port — resolved by setting the real domain in 2.06.)
+
+**Lighthouse (`/test` route — hosts the gate; production `next start`):** Desktop **100/100/100/100**;
+mobile **Perf 88** / A11y 100 / BP 100. SEO is 100 on the origin-matched server (the port-mismatch
+canonical artifact above aside). The gate + `/result` content states sit behind sessionStorage/
+interaction (not cold-loadable by Lighthouse) and were verified structurally (a11y tree, computed
+contrast, head metadata). Final perf sweep stays 1.11.

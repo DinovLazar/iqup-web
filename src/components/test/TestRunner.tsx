@@ -9,34 +9,48 @@ import type {BandKey} from '@/lib/bands';
 import {score, TEST_RESULT_STORAGE_KEY, type Answers, type TestResult} from '@/lib/scoring';
 import {Button} from '@/components/ui/button';
 import {cn} from '@/lib/utils';
+import dynamic from 'next/dynamic';
+import type {GateCopy} from '@/components/gate/copy';
+
+// The email gate is only reached after the whole test is finished, so code-split
+// it: its JS (the form + radix checkbox + the submit server-action binding) stays
+// out of the initial `/test` bundle and loads when the gate phase renders.
+const EmailGate = dynamic(
+  () => import('@/components/gate/EmailGate').then((m) => m.EmailGate),
+  {ssr: false, loading: () => <div className="min-h-[40vh]" aria-hidden />}
+);
 import type {TestCopy} from './copy';
 import {fillTemplate} from './copy';
-import {CompletionView} from './CompletionView';
 import {DevBar} from './DevBar';
 import {ProgressHeader} from './ProgressHeader';
 import {QuestionView} from './QuestionView';
 import {StartScreen} from './StartScreen';
 
-type Phase = 'start' | 'running' | 'complete';
+type Phase = 'start' | 'running' | 'gate';
 
 /**
  * The one interactive island for the test. Resolves its band's questions, runs
  * them one at a time (progress, Back/Next, the reveal mechanic), and on the final
- * answer computes the `TestResult`, persists it to sessionStorage, and shows the
- * temporary completion view. All chrome copy arrives as props (resolved server-
- * side) so the island ships no translation runtime.
+ * answer computes the `TestResult`, persists it to sessionStorage, and hands off
+ * to the email gate. All chrome copy arrives as props (resolved server-side) so
+ * the island ships no translation runtime.
  */
 export function TestRunner({
   band,
   bandLabel,
+  age,
   locale,
   copy,
+  gateCopy,
   dev = false
 }: {
   band: BandKey;
   bandLabel: string;
+  /** Exact child age carried from `/test?age=N` — submitted by the gate, never re-asked. */
+  age: number;
   locale: Locale;
   copy: TestCopy;
+  gateCopy: GateCopy;
   dev?: boolean;
 }) {
   const questions = useMemo<TestQuestion[]>(
@@ -68,11 +82,13 @@ export function TestRunner({
         );
       } catch {
         // Storage may be unavailable (private mode); the in-memory result still
-        // drives the completion view. 1.08 will re-validate presence of the key.
+        // drives the gate. /result re-validates presence of the key on its own.
       }
-      // HANDOFF (1.08): email gate intercepts here before results
+      // HANDOFF (1.08): the email gate is the post-test step — it reads this
+      // in-memory result (and the persisted copy) to submit the lead, then
+      // sends the parent on to /result.
       setResult(computed);
-      setPhase('complete');
+      setPhase('gate');
     },
     [band, locale]
   );
@@ -169,8 +185,14 @@ export function TestRunner({
           </div>
         )}
 
-        {phase === 'complete' && (
-          <CompletionView copy={copy} dev={dev} result={result} locale={locale} />
+        {phase === 'gate' && (
+          <EmailGate
+            result={result}
+            age={age}
+            locale={locale}
+            copy={gateCopy}
+            dev={dev}
+          />
         )}
       </div>
 

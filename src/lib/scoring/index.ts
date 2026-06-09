@@ -6,7 +6,7 @@
  * with NO total score and NO IQ number anywhere.
  */
 export {score, TIE_BREAK_ORDER} from './score';
-export {TEST_RESULT_STORAGE_KEY} from './storage';
+export {TEST_RESULT_STORAGE_KEY, isTestResult, readTestResult} from './storage';
 export type {
   Answers,
   StrengthScore,

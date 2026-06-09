@@ -2,7 +2,7 @@
 
 > Live snapshot of the repo. **Code updates this at the end of every phase.** If this and the live code ever disagree, the live code wins.
 
-**Last updated:** 2026-06-08 — after Phase 1.07 (test engine: content, scoring, runner, hand-off).
+**Last updated:** 2026-06-09 — after Phase 1.08 (email gate + lead capture: gate form, server-action submit, temporary `/result`). The funnel is now complete end-to-end: land → test → email gate → results.
 
 ---
 
@@ -37,6 +37,12 @@ Not installed yet (deferred to the phase that needs them): analytics / Microsoft
   reads `?age=N`, resolves the band via `getBandForAge`, mounts the client runner, and (on a missing/
   invalid age) renders an inline age-picker fallback that reuses the landing's `AgeStart`. Per-locale
   `generateMetadata` (title/description/canonical/hreflang/OG). **Dynamic route** (reads searchParams).
+  Now passes the exact `age` and the resolved gate copy to the runner (phase 1.08).
+- `src/app/[locale]/result/page.tsx` — the **temporary results page** (phase 1.08): a Server Component
+  shell + a client island (`ResultPlaceholder`) that reads `iqup.testResult.v1` + `iqup.leadContext.v1`
+  from sessionStorage and shows the child's first name + top 3 strengths (clearly a placeholder; **no
+  total/IQ/certificate**). Guards direct access (redirects home if either key is missing). Per-locale
+  `generateMetadata`. **Static (SSG)** route. 1.10 replaces the island at the `// PLUGS INTO 1.10` seam.
 - Locale routing works: `/` serves MK, `/en` serves EN, and `/mk` 307-redirects to the canonical `/` (next-intl `as-needed`).
 - `/_not-found` is handled by Next.js's default.
 
@@ -48,14 +54,17 @@ Not installed yet (deferred to the phase that needs them): analytics / Microsoft
   `MotionProvider` (LazyMotion entrance animation).
 - `src/components/LanguageToggle.tsx` — accessible MK/EN **pill** switcher; preserves the current
   path (sets `NEXT_LOCALE` on switch); takes its label as a prop.
-- `src/components/ui/` — `button.tsx`, `card.tsx` (used), `radio-group.tsx` + `label.tsx`
-  (design-system primitives added per the handover; consumed in 1.07/1.08).
+- `src/components/ui/` — `button.tsx`, `card.tsx`, `radio-group.tsx`, `label.tsx`, and (1.08)
+  `input.tsx` + `checkbox.tsx` (handover §B.5 primitives on the unified `radix-ui` package).
+- `src/components/gate/` — `EmailGate` (the 1.08 email-gate form island) + `copy.ts` (`GateCopy`).
+- `src/components/result/` — `ResultPlaceholder` (the 1.08 temporary results island).
 - `src/lib/bands.ts` — canonical band definitions (`3-5`/`6-9`/`10-13`), `getBandForAge`,
   `isValidAge`, `BANDS`/`AGES` (+ `bands.test.ts`, Vitest).
-- `src/components/test/` — the runner island and its parts: `TestRunner` (phases + answers +
-  hand-off + dev wiring), `QuestionView` (one question + reveal mechanic), `OptionTile`,
-  `ProgressHeader`, `StartScreen`, `CompletionView`, `DevBar`, `StrengthChip`, `copy.ts`, and
-  `visuals/` (`Glyph`, `StemVisual`, `lexicon`) — original inline-SVG + Lucide puzzle graphics.
+- `src/components/test/` — the runner island and its parts: `TestRunner` (phases start/running/**gate**
+  + answers + hand-off + dev wiring; dynamic-imports `EmailGate`), `QuestionView` (one question +
+  reveal mechanic), `OptionTile`, `ProgressHeader`, `StartScreen`, `DevBar`, `StrengthChip`, `copy.ts`,
+  and `visuals/` (`Glyph`, `StemVisual`, `lexicon`) — original inline-SVG + Lucide puzzle graphics.
+  (The temporary 1.07 `CompletionView` was removed in 1.08 — the email gate is now the post-test step.)
 
 ## Test engine (phase 1.07)
 
@@ -75,10 +84,11 @@ Not installed yet (deferred to the phase that needs them): analytics / Microsoft
   top1, top2, top3, growing[], completedAt }`. On the final answer the runner computes it, stamps
   `completedAt`, and persists it to **`sessionStorage['iqup.testResult.v1']`** (`TEST_RESULT_STORAGE_KEY`).
   No child data is ever placed in the URL (only `age`).
-- **1.08 plugs in** at the `// HANDOFF (1.08)` seam in `TestRunner`/`CompletionView` — it should
-  intercept after completion (read the sessionStorage result) and call `insertLead()` from 1.05.
-  **1.10 plugs in** by reading the same `TestResult` and rendering the strengths profile + certificate
-  from the §6 templates (it imports the strengths taxonomy from `src/content/strengths.ts`).
+- **1.08 plugged in** at the `// HANDOFF (1.08)` seam: the runner now ends in a `gate` phase rendering
+  `EmailGate` (which reads the in-memory + persisted `TestResult`) and submits the summary-only lead.
+  **1.10 plugs in** by reading the same `TestResult` (+ the `iqup.leadContext.v1` lead-context written
+  by the gate) and rendering the strengths profile + certificate from the §6 templates at the
+  `// PLUGS INTO 1.10` seam in `src/components/result/ResultPlaceholder.tsx`.
 - **Reveal mechanic** (spec §7) for the 5 memory items: "Ready?" → stimulus shown for `revealMs` →
   auto-hides → question; reduced-motion gets a manual Show / "I'm ready" path (no timer).
 - **i18n:** a `Test` namespace in `mk.json` + `en.json` (exact key parity) holds the runner chrome;
@@ -86,11 +96,32 @@ Not installed yet (deferred to the phase that needs them): analytics / Microsoft
 - **Dev preview:** `/test?age=N&dev=1` (non-production only) shows a band-jump + auto-finish bar and a
   strengths summary on completion; forced off / stripped in production.
 
+## Email gate + lead capture (phase 1.08)
+
+- **The gate** (`src/components/gate/EmailGate.tsx`): a parent-mood form at the runner's `gate` phase —
+  parent email, child first name (Cyrillic + Latin), **required** consent, **optional/unchecked**
+  marketing, and an off-screen honeypot. `age`/`band`/`locale`/strengths-summary are carried through
+  (in-memory `TestResult` + the page's `?age=N`), never re-asked, never in the URL. WCAG 2.2 AA:
+  associated labels, `aria-invalid`/`aria-describedby`, focus to the first invalid field, `role="alert"`
+  error banner, keyboard checkboxes, ≥44px label-row targets, AA contrast.
+- **Submit** (`src/lib/leads/submit-lead.ts`, `'use server'`): honeypot check first (filled → success-
+  shaped, no insert) → `buildLeadInput` → existing service-role `insertLead()`; everything re-validated
+  by `leadSchema`. Pure mapping in `src/lib/leads/lead-mapping.ts` (`LEAD_BAND_BY_KEY` 3-5/6-9/10-13 →
+  band-a/b/c; `toTopStrengths` = `{top1,top2,top3,scores}`, scores = per-strength ratio, number-only;
+  `CONSENT_VERSION = 'v1-draft-2026-06'`).
+- **Hand-off** (`src/lib/leads/lead-context.ts`): on success the gate persists `iqup.leadContext.v1`
+  (`{childFirstName, age, submittedAt}` — no email/strengths) and navigates to `/result`.
+- **Guardrails (verified):** no answers, no IQ/total anywhere (lead, gate, `/result`); summary-only;
+  server-side write only (anon denied); consent mandatory + separate from marketing; no PII in URL.
+- **i18n:** `Gate` + `Result` namespaces in `mk.json`/`en.json` (exact parity; provisional MK flagged).
+  The Privacy Policy reference is plain text with a `// TODO(privacy-page)` seam (Part 2).
+- **Dev:** `?dev=1` auto-finish now lands on the gate (stripped in production).
+
 ## Bilingual shell
 
 - next-intl wired: `routing.ts` (locales `mk`/`en`, default `mk`, `localePrefix: 'as-needed'`), `request.ts` (loads `src/messages/<locale>.json`), `navigation.ts`, and `src/proxy.ts` (Next 16 middleware convention).
 - Per-locale `<html lang>` and hreflang alternates (`mk` → `/`, `en` → `/en`, `x-default` → `/`); landing also sets per-locale canonical + OG.
-- UI strings in `src/messages/mk.json` and `src/messages/en.json` (Meta + Landing namespaces; exact key parity). **All landing copy is draft pending native-MK review.**
+- UI strings in `src/messages/mk.json` and `src/messages/en.json` (Meta, Landing, Test, Gate, Result namespaces; exact key parity, enforced by `src/messages/messages.test.ts`). **All copy is draft pending native-MK review.**
 
 ## Integrations wired
 
@@ -102,12 +133,37 @@ Not installed yet (deferred to the phase that needs them): analytics / Microsoft
   (`src/lib/supabase/server.ts`). A browser anon client (`client.ts`) exists for
   future non-leads use. Proven end-to-end by `npm run test:insert` (anon is denied
   read + write; service-role insert/read/cleanup works; table left empty).
-  **The email-gate form + submit route (1.08) just need to call `insertLead()`.**
+  **Phase 1.08 now drives this:** the email gate's `'use server'` `submitLead` action (after a
+  honeypot check) builds the snake_case lead and calls `insertLead()` — verified live (real rows
+  inserted in both locales with the summary only + correct band map, then deleted; anon still denied).
 - analytics / Pixel / email = Part 2.
 
 ## Reserved folders (created, awaiting content)
 
 `public/bibi/` (licensed Bibi art — still awaiting; `HeroArt` is an abstract placeholder until it lands), `public/og/` (no static OG needed — the OG image is dynamic), `src/content/results/` — tracked with a `.gitkeep` (strengths-profile templates land in 1.10). (`src/lib/supabase/`, `src/content/test/`, `src/lib/scoring/`, and `docs/design-handovers/` now hold real files.)
+
+## Quality checks (Phase 1.08)
+
+- `npm run build`, `npm run lint`, `npm run typecheck`, `npm test` (**73/73**) — all clean. New
+  suites: `submit-lead` (band map, summary-only/no-IQ, consent-false rejected, honeypot no-insert,
+  unknown-key stripping, action flow), i18n parity (`messages.test.ts`), and the `/result` storage +
+  lead-context guards.
+- **Live funnel** (both locales, `?dev=1` fast-finish): landing → test → gate → submit → `/result`
+  showing name + top 3. EN (age 7 → band-b, Cyrillic) and MK (age 11 → band-c, Latin, marketing on)
+  each inserted a **summary-only** row (correct band map, `consent_version` stamped) — read back,
+  then **every test row deleted** (table left at 0). Anon read+write still denied (`test:insert`).
+  Validation (empty + invalid email) shows field errors + moves focus to the first invalid field;
+  honeypot is off-screen / `tabIndex -1` / `aria-hidden`; `/result` direct-visit redirects home.
+- Mobile (375px): no overflow; submit 56px, input 52px, consent row ≥44px; CLS ~0.
+- **Lighthouse** (`/test` route — hosts the gate; production): desktop **100/100/100/100**; mobile
+  **Perf 88** / A11y 100 / BP 100; SEO **100** origin-matched (a localhost-port `metadataBase`
+  artifact aside). Mobile Perf at the documented web-font-gated baseline — no regression (the gate is
+  code-split out of the initial `/test` bundle). Gate + `/result` content states (behind
+  sessionStorage/interaction) verified structurally (a11y tree, computed contrast, head metadata).
+- _(Screenshots not captured — the local preview screenshot tool times out in this environment, as in
+  1.07; visuals/a11y verified via accessibility-tree snapshots + computed-style inspection instead.)_
+- A fresh-context review subagent found **zero blockers**; its one should-fix (orphaned
+  `Test.completion` copy after the `CompletionView` removal) was fixed.
 
 ## Quality checks (Phase 1.07)
 
@@ -152,6 +208,10 @@ baseline: both locales prerender, language toggle works.)_
   more provisional MK to review:** every test question + option (the 36 items, MK verbatim from the
   1.04 spec), the `Test` chrome strings, and the generated stem alt-text in `visuals/lexicon.ts` — all
   Claude-drafted/transcribed and pending native-MK review (EN is the mirror and must stay equivalent).
+  **Phase 1.08 adds the `Gate` + `Result` strings**, including the **draft consent + marketing wording**
+  — provisional MK, and the consent/marketing wording also needs **IqUp legal sign-off** (it is tied to
+  `CONSENT_VERSION = 'v1-draft-2026-06'` in `src/lib/leads/lead-mapping.ts`; bump the version when the
+  wording is finalised). The `/privacy` page + the consent-link land in Part 2 (plain-text seam now).
 - **`/test` language toggle drops `?age` mid-test** — `LanguageToggle` uses `usePathname` (query-less),
   so switching MK/EN during the test returns to the age picker rather than preserving the age. Minor;
   carry the age across the locale switch in a later polish pass if desired.
@@ -182,10 +242,10 @@ baseline: both locales prerender, language toggle works.)_
 
 ## Suggested next phase
 
-**1.08 — Email gate:** intercept at the `// HANDOFF (1.08)` seam (after test completion, before
-results), capture the parent email/consent, read the `TestResult` from `sessionStorage`
-(`iqup.testResult.v1`), and call `insertLead()` from 1.05 (storing only the `top_strengths` summary,
-never raw answers). And/or **1.10 — Results + certificate:** read the same `TestResult`, import the
-strengths taxonomy from `src/content/strengths.ts`, and render the strengths profile + shareable
-certificate from the 1.04 spec §6 templates (create `src/content/results/`). Both now have a clean,
-typed hand-off to build on; the test engine, band definitions, and lead plumbing are done and verified.
+**1.09 (Design) → 1.10 (Build) — Results + certificate:** replace the temporary `/result` island at
+the `// PLUGS INTO 1.10` seam in `src/components/result/ResultPlaceholder.tsx` with the real strengths
+profile + shareable certificate. It reads the same hand-off the gate already produces — the persisted
+`TestResult` (`iqup.testResult.v1`) + the lead context (`iqup.leadContext.v1`, `{childFirstName, age,
+submittedAt}`) — and imports the strengths taxonomy from `src/content/strengths.ts`, building from the
+1.04 spec §6 templates (create `src/content/results/`). **1.11** finalises the mobile-perf sweep.
+The whole funnel (land → test → email gate → lead saved → results) is now wired and verified.

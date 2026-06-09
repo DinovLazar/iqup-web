@@ -35,8 +35,9 @@
 | `src/i18n/request.ts` | Per-request next-intl config; loads `src/messages/<locale>.json`. |
 | `src/i18n/navigation.ts` | Locale-aware navigation APIs (`Link`, `redirect`, `usePathname`, …). |
 | `src/proxy.ts` | Next.js 16 proxy (ex-middleware) applying next-intl locale routing. |
-| `src/messages/mk.json` | Macedonian UI strings (Meta + Landing namespaces; default locale; draft). |
+| `src/messages/mk.json` | Macedonian UI strings (Meta, Landing, Test, Gate, Result namespaces; default locale; draft). |
 | `src/messages/en.json` | English UI strings (mirror of mk.json; draft). |
+| `src/messages/messages.test.ts` | Vitest i18n parity suite (identical mk↔en key sets + matching `{placeholders}` + no empty strings). |
 
 ## App shell & components
 
@@ -51,7 +52,9 @@
 | `src/components/ui/button.tsx` | shadcn/ui Button primitive. |
 | `src/components/ui/card.tsx` | shadcn/ui Card primitive (used by the hero + step/trust cards). |
 | `src/components/ui/radio-group.tsx` | shadcn/ui RadioGroup primitive (design-system; consumed in 1.07). |
-| `src/components/ui/label.tsx` | shadcn/ui Label primitive (design-system; consumed in 1.08 form). |
+| `src/components/ui/label.tsx` | shadcn/ui Label primitive (used by the 1.08 gate form). |
+| `src/components/ui/input.tsx` | shadcn/ui Input primitive (handover §B.5: 52px, error/focus states) — 1.08 gate. |
+| `src/components/ui/checkbox.tsx` | shadcn/ui Checkbox primitive (unified `radix-ui`; consent + marketing) — 1.08 gate. |
 | `src/lib/utils.ts` | `cn()` class-merge helper (clsx + tailwind-merge). |
 | `src/lib/bands.ts` | Canonical age bands (`3-5`/`6-9`/`10-13`), `getBandForAge`/`getBand`/`isValidAge`, `BANDS`/`AGES`. |
 | `src/lib/bands.test.ts` | Vitest unit tests for band boundaries + out-of-range. |
@@ -86,16 +89,16 @@
 | `src/content/test/content.test.ts` | Vitest content-integrity suite (counts, distribution, one-strength-per-Q, MK/EN parity, reveal items). |
 | `src/lib/scoring/types.ts` | `Answers`, `Tier`, `StrengthScore`, and the `TestResult` hand-off contract (no total, no IQ). |
 | `src/lib/scoring/score.ts` | Deterministic `score(answers, band, locale)` per spec §3 + the fixed `TIE_BREAK_ORDER`. |
-| `src/lib/scoring/storage.ts` | `TEST_RESULT_STORAGE_KEY = 'iqup.testResult.v1'` (the sessionStorage hand-off key). |
-| `src/lib/scoring/index.ts` | Scoring public surface (`score`, `TIE_BREAK_ORDER`, `TEST_RESULT_STORAGE_KEY`, types). |
+| `src/lib/scoring/storage.ts` | `TEST_RESULT_STORAGE_KEY` + `isTestResult`/`readTestResult` (the sessionStorage hand-off key + typed reader/guard). |
+| `src/lib/scoring/storage.test.ts` | Vitest guard suite for `isTestResult` (valid/invalid persisted results). |
+| `src/lib/scoring/index.ts` | Scoring public surface (`score`, `TIE_BREAK_ORDER`, `TEST_RESULT_STORAGE_KEY`, `isTestResult`, `readTestResult`, types). |
 | `src/lib/scoring/score.test.ts` | Vitest scoring suite (ranking, tiers, determinism, no-total/no-IQ invariants). |
-| `src/app/[locale]/test/page.tsx` | Server shell for `/test`: per-locale metadata, `?age=N`→band, runner mount, age-picker fallback. |
-| `src/components/test/TestRunner.tsx` | Client island: phases (start/running/complete), answers, sessionStorage hand-off, dev preview wiring. |
+| `src/app/[locale]/test/page.tsx` | Server shell for `/test`: per-locale metadata, `?age=N`→band, runner mount (passes `age` + resolved `gateCopy`), age-picker fallback. |
+| `src/components/test/TestRunner.tsx` | Client island: phases (start/running/**gate**), answers, sessionStorage hand-off, dynamic-imported `EmailGate`, dev preview wiring. |
 | `src/components/test/QuestionView.tsx` | One question: strength chip, prompt (h1), stem, radio-group options, + the reveal mechanic (spec §7). |
 | `src/components/test/OptionTile.tsx` | Accessible answer tile (Radix RadioGroup.Item) — image or text variant; icon+colour selected feedback. |
 | `src/components/test/ProgressHeader.tsx` | Back affordance + progress bar + "Question X of Y" (aria-live). |
 | `src/components/test/StartScreen.tsx` | Calm-play start screen: band pill, headline, meta, "Let's play" CTA. |
-| `src/components/test/CompletionView.tsx` | Temporary completion view + the `// HANDOFF (1.08)` seam; dev-only strengths summary. |
 | `src/components/test/DevBar.tsx` | Dev-only band-jump + auto-finish bar (stripped in production). |
 | `src/components/test/StrengthChip.tsx` | Colour-coded strength chip (icon dot + colour + name). |
 | `src/components/test/copy.ts` | `TestCopy` type + `fillTemplate` (server-resolved chrome strings for the island). |
@@ -104,6 +107,20 @@
 | `src/components/test/visuals/lexicon.ts` | `toyVar`, default glyph colours, and locale-aware `stemAlt()` text-alternative generator. |
 | `src/components/test/visuals/index.ts` | Visuals barrel (`Glyph`, `StemVisual`, `stemAlt`, `toyVar`). |
 | `.claude/launch.json` | Local preview launch config (dev/prod) for the Claude preview tool (no app effect). |
+
+## Email gate + temporary results (phase 1.08)
+
+| Path | Description |
+|---|---|
+| `src/components/gate/EmailGate.tsx` | The parent-facing email-gate form island (email, child name, required consent, optional marketing, honeypot); validates, calls the submit action, persists lead-context, navigates to `/result`. |
+| `src/components/gate/copy.ts` | `GateCopy` type + `fillName` (server-resolved gate chrome strings). |
+| `src/lib/leads/lead-mapping.ts` | Pure/isomorphic mapping: `LEAD_BAND_BY_KEY`, `toTopStrengths` (summary), `buildLeadInput`, `CONSENT_VERSION`, `GateSubmission`/`SubmitResult` types. |
+| `src/lib/leads/submit-lead.ts` | `'use server'` `submitLead` action: honeypot check → `buildLeadInput` → existing service-role `insertLead()`; returns a typed friendly result. |
+| `src/lib/leads/submit-lead.test.ts` | Vitest suite: band map, summary-only/no-IQ, consent-false rejected, honeypot no-insert, unknown-key stripping, action control flow. |
+| `src/lib/leads/lead-context.ts` | `iqup.leadContext.v1` sessionStorage hand-off (`LeadContext` + `isLeadContext`/read/write) — the "gate completed" signal for `/result`. |
+| `src/lib/leads/lead-context.test.ts` | Vitest guard suite for `isLeadContext`. |
+| `src/app/[locale]/result/page.tsx` | Temporary `/result` Server shell: per-locale metadata, resolves `ResultCopy`, mounts the island. |
+| `src/components/result/ResultPlaceholder.tsx` | Temporary client island: reads `TestResult` + lead-context (via `useSyncExternalStore`), guards direct access, shows name + top 3 strengths. `// PLUGS INTO 1.10` seam. |
 
 ## Supabase leads pipeline (phase 1.05)
 
@@ -129,7 +146,10 @@
 | `src/_project-state/00_stack-and-config.md` | Append-only stack + config log with pinned versions. |
 | `src/_project-state/Part-X-Phase-YY-Completion.template.md` | Reusable completion-report template. |
 | `src/_project-state/Part-1-Phase-02-Completion.md` | Phase 1.02 completion report. |
+| `src/_project-state/Part-1-Phase-05-Completion.md` | Phase 1.05 completion report. |
 | `src/_project-state/Part-1-Phase-06-Completion.md` | Phase 1.06 completion report. |
+| `src/_project-state/Part-1-Phase-07-Completion.md` | Phase 1.07 completion report. |
+| `src/_project-state/Part-1-Phase-08-Completion.md` | Phase 1.08 completion report. |
 
 ## Design handovers
 

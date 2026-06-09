@@ -7,6 +7,7 @@ import {SiteHeader} from '@/components/landing/SiteHeader';
 import {Card} from '@/components/ui/card';
 import {TestRunner} from '@/components/test/TestRunner';
 import type {TestCopy} from '@/components/test/copy';
+import type {GateCopy} from '@/components/gate/copy';
 
 type Props = {
   params: Promise<{locale: string}>;
@@ -72,8 +73,10 @@ export default async function TestPage({params, searchParams}: Props) {
           <TestRunner
             band={band}
             bandLabel={await bandLabel(locale, band)}
+            age={age}
             locale={loc}
             copy={await resolveCopy(locale)}
+            gateCopy={await resolveGateCopy(locale)}
             dev={dev}
           />
         ) : (
@@ -107,12 +110,42 @@ async function resolveCopy(locale: string): Promise<TestCopy> {
       show: t('reveal.show'),
       watching: t('reveal.watching'),
       hide: t('reveal.hide')
-    },
-    completion: {
-      title: t('completion.title'),
-      body: t('completion.body'),
-      note: t('completion.note')
     }
+  };
+}
+
+/** Resolve the email-gate copy server-side (templated `preview` via `.raw`). */
+async function resolveGateCopy(locale: string): Promise<GateCopy> {
+  const t = await getTranslations({locale, namespace: 'Gate'});
+  return {
+    forParent: t('forParent'),
+    heading: t('heading'),
+    intro: t('intro'),
+    preview: t.raw('preview'),
+    email: {
+      label: t('email.label'),
+      placeholder: t('email.placeholder'),
+      errorRequired: t('email.errorRequired'),
+      errorInvalid: t('email.errorInvalid')
+    },
+    childName: {
+      label: t('childName.label'),
+      placeholder: t('childName.placeholder'),
+      errorRequired: t('childName.errorRequired'),
+      errorTooLong: t('childName.errorTooLong')
+    },
+    consent: {
+      label: t('consent.label'),
+      error: t('consent.error')
+    },
+    marketing: {
+      label: t('marketing.label')
+    },
+    privacyNote: t('privacyNote'),
+    submit: t('submit'),
+    submitting: t('submitting'),
+    error: t('error'),
+    honeypotLabel: t('honeypotLabel')
   };
 }
 
