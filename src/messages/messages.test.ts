@@ -53,11 +53,16 @@ describe('i18n message parity (mk ↔ en)', () => {
       'Gate.submitting',
       'Gate.error',
       'Result.meta.title',
-      'Result.badge',
-      'Result.heading',
-      'Result.topStrengthsLabel',
-      'Result.note',
-      'Result.home'
+      'Result.og.headline',
+      'Result.hero.title',
+      'Result.constellation.celebratedTitle',
+      'Result.constellation.growingTitle',
+      'Result.certificate.download',
+      'Result.certificate.share',
+      'Result.certificate.alt',
+      'Result.trial.heading',
+      'Result.trial.pickLabel',
+      'Result.ending.heading'
     ];
     for (const key of required) {
       expect(mkPaths.has(key), `mk missing ${key}`).toBe(true);

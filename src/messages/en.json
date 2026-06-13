@@ -151,11 +151,55 @@
       "title": "Results — IqUp brain games",
       "description": "A warm look at your child's strengths from the IqUp game."
     },
-    "badge": "Temporary preview",
-    "heading": "{name}'s strengths",
-    "intro": "Here's a first look at what shines.",
-    "topStrengthsLabel": "Top strengths",
-    "note": "This is a temporary preview — the full strengths profile and certificate are coming soon.",
-    "home": "Back to start"
+    "og": {
+      "headline": "I finished the IqUp Brain Games!",
+      "tagline": "Free brain games that reveal your child's strengths."
+    },
+    "hero": {
+      "title": "Brilliant work, {name}!",
+      "lede": "Here's what the games revealed — your strongest areas, with no scores and no numbers."
+    },
+    "constellation": {
+      "regionLabel": "Strengths",
+      "celebratedTitle": "Shining brightest",
+      "celebratedSub": "The areas that light up most",
+      "alsoTitle": "Also strong",
+      "alsoSub": "Doing really well here too",
+      "growingTitle": "Growing",
+      "growingSub": "Areas blossoming next — getting stronger with every game."
+    },
+    "certificate": {
+      "heading": "Your certificate",
+      "text": "A keepsake to hang on the wall or share with the family.",
+      "download": "Download",
+      "share": "Share",
+      "preparing": "Preparing…",
+      "linkCopied": "Site link copied",
+      "shareError": "Couldn't open sharing — the site link was copied instead.",
+      "alt": "IqUp certificate for {name}, celebrating their strongest areas: {strengths}.",
+      "eyebrow": "Certificate of discovery",
+      "preline": "Proudly awarded to",
+      "line": "completed the IqUp Brain Games",
+      "shines": "Shines at",
+      "bibiPlaceholder": "Bibi art →"
+    },
+    "parents": {
+      "eyebrow": "For parents"
+    },
+    "trial": {
+      "heading": "Next step: a free trial class",
+      "pickLabel": "Choose your city",
+      "pickPlaceholder": "Select a city",
+      "nearestCenter": "your nearest center",
+      "callCta": "Call the center",
+      "emailCta": "Email the center",
+      "contactLink": "Or use the IqUp contact form",
+      "reassure": "No commitment · cancel anytime",
+      "contactLabel": "Contact"
+    },
+    "ending": {
+      "heading": "What's next for a curious mind?",
+      "signoff": "From the world of Bibi · IqUp"
+    }
   }
 }

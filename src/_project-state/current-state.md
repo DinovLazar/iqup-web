@@ -2,7 +2,7 @@
 
 > Live snapshot of the repo. **Code updates this at the end of every phase.** If this and the live code ever disagree, the live code wins.
 
-**Last updated:** 2026-06-09 — after Phase 1.08 (email gate + lead capture: gate form, server-action submit, temporary `/result`). The funnel is now complete end-to-end: land → test → email gate → results.
+**Last updated:** 2026-06-13 — after Phase 1.10 (results profile + shareable certificate). The whole funnel is now live end-to-end: land → test → email gate → lead saved → **real strengths profile + downloadable/shareable certificate**.
 
 ---
 
@@ -21,7 +21,7 @@ Other scripts: `npm run build`, `npm run start`, `npm run lint`, `npm run typech
 
 ## Tech stack (current)
 
-Installed and wired: **Next.js 16.2.7** (App Router, Turbopack) · **React 19.2.4** · **TypeScript 5.9.3** · **Tailwind CSS v4** (brand tokens from the 1.03 handover) · **shadcn/ui** (radix-nova style) · **next-intl 4.13.0** · **Framer Motion 12.40.0** (via LazyMotion) · **@fontsource/rubik 5.2.8** (OG-image font) · **@supabase/supabase-js 2.107.0** · **zod 4.4.3** · **server-only 0.0.1** · dev: **Vitest 4.1.8**, **supabase CLI 2.105.0**, **tsx 4.22.4**. Fonts: **Rubik** (display) + **Nunito Sans** (body) via `next/font/google` (Latin + Cyrillic). Exact pinned versions in `00_stack-and-config.md`.
+Installed and wired: **Next.js 16.2.7** (App Router, Turbopack) · **React 19.2.4** · **TypeScript 5.9.3** · **Tailwind CSS v4** (brand tokens from the 1.03 handover) · **shadcn/ui** (radix-nova style) · **next-intl 4.13.0** · **Framer Motion 12.40.0** (via LazyMotion) · **@fontsource/rubik 5.2.8** (OG-image font) · **html-to-image 1.11.13** (client-side certificate → PNG, phase 1.10) · **@supabase/supabase-js 2.107.0** · **zod 4.4.3** · **server-only 0.0.1** · dev: **Vitest 4.1.8**, **supabase CLI 2.105.0**, **tsx 4.22.4**. Fonts: **Rubik** (display) + **Nunito Sans** (body) via `next/font/google` (Latin + Cyrillic). Exact pinned versions in `00_stack-and-config.md`.
 
 Not installed yet (deferred to the phase that needs them): analytics / Microsoft Clarity / Meta Pixel.
 
@@ -38,11 +38,13 @@ Not installed yet (deferred to the phase that needs them): analytics / Microsoft
   invalid age) renders an inline age-picker fallback that reuses the landing's `AgeStart`. Per-locale
   `generateMetadata` (title/description/canonical/hreflang/OG). **Dynamic route** (reads searchParams).
   Now passes the exact `age` and the resolved gate copy to the runner (phase 1.08).
-- `src/app/[locale]/result/page.tsx` — the **temporary results page** (phase 1.08): a Server Component
-  shell + a client island (`ResultPlaceholder`) that reads `iqup.testResult.v1` + `iqup.leadContext.v1`
-  from sessionStorage and shows the child's first name + top 3 strengths (clearly a placeholder; **no
-  total/IQ/certificate**). Guards direct access (redirects home if either key is missing). Per-locale
-  `generateMetadata`. **Static (SSG)** route. 1.10 replaces the island at the `// PLUGS INTO 1.10` seam.
+- `src/app/[locale]/result/page.tsx` — the **real results page** (phase 1.10): a **Static (SSG)** Server
+  Component shell that resolves the `Result` chrome server-side + mounts the `ResultView` client island,
+  which reads `iqup.testResult.v1` + `iqup.leadContext.v1` from sessionStorage and renders the warm
+  strengths profile + the shareable certificate (no total/IQ/score/bar/rank anywhere). Still guards
+  direct access (redirects home if either key is missing). Per-locale `generateMetadata` + header/footer.
+- `src/app/[locale]/result/opengraph-image.tsx` — **generic, name-free** per-locale `/result` OG image
+  (1200×630, `next/og`, Cyrillic Rubik) — a shared result link previews on-brand without any child PII.
 - Locale routing works: `/` serves MK, `/en` serves EN, and `/mk` 307-redirects to the canonical `/` (next-intl `as-needed`).
 - `/_not-found` is handled by Next.js's default.
 
@@ -57,7 +59,10 @@ Not installed yet (deferred to the phase that needs them): analytics / Microsoft
 - `src/components/ui/` — `button.tsx`, `card.tsx`, `radio-group.tsx`, `label.tsx`, and (1.08)
   `input.tsx` + `checkbox.tsx` (handover §B.5 primitives on the unified `radix-ui` package).
 - `src/components/gate/` — `EmailGate` (the 1.08 email-gate form island) + `copy.ts` (`GateCopy`).
-- `src/components/result/` — `ResultPlaceholder` (the 1.08 temporary results island).
+- `src/components/result/` — the **real results profile + certificate** (phase 1.10): `ResultView`
+  (client island; replaced `ResultPlaceholder`), `ResultHero`, `StrengthsConstellation`, `ParentNote`,
+  `CertificateCard` + `Certificate` (+ `certificate-model`, `StrengthGlyph`, `bibi`), `TrialInvite`,
+  `CuriousMindEnding`, `copy` (chrome type). `src/lib/a11y/contrast.ts` backs the certificate AA test.
 - `src/lib/bands.ts` — canonical band definitions (`3-5`/`6-9`/`10-13`), `getBandForAge`,
   `isValidAge`, `BANDS`/`AGES` (+ `bands.test.ts`, Vitest).
 - `src/components/test/` — the runner island and its parts: `TestRunner` (phases start/running/**gate**
@@ -117,6 +122,35 @@ Not installed yet (deferred to the phase that needs them): analytics / Microsoft
   The Privacy Policy reference is plain text with a `// TODO(privacy-page)` seam (Part 2).
 - **Dev:** `?dev=1` auto-finish now lands on the gate (stripped in production).
 
+## Results profile + shareable certificate (phase 1.10)
+
+- **`/result` is now the real payoff screen** (`ResultView` island): a "two moods, one scroll" layout
+  — a **playful zone** (reveal hero with the child's first name, a positive-only **strengths
+  constellation** of three non-evaluative tiers, and the certificate) flowing into a **calm zone**
+  (parent §6 prose + the band handoff). It reads the SAME hand-off (`iqup.testResult.v1` +
+  `iqup.leadContext.v1`), keeps the direct-access guard, and stays an **SSG shell + client island**.
+- **Strengths constellation** (`StrengthsConstellation`): celebrated = top1/top2 (big badges), also =
+  top3 (chip), growing = #4–#6 (encouraging chips). The ranked `TestResult` only *orders* the tiers —
+  **no score, IQ, %, bar, gauge, or medal anywhere**. Accents come from `--strength-*` tokens via
+  `src/content/strengths.ts`.
+- **Result copy** (`src/content/results/`): the spec §6 templates as typed data — per strength ×
+  tier × locale blurbs + the §6B/§6C wrapper. `getResultCopy(result, name, locale)` assembles the
+  celebrated/also/growing copy. **No digits/%/score/rank words** in any user-facing string (tested).
+- **The certificate** (`Certificate.tsx`, **1080×1350 portrait 4:5**): child name + celebrated
+  strengths + IqUp branding + a licensing-safe **Bibi placeholder** (drop-in via `bibi.ts`
+  `BIBI_CERT_ART`). **Deterministic per-child tint** (frame top1→top2 tints, flourish = top1) on a
+  **constant cream** background, so AA holds for every tint (verified in `certificate-model.test.ts`).
+  **Download** = client-side `html-to-image` PNG (≈1080×1350, fonts embedded after `document.fonts.ready`);
+  **Share** = Web Share API file share + a copy-the-landing-URL fallback. The child's name never leaves
+  the browser.
+- **Trial invite** (`TrialInvite`, bands **3–5 / 6–9**): the §6 CTA + a **city picker** over the 10
+  centres (`src/content/centers.ts`, single source) revealing the chosen centre + working contact
+  (`tel:`/`mailto:` + the IqUp contact form) behind a `// TODO(booking 2.05)` seam. Band **10–13** ends
+  with `CuriousMindEnding` (no trial).
+- **OG image:** `src/app/[locale]/result/opengraph-image.tsx` — generic, **name-free**, Cyrillic-safe.
+- **i18n:** the `Result` namespace was rewritten for the real chrome (hero, constellation, certificate
+  face, parents, trial, ending) in both locales (exact parity). **All new MK provisional.**
+
 ## Bilingual shell
 
 - next-intl wired: `routing.ts` (locales `mk`/`en`, default `mk`, `localePrefix: 'as-needed'`), `request.ts` (loads `src/messages/<locale>.json`), `navigation.ts`, and `src/proxy.ts` (Next 16 middleware convention).
@@ -140,7 +174,24 @@ Not installed yet (deferred to the phase that needs them): analytics / Microsoft
 
 ## Reserved folders (created, awaiting content)
 
-`public/bibi/` (licensed Bibi art — still awaiting; `HeroArt` is an abstract placeholder until it lands), `public/og/` (no static OG needed — the OG image is dynamic), `src/content/results/` — tracked with a `.gitkeep` (strengths-profile templates land in 1.10). (`src/lib/supabase/`, `src/content/test/`, `src/lib/scoring/`, and `docs/design-handovers/` now hold real files.)
+`public/bibi/` (licensed Bibi art — still awaiting; `HeroArt` and the certificate's `BIBI_CERT_ART` placeholder stand in until it lands), `public/og/` (no static OG needed — the OG image is dynamic). (`src/content/results/`, `src/lib/supabase/`, `src/content/test/`, `src/lib/scoring/`, and `docs/design-handovers/` now hold real files.)
+
+## Quality checks (Phase 1.10)
+
+- `npm run build`, `npm run lint`, `npm run typecheck`, `npm test` (**98/98**) — all clean. New
+  suites: `results` (per strength×tier×locale coverage, MK/EN slot parity, **no forbidden tokens** —
+  digits/%/score/rank/deficit, `getResultCopy` assembly), `centers` (10 centres, fields, unique
+  ids/emails), `certificate-model` (deterministic tint + **AA contrast for every tint the rule can
+  produce** + name sizing/date/list), and updated `messages.test.ts` (rewritten `Result` namespace).
+- **Live-verified in the dev preview** (the screenshot tool worked this phase): all **3 bands × both
+  locales** render the profile; bands 3–5 & 6–9 show the trial invite + city picker, band 10–13 shows
+  the curious-mind ending (no trial); the direct-access guard redirects home when storage is cleared;
+  no console errors/warnings; MK Cyrillic chrome + content render correctly.
+- **Certificate capture verified live:** Download produced a valid **1080×1350 PNG** (≈223 KB, fonts
+  embedded, no tofu) — a sample is saved at
+  `docs/design-handovers/Part-1-Phase-09-assets/sample-certificates/certificate-mk-band-3-5-Ива.png`.
+  Per-child tint confirmed visually (Ива spatial+verbal = teal→green; Марко pattern+spatial = indigo→teal).
+- **Lighthouse not re-run this phase** (carried baseline; final perf sweep is 1.11).
 
 ## Quality checks (Phase 1.08)
 
@@ -203,7 +254,12 @@ baseline: both locales prerender, language toggle works.)_
 - **Mobile Lighthouse Performance ~87 (<95)** — documented reason (web-font-gated LCP on simulated
   slow-4G + framework JS baseline + noisy machine); real-world perf is good. Finalize in 1.11.
 - **Licensed Bibi art / official logo / official OG art** — drop into `public/bibi/`, the `Wordmark`
-  component, and the OG image when provided. Never generate/redraw the characters.
+  component, and the OG image when provided. Never generate/redraw the characters. **Certificate swap
+  (1.10):** set `BIBI_CERT_ART` in `src/components/result/bibi.ts` to the asset path — a one-line
+  drop-in into the certificate's placeholder box, no layout change.
+- **`centers.ts` data is PROVISIONAL (1.10)** — the 10 centres are seeded from `brand.md` §4, which
+  flags that several **phone numbers/addresses vary across sources**; IqUp must verify each before
+  launch (these power the trial CTA). Some entries carry a `verify` note.
 - **Native-Macedonian copy review + IqUp sign-off** — all landing copy is draft. **Phase 1.07 adds
   more provisional MK to review:** every test question + option (the 36 items, MK verbatim from the
   1.04 spec), the `Test` chrome strings, and the generated stem alt-text in `visuals/lexicon.ts` — all
@@ -212,6 +268,10 @@ baseline: both locales prerender, language toggle works.)_
   — provisional MK, and the consent/marketing wording also needs **IqUp legal sign-off** (it is tied to
   `CONSENT_VERSION = 'v1-draft-2026-06'` in `src/lib/leads/lead-mapping.ts`; bump the version when the
   wording is finalised). The `/privacy` page + the consent-link land in Part 2 (plain-text seam now).
+  **Phase 1.10 adds more provisional MK:** the rewritten `Result` chrome strings, all §6 result/
+  certificate copy in `src/content/results/` (MK verbatim from the 1.04 spec, EN mirror), and the
+  centre city labels — all pending native-MK review (one §6A spatial descriptor was reworded from the
+  mockup's "Thinks in 3D" to avoid a digit).
 - **`/test` language toggle drops `?age` mid-test** — `LanguageToggle` uses `usePathname` (query-less),
   so switching MK/EN during the test returns to the age picker rather than preserving the age. Minor;
   carry the age across the locale switch in a later polish pass if desired.
@@ -242,10 +302,10 @@ baseline: both locales prerender, language toggle works.)_
 
 ## Suggested next phase
 
-**1.09 (Design) → 1.10 (Build) — Results + certificate:** replace the temporary `/result` island at
-the `// PLUGS INTO 1.10` seam in `src/components/result/ResultPlaceholder.tsx` with the real strengths
-profile + shareable certificate. It reads the same hand-off the gate already produces — the persisted
-`TestResult` (`iqup.testResult.v1`) + the lead context (`iqup.leadContext.v1`, `{childFirstName, age,
-submittedAt}`) — and imports the strengths taxonomy from `src/content/strengths.ts`, building from the
-1.04 spec §6 templates (create `src/content/results/`). **1.11** finalises the mobile-perf sweep.
-The whole funnel (land → test → email gate → lead saved → results) is now wired and verified.
+**1.11 — Parity + a11y + performance finalisation:** the funnel is now live end-to-end (land → test →
+email gate → lead saved → **real results + certificate**). 1.11 closes the carryover: the mobile
+Lighthouse Performance sweep (currently ~87, web-font-gated), a full WCAG 2.2 AA pass across the new
+result/certificate surfaces, and MK/EN parity polish. The native-MK review of all draft copy (landing,
+test, gate, **and the new 1.10 result/certificate copy**) and the IqUp verification of `centers.ts`
+remain pre-launch items. Part 2 then adds the results **email** (2.01) and the real trial **booking**
+(2.05) — both already seamed (`// TODO(booking 2.05)`; the OG image + share are name-free for 2.01).

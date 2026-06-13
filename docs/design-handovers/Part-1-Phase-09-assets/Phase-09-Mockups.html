@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>IqUp · Phase 1.09 — Results + Certificate (mockups)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap&subset=cyrillic,cyrillic-ext,latin" rel="stylesheet" />
+<link rel="stylesheet" href="tokens.css" />
+<style>
+  body{ background:var(--canvas); }
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 var(--sp-5); }
+  code,.mono{ font-family:"JetBrains Mono", ui-monospace, monospace; }
+
+  .provisional{ background:var(--hero-tint); color:var(--hero-ink); border-bottom:1px solid color-mix(in srgb, var(--hero) 50%, white);
+    text-align:center; padding:10px 16px; font-size:var(--t-body-sm); font-weight:700; position:sticky; top:0; z-index:50; }
+
+  header.top{ padding:var(--sp-12) 0 var(--sp-8); }
+  .logo-lockup{ display:inline-flex; align-items:center; gap:.12em; font-family:var(--font-display); font-weight:800; font-size:2rem; margin-bottom:var(--sp-6); }
+  .logo-lockup .iq{ color:var(--secondary-strong); } .logo-lockup .up{ color:var(--ink); }
+  .logo-lockup .bang{ background:var(--hero); color:var(--hero-ink); width:1.15em; height:1.4em; display:inline-grid; place-items:center; border-radius:8px; margin-left:.12em; transform:rotate(4deg); }
+  .kicker{ font-weight:800; letter-spacing:.14em; text-transform:uppercase; font-size:12px; color:var(--secondary-strong); }
+  header.top h1{ font-size:clamp(2.2rem,6vw,3.2rem); letter-spacing:-.02em; margin:var(--sp-3) 0 var(--sp-4); color:var(--ink); }
+  header.top p{ font-size:var(--t-body-lg); color:var(--ink-soft); max-width:64ch; }
+
+  section.block{ padding:var(--sp-10) 0; border-top:1px solid var(--line); }
+  .sec-head{ display:flex; align-items:baseline; gap:var(--sp-3); margin-bottom:var(--sp-6); flex-wrap:wrap; }
+  .sec-head .n{ font-family:var(--font-display); font-weight:800; font-size:14px; color:var(--bg); background:var(--ink); width:30px; height:30px; border-radius:9px; display:grid; place-items:center; }
+  .sec-head h2{ font-size:var(--t-h1); color:var(--ink); }
+  .sec-head p{ color:var(--ink-soft); width:100%; max-width:70ch; margin:4px 0 0; }
+  .pill-tag{ display:inline-block; white-space:nowrap; font-size:11px; font-weight:800; letter-spacing:.04em; padding:3px 9px; border-radius:999px; background:var(--secondary-tint); color:var(--secondary-ink); }
+  .pill-tag.play{ background:var(--hero-tint); color:var(--hero-ink); }
+  .pill-tag.calm{ background:var(--success-tint); color:var(--success-ink); }
+
+  .note{ font-size:var(--t-body-sm); color:var(--ink-soft); }
+  .frame-label{ font-weight:800; font-size:var(--t-body-sm); color:var(--ink); margin-bottom:var(--sp-3); display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+
+  /* device frames */
+  .phones{ display:flex; flex-wrap:wrap; gap:var(--sp-10); align-items:flex-start; }
+  .phone-col{ display:flex; flex-direction:column; }
+  .phone{ width:392px; max-width:100%; border:12px solid #1c1830; border-radius:46px; overflow:hidden; box-shadow:var(--shadow-lg); background:#1c1830; }
+  .phone iframe{ width:390px; height:780px; border:0; display:block; background:var(--canvas); }
+
+  .browser{ border:1px solid var(--line-strong); border-radius:14px; overflow:hidden; box-shadow:var(--shadow-lg); background:#fff; }
+  .browser .bar{ height:40px; background:#efeae2; display:flex; align-items:center; gap:7px; padding:0 14px; border-bottom:1px solid var(--line); }
+  .browser .bar i{ width:11px; height:11px; border-radius:50%; background:#cfc8bd; }
+  .browser .bar .url{ margin-left:14px; font-size:12px; color:var(--ink-faint); font-family:"JetBrains Mono",monospace; }
+  .browser .vp{ height:620px; overflow:auto; }
+  .browser .vp iframe{ width:1280px; height:1900px; border:0; transform:scale(.755); transform-origin:top left; }
+
+  /* certificate showcase */
+  .certs{ display:flex; flex-wrap:wrap; gap:var(--sp-10); align-items:flex-start; }
+  .cert-show{ display:flex; flex-direction:column; }
+  .cert-card-frame{ width:432px; height:540px; border-radius:20px; overflow:hidden; box-shadow:var(--shadow-lg); border:1px solid var(--line); background:#E9E3D8; }
+  .cert-card-frame iframe{ width:1080px; height:1350px; border:0; transform:scale(.4); transform-origin:top left; }
+
+  .legend{ display:grid; gap:var(--sp-3); margin-top:var(--sp-4); }
+  .legend .row{ display:flex; gap:10px; align-items:flex-start; font-size:var(--t-body-sm); color:var(--ink-soft); }
+  .legend .row b{ color:var(--ink); }
+  .legend .row .sw{ width:16px; height:16px; border-radius:5px; flex:0 0 auto; margin-top:2px; border:1px solid rgba(0,0,0,.08); }
+
+  .cols2{ display:grid; gap:var(--sp-4); }
+  @media (min-width:820px){ .cols2{ grid-template-columns:1fr 1fr; gap:var(--sp-6);} }
+  .lab{ border:1px solid var(--line); border-radius:var(--radius-lg); background:var(--surface); padding:var(--sp-5); }
+  .lab h3{ font-size:var(--t-h3); color:var(--ink); margin:0 0 var(--sp-2); }
+  .lab ul{ margin:0; padding-left:18px; }
+  .lab li{ font-size:var(--t-body-sm); color:var(--ink-soft); line-height:1.8; }
+  .guard{ border-left:3px solid var(--error); padding-left:14px; }
+  .guard b{ color:var(--error-ink); }
+
+  footer.end{ padding:var(--sp-10) 0 var(--sp-16); color:var(--ink-soft); font-size:var(--t-body-sm); border-top:1px solid var(--line); }
+</style>
+</head>
+<body>
+  <div class="provisional">⚠ Provisional placeholders — brand values, Macedonian copy (pending native review) and the Bibi/logo art are all stand-ins. Built on the 1.03 token system so real assets drop in without redesign.</div>
+
+  <div class="wrap">
+    <header class="top">
+      <div class="logo-lockup"><span class="iq">IQ</span><span class="up">UP</span><span class="bang">!</span></div>
+      <div class="kicker">Part 1 · Phase 1.09 · Design — Results + Certificate</div>
+      <h1>The payoff: a strengths reveal &amp; a shareable keepsake</h1>
+      <p>The <code>/result</code> screen and the awareness-engine certificate. One scroll moves from the <b>playful child reveal</b> into the <b>calm parent handoff</b>. Every surface extends the 1.03 tokens, reuses the strength colours + glyphs, binds only to the existing hand-off data, and shows <b>no score, IQ, percentage, bar, gauge or ranking</b> — anywhere. All mockups below are live; open them on a phone.</p>
+    </header>
+
+    <!-- A · RESULTS MOBILE -->
+    <section class="block">
+      <div class="sec-head"><span class="n">A</span><h2>Results screen — mobile</h2>
+        <p>Primary surface (390px). Top→bottom: reveal hero · strengths constellation (three warm tiers, no charts) · certificate preview + actions · band-specific handoff. The two variants below differ only in the handoff. <b>Use the dark dev bar inside each frame</b> to switch band, celebrated count (1–3) and language live.</p>
+      </div>
+      <div class="phones">
+        <div class="phone-col">
+          <div class="frame-label">Trial-invite handoff <span class="pill-tag play">bands 3–5 / 6–9</span> <span class="pill-tag">all 3 tiers</span></div>
+          <div class="phone"><iframe src="Result.html?band=6-9&cele=3&lang=mk" title="Results — trial variant" loading="lazy"></iframe></div>
+          <p class="note" style="max-width:392px; margin-top:var(--sp-3)">3 celebrated strengths → “Shining brightest”, 2 in “Also strong”, 1 “Growing”. Scroll to the white parent zone for the free-trial invite + nearest-center placeholder.</p>
+        </div>
+        <div class="phone-col">
+          <div class="frame-label">Graceful ending <span class="pill-tag calm">band 10–13</span> <span class="pill-tag">no trial</span></div>
+          <div class="phone"><iframe src="Result.html?band=10-13&cele=2&lang=mk" title="Results — 10-13 ending" loading="lazy"></iframe></div>
+          <p class="note" style="max-width:392px; margin-top:var(--sp-3)">No program exists for 10–13, so the page resolves with a warm “what’s next for a curious mind” close — a distinct, finished ending, never an awkward empty trial slot.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- B · RESULTS DESKTOP -->
+    <section class="block">
+      <div class="sec-head"><span class="n">B</span><h2>Results screen — desktop adaptation</h2>
+        <p>The single column widens at <code>md+</code>: the reveal centres, the certificate preview sits beside its copy + actions, and the parent handoff stays a calm, narrow, centred card. Same components, more whitespace.</p>
+      </div>
+      <div class="frame-label">Desktop · MK <span class="pill-tag">scaled to fit</span></div>
+      <div class="browser">
+        <div class="bar"><i></i><i></i><i></i><span class="url">iqup.mk/result</span></div>
+        <div class="vp"><iframe src="Result.html?band=6-9&cele=3&lang=mk" title="Results — desktop" loading="lazy"></iframe></div>
+      </div>
+    </section>
+
+    <!-- C · CERTIFICATE -->
+    <section class="block">
+      <div class="sec-head"><span class="n">C</span><h2>The certificate — 1080 × 1350</h2>
+        <p>The awareness engine: portrait 4:5 (Instagram/Facebook feed size), celebrated strengths only, per-child colour tinting, a licensing-safe Bibi placeholder, designed with OG-image discipline so 1.10 reproduces it as a flat raster faithfully. Two children below show the tinting differ by their own top strengths.</p>
+      </div>
+      <div class="certs">
+        <div class="cert-show">
+          <div class="frame-label">Macedonian (Cyrillic) <span class="pill-tag">Марко · pattern + spatial + numeracy</span></div>
+          <div class="cert-card-frame"><iframe src="Certificate.html?embed=1&lang=mk&name=%D0%9C%D0%B0%D1%80%D0%BA%D0%BE&top=pattern,spatial,numeracy" title="Certificate MK" loading="lazy"></iframe></div>
+          <div class="legend">
+            <div class="row"><span class="sw" style="background:var(--strength-pattern)"></span><span><b>Frame gradient</b> blends top1→top2 (indigo→teal).</span></div>
+            <div class="row"><span class="sw" style="background:var(--strength-pattern)"></span><span><b>Name flourish</b> uses top1 (indigo).</span></div>
+          </div>
+        </div>
+        <div class="cert-show">
+          <div class="frame-label">English <span class="pill-tag">Aleksandar · memory + words</span></div>
+          <div class="cert-card-frame"><iframe src="Certificate.html?embed=1&lang=en&name=Aleksandar&top=memory,words_obs" title="Certificate EN" loading="lazy"></iframe></div>
+          <div class="legend">
+            <div class="row"><span class="sw" style="background:var(--strength-memory)"></span><span><b>Different child, different feel</b> — frame rose→green, longer name reflows down a step.</span></div>
+            <div class="row"><span class="sw" style="background:var(--canvas); box-shadow:inset 0 0 0 1px var(--line)"></span><span><b>Background</b> stays constant warm cream — AA + brand consistency hold for any colour combo.</span></div>
+          </div>
+        </div>
+      </div>
+      <p class="note" style="margin-top:var(--sp-6)">Open <code>Certificate.html</code> directly (no <code>embed=1</code>) to see either at full size. Params: <code>?lang=mk|en&amp;name=…&amp;top=code,code,code</code>. Try <code>top=spatial</code> alone to see the single-strength tint rule.</p>
+    </section>
+
+    <!-- D · GUARDRAILS + MODULES -->
+    <section class="block">
+      <div class="sec-head"><span class="n">D</span><h2>What Code builds · what’s reused · the guardrails</h2></div>
+      <div class="cols2">
+        <div class="lab">
+          <h3>Modules for 1.10</h3>
+          <ul>
+            <li><code>ResultHero</code> — reveal, child name as hero</li>
+            <li><code>StrengthsConstellation</code> + <code>TierGroup</code> ×3 (celebrated / also / growing)</li>
+            <li><code>StrengthBadge</code> (celebrated) · reuse <code>StrengthChip</code> (also/growing)</li>
+            <li><code>CertificatePreview</code> + <code>CertificateActions</code></li>
+            <li><code>TrialInvite</code> (3–5 / 6–9) · <code>CuriousMindEnding</code> (10–13)</li>
+            <li>Reused: <code>SiteHeader</code>, <code>SiteFooter</code>, <code>LanguageToggle</code>, <code>Button</code>, <code>Card</code>, <code>Glyph</code>, <code>Reveal</code>/<code>MotionProvider</code></li>
+          </ul>
+        </div>
+        <div class="lab">
+          <h3 style="color:var(--error-ink)">Hard guardrails — verified</h3>
+          <ul class="guard">
+            <li><b>No score, IQ, %, points, bars, gauges or 1st/2nd/3rd medals.</b> Internal <code>total/hits/ratio</code> only ever <i>order</i> the tiers — never shown.</li>
+            <li><b>Bibi = licensed art only.</b> Abstract placeholder in an exact drop-in box; never generated or redrawn.</li>
+            <li><b>“Growing” reads as potential</b>, never weakness.</li>
+            <li><b>WCAG 2.2 AA</b>: strength colours hit contrast on their tints; focus-visible everywhere; alt text on the certificate; reduced-motion safe.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <footer class="end">
+      <p><b>IqUp · Part 1 · Phase 1.09 — Results + Certificate.</b> Full written spec in <code>docs/Part-1-Phase-09-Handover.md</code>; completion report in <code>src/_project-state/Part-1-Phase-09-Completion.md</code>. Live mockups: <code>Result.html</code>, <code>Certificate.html</code>. All brand values, MK copy and Bibi/logo art are provisional placeholders.</p>
+    </footer>
+  </div>
+</body>
+</html>

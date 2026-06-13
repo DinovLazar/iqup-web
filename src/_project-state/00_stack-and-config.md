@@ -237,3 +237,44 @@ mobile **Perf 88** / A11y 100 / BP 100. SEO is 100 on the origin-matched server 
 canonical artifact above aside). The gate + `/result` content states sit behind sessionStorage/
 interaction (not cold-loadable by Lighthouse) and were verified structurally (a11y tree, computed
 contrast, head metadata). Final perf sweep stays 1.11.
+
+---
+
+## 2026-06-13 — Phase 1.10 results profile + shareable certificate
+
+**Package added (exact resolved version, pinned without a caret):**
+
+| Package | Version | Scope |
+|---|---|---|
+| html-to-image | 1.11.13 | dependency (client-side certificate → PNG capture) |
+
+Installed with `npm install html-to-image --save-exact` (pinned exact, no `^`). No
+fallback library was needed — `html-to-image` rendered the certificate faithfully
+in this Next 16 / React 19 / Tailwind v4 stack (verified live; see below). The
+brief's `modern-screenshot` fallback was therefore **not** used.
+
+**Certificate generation:** the certificate is a real DOM component
+(`src/components/result/Certificate.tsx`) rendered at a fixed **1080 × 1350**
+(portrait 4:5, Instagram-native). `CertificateCard.tsx` captures the
+un-transformed node with `html-to-image` `toBlob` (`width:1080, height:1350,
+pixelRatio:1` → exact 1080×1350 output), after `await document.fonts.ready` so the
+self-hosted Cyrillic Rubik/Nunito Sans embed (no tofu). Download = object-URL
+anchor click; Share = Web Share API file share with a copy-the-landing-URL
+fallback. The child's name never leaves the browser; no server, no URL.
+
+**New OG route:** `src/app/[locale]/result/opengraph-image.tsx` (`next/og`,
+1200×630, Cyrillic Rubik woff from `@fontsource/rubik` — same setup as the landing
+OG). **Generic + name-free** by design (children's-data minimisation). The
+decorative spark is a CSS-drawn rotated square (not a glyph) so satori never
+fetches a fallback font (keeps the build warning-free).
+
+**Routing:** `/[locale]/result` stays **static (SSG)** — Server-Component shell +
+`ResultView` client island (the island replaced `ResultPlaceholder`; reads the
+same `iqup.testResult.v1` + `iqup.leadContext.v1` hand-off, same direct-access
+guard). `/[locale]/result/opengraph-image` prerenders for both locales.
+
+**No token changes** — the result UI extends the existing 1.03 `--strength-*`,
+`--hero*`, `--secondary*`, `--ink*`, radius, shadow, and motion tokens in
+`globals.css`. The certificate's constant cream (`#FFFBF2`) and the OG image's
+inlined hexes are the only literal colours (documented build-artifact exceptions,
+same rationale as the landing OG). Vitest unchanged.

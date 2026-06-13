@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="mk">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>IqUp · Certificate (mockup)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap&subset=cyrillic,cyrillic-ext,latin" rel="stylesheet" />
+<link rel="stylesheet" href="tokens.css" />
+<style>
+  /* ===========================================================================
+     IqUp Certificate — the awareness engine.
+     Canvas: portrait 4:5 · 1080 × 1350 (Instagram / Facebook feed size).
+     RENDER CONSTRAINT: every element here is text, a simple vector shape, a
+     solid/gradient fill, or a bundled placeholder SVG — so 1.10 can reproduce
+     it FAITHFULLY as a flat raster image (next/og family). No backdrop-filter,
+     no live-DOM tricks, nothing that won't survive a flat export.
+     =========================================================================== */
+  :root{
+    --cream:      #FFFBF2;   /* certificate base — constant warm cream (never tinted) */
+    --cream-edge: #FDF4E2;   /* faint inner vignette */
+    --safe: 96px;            /* internal safe margin → safe area 888 × 1158 */
+  }
+  html,body{ margin:0; background:#E9E3D8; }
+  body{ font-family:var(--font-body); color:var(--ink); }
+
+  /* the fixed artboard */
+  .cert{
+    position:relative; width:1080px; height:1350px; overflow:hidden;
+    background:
+      radial-gradient(120% 80% at 50% 0%, var(--cream) 55%, var(--cream-edge) 100%);
+    isolation:isolate;
+  }
+
+  /* gradient keepsake frame — tinted top1 → top2 (per-child) */
+  .frame{
+    position:absolute; inset:40px; border-radius:64px; padding:11px;
+    background:linear-gradient(150deg, var(--tint-a), var(--tint-b));
+  }
+  .frame::after{          /* inner cream panel */
+    content:""; position:absolute; inset:11px; border-radius:54px;
+    background:var(--cream);
+  }
+  /* thin secondary keyline for a premium, printed feel */
+  .keyline{
+    position:absolute; inset:64px; border-radius:40px;
+    border:2px solid color-mix(in srgb, var(--tint-a) 42%, white);
+    pointer-events:none; z-index:3;
+  }
+
+  /* confetti — subtle, vector only, kept clear of the text column */
+  .confetti{ position:absolute; inset:40px; z-index:2; pointer-events:none; }
+  .confetti i{ position:absolute; display:block; opacity:.9; }
+  .confetti .dot{ border-radius:50%; }
+  .confetti .tri{ width:0; height:0; }
+
+  /* content column */
+  .stack{
+    position:absolute; z-index:4; inset:0; padding:var(--safe);
+    display:flex; flex-direction:column; align-items:center; text-align:center;
+  }
+
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:14px;
+    font-family:var(--font-display); font-weight:700; font-size:25px;
+    letter-spacing:.26em; text-transform:uppercase; color:var(--secondary-ink);
+    margin-top:0;
+  }
+  .eyebrow .star{ color:var(--hero-strong); font-size:22px; }
+
+  /* ---- character zone (Bibi placeholder — exact drop-in box) ----
+     DROP-IN BOX: 384 × 384, centred, top at safe-area top. The real licensed
+     Bibi art (transparent PNG/SVG, ~4:5 or 1:1) replaces ONLY .charart with no
+     layout change. Never generate or redraw the characters. */
+  .charzone{
+    width:336px; height:336px; margin-top:30px; position:relative;
+    border-radius:48px; background:
+      repeating-linear-gradient(135deg, transparent 0 18px, color-mix(in srgb, var(--tint-a) 8%, transparent) 18px 19px),
+      color-mix(in srgb, var(--tint-a) 14%, var(--cream));
+    border:3px dashed color-mix(in srgb, var(--tint-a) 55%, white);
+    display:grid; place-items:center;
+  }
+  .charzone .tag{
+    position:absolute; bottom:18px; left:50%; transform:translateX(-50%);
+    font-size:18px; font-weight:700; letter-spacing:.04em; white-space:nowrap;
+    color:color-mix(in srgb, var(--tint-a) 60%, var(--ink-soft));
+    background:color-mix(in srgb, var(--cream) 80%, transparent); padding:5px 14px; border-radius:999px;
+  }
+
+  /* abstract, licensing-safe placeholder art (NOT a Bibi look-alike) */
+  .charart{ width:264px; height:264px; }
+
+  .preline{
+    font-size:30px; font-weight:600; color:var(--ink-soft); margin:30px 0 4px;
+  }
+
+  /* hero: child's first name */
+  .name{
+    font-family:var(--font-display); font-weight:800; line-height:1.02;
+    font-size:104px; letter-spacing:-.015em; color:var(--ink);
+    max-width:14ch; text-wrap:balance; position:relative; padding-bottom:14px;
+  }
+  .name.long{ font-size:78px; }
+  .name.xlong{ font-size:60px; }
+  .name .flourish{           /* underline flourish — top1 colour */
+    display:block; height:14px; width:min(62%, 360px); margin:14px auto 0;
+    border-radius:999px; background:var(--flourish);
+  }
+
+  .line{
+    font-size:34px; font-weight:600; color:var(--ink-soft);
+    max-width:24ch; margin:28px 0 0; line-height:1.4;
+  }
+
+  .divider{ display:flex; align-items:center; gap:18px; margin:34px 0 30px; color:var(--hero-strong); }
+  .divider .rule{ width:70px; height:3px; border-radius:3px; background:color-mix(in srgb, var(--hero) 70%, var(--line-strong)); }
+  .divider .sp{ font-size:26px; }
+
+  .shines-label{
+    font-family:var(--font-display); font-weight:700; font-size:24px;
+    letter-spacing:.2em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:22px;
+  }
+
+  /* celebrated strength chips (1–3) — each in its OWN strength colour */
+  .chips{ display:flex; flex-wrap:wrap; justify-content:center; gap:22px; max-width:840px; }
+  .chip{
+    display:inline-flex; align-items:center; gap:18px;
+    padding:18px 30px 18px 20px; border-radius:999px;
+    background:var(--c-tint); border:2px solid color-mix(in srgb, var(--c-solid) 30%, white);
+  }
+  .chip .mdl{
+    width:60px; height:60px; border-radius:50%; flex:0 0 auto;
+    display:grid; place-items:center; background:var(--c-solid); color:#fff;
+  }
+  .chip .mdl svg{ width:34px; height:34px; }
+  .chip .nm{ font-family:var(--font-display); font-weight:700; font-size:31px; color:var(--c-ink); white-space:nowrap; }
+  /* when 3 chips, stack a touch tighter so they balance on one canvas */
+  .chips[data-n="3"] .chip{ padding:16px 26px 16px 18px; gap:14px; }
+  .chips[data-n="3"] .chip .nm{ font-size:28px; }
+
+  /* footer — wordmark + date */
+  .foot{ margin-top:auto; display:flex; flex-direction:column; align-items:center; gap:16px; padding-top:40px; }
+  .wordmark{
+    display:inline-flex; align-items:center; gap:.1em;
+    font-family:var(--font-display); font-weight:800; font-size:44px; line-height:1; letter-spacing:-.01em;
+  }
+  .wordmark .iq{ color:var(--secondary-strong); }
+  .wordmark .up{ color:var(--ink); }
+  .wordmark .bang{ background:var(--hero); color:var(--hero-ink); width:1.12em; height:1.36em;
+    display:inline-grid; place-items:center; border-radius:12px; margin-left:.1em; transform:rotate(4deg); }
+  .date{ font-size:25px; font-weight:600; color:var(--ink-faint); letter-spacing:.02em; }
+
+  /* fit-to-viewport ONLY when opened standalone (top window). When embedded,
+     the parent scales the <iframe> element, so we stay at natural size. */
+  .scaler{ transform-origin:top left; }
+</style>
+</head>
+<body>
+  <div class="scaler" id="scaler">
+    <div class="cert" id="cert" role="img">
+      <div class="frame"></div>
+      <div class="keyline"></div>
+      <div class="confetti" id="confetti"></div>
+
+      <div class="stack">
+        <div class="eyebrow"><span class="star">✦</span><span id="eyebrow"></span><span class="star">✦</span></div>
+
+        <div class="charzone" role="img" aria-label="Bibi character art placeholder">
+          <svg class="charart" id="charart" viewBox="0 0 300 300" aria-hidden="true"></svg>
+          <span class="tag">Bibi art →</span>
+        </div>
+
+        <div class="preline" id="preline"></div>
+        <h1 class="name" id="name"><span id="nameText"></span><span class="flourish"></span></h1>
+        <p class="line" id="line"></p>
+
+        <div class="divider" aria-hidden="true"><span class="rule"></span><span class="sp">✦</span><span class="rule"></span></div>
+
+        <div class="shines-label" id="shinesLabel"></div>
+        <div class="chips" id="chips"></div>
+
+        <div class="foot">
+          <span class="wordmark"><span class="iq">IQ</span><span class="up">UP</span><span class="bang">!</span></span>
+          <span class="date" id="date"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ===========================================================================
+   Strength model — codes, bilingual display names, COLOUR-TOKEN binding,
+   and a Lucide-style glyph per strength (stand-in for the repo's <Glyph>).
+   NOTE: code `words_obs` binds to the `verbal` colour token (per strengths.ts).
+   =========================================================================== */
+const STR = {
+  pattern:  { mk:"Препознавање облици", en:"Pattern recognition", token:"pattern",
+    glyph:'<circle cx="6.5" cy="6.5" r="3"/><rect x="14" y="3.5" width="6" height="6" rx="1.6"/><path d="M6.5 14l3 5.5h-6z"/><rect x="14" y="14" width="6" height="6" rx="1.6"/>' },
+  logic:    { mk:"Логичко мислење", en:"Logical reasoning", token:"logic",
+    glyph:'<circle cx="12" cy="5" r="2.5"/><circle cx="5.5" cy="19" r="2.5"/><circle cx="18.5" cy="19" r="2.5"/><path d="M12 7.5v2.2c0 1.5-1 2.3-2.4 3.1C8 13.8 5.5 14.5 5.5 16.5M12 9.7c0 1.5 1 2.3 2.4 3.1 1.6.9 4.1 1.6 4.1 3.7"/>' },
+  memory:   { mk:"Меморија", en:"Memory", token:"memory",
+    glyph:'<path d="M4 12a8 8 0 1 1 2.5 5.8"/><polyline points="3 18.5 3.5 13.5 8.5 14"/><circle cx="12" cy="12" r="2.2"/>' },
+  spatial:  { mk:"Просторно мислење", en:"Spatial thinking", token:"spatial",
+    glyph:'<path d="M21 8.2l-9-5-9 5v7.6l9 5 9-5V8.2z"/><path d="M3 8.2l9 5 9-5M12 13.2v8"/>' },
+  numeracy: { mk:"Броеви", en:"Numbers", token:"numeracy",
+    glyph:'<line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10.5" y1="3.5" x2="8.5" y2="20.5"/><line x1="15.5" y1="3.5" x2="13.5" y2="20.5"/>' },
+  words_obs:{ mk:"Набљудување и зборови", en:"Words & observation", token:"verbal",
+    glyph:'<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>' },
+};
+
+const UI = {
+  mk:{ eyebrow:"Сертификат за откривање", preline:"Со гордост го доделуваме на", line:"ги заврши мозочните игри на IqUp", shines:"Сјае во", months:["јануари","февруари","март","април","мај","јуни","јули","август","септември","октомври","ноември","декември"] },
+  en:{ eyebrow:"Certificate of discovery", preline:"Proudly awarded to", line:"completed the IqUp brain games", shines:"Shines at", months:["January","February","March","April","May","June","July","August","September","October","November","December"] },
+};
+
+/* ---- params ---- */
+const qp = new URLSearchParams(location.search);
+const lang = qp.get("lang")==="en" ? "en" : "mk";
+const name = qp.get("name") || (lang==="en" ? "Maya" : "Марко");
+const topCodes = (qp.get("top") || "pattern,spatial,numeracy").split(",").map(s=>s.trim()).filter(c=>STR[c]).slice(0,3);
+const dateStr = qp.get("date");
+
+document.documentElement.lang = lang;
+const u = UI[lang];
+const top1 = topCodes[0], top2 = topCodes[1] || topCodes[0];
+const tk1 = STR[top1].token, tk2 = STR[top2].token;
+
+/* per-child tinting (deterministic): frame = top1→top2 tints; flourish = top1 solid.
+   Single celebrated strength → frame uses top1 alone (tint → lighter mix). */
+const css = document.documentElement.style;
+css.setProperty("--tint-a", `var(--strength-${tk1}-tint)`);
+css.setProperty("--tint-b", topCodes.length>1 ? `var(--strength-${tk2}-tint)` : `color-mix(in srgb, var(--strength-${tk1}-tint) 55%, white)`);
+css.setProperty("--flourish", `var(--strength-${tk1})`);
+
+/* ---- text ---- */
+document.getElementById("eyebrow").textContent = u.eyebrow;
+document.getElementById("preline").textContent = u.preline;
+document.getElementById("nameText").textContent = name;
+document.getElementById("line").textContent = u.line;
+document.getElementById("shinesLabel").textContent = u.shines;
+
+const nm = document.getElementById("name");
+if(name.length > 13) nm.classList.add("xlong");
+else if(name.length > 8) nm.classList.add("long");
+
+/* date */
+const d = dateStr ? new Date(dateStr) : new Date(2026,5,9);
+document.getElementById("date").textContent = lang==="en"
+  ? `${u.months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
+  : `${d.getDate()} ${u.months[d.getMonth()]} ${d.getFullYear()}`;
+
+/* alt text (B.7) */
+const names = topCodes.map(c=>STR[c][lang]);
+const listStr = names.length>1 ? names.slice(0,-1).join(", ")+(lang==="en"?" and ":" и ")+names.slice(-1) : names[0];
+document.getElementById("cert").setAttribute("aria-label",
+  lang==="en"
+    ? `IqUp certificate for ${name}, celebrating their strongest areas: ${listStr}.`
+    : `IqUp сертификат за ${name} — сјае во: ${listStr}.`);
+
+/* celebrated chips */
+document.getElementById("chips").setAttribute("data-n", topCodes.length);
+document.getElementById("chips").innerHTML = topCodes.map(code=>{
+  const s = STR[code], t = s.token;
+  return `<span class="chip" style="--c-tint:var(--strength-${t}-tint);--c-solid:var(--strength-${t});--c-ink:var(--strength-${t}-ink)">
+    <span class="mdl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${s.glyph}</svg></span>
+    <span class="nm">${s[lang]}</span>
+  </span>`;
+}).join("");
+
+/* abstract placeholder art (licensing-safe — NOT a Bibi look-alike).
+   Overlapping soft shapes + sparkles in brand + top-strength colours. */
+document.getElementById("charart").innerHTML = `
+  <defs></defs>
+  <circle cx="150" cy="150" r="96" fill="var(--strength-${tk1})" opacity=".16"/>
+  <ellipse cx="120" cy="138" rx="58" ry="66" fill="var(--secondary)" opacity=".22" transform="rotate(-12 120 138)"/>
+  <ellipse cx="182" cy="150" rx="52" ry="60" fill="var(--strength-${tk2})" opacity=".22" transform="rotate(10 182 150)"/>
+  <circle cx="150" cy="146" r="40" fill="var(--hero)" opacity=".9"/>
+  <path d="M150 120l7 18 18 7-18 7-7 18-7-18-18-7 18-7z" fill="#fff" opacity=".9"/>
+  <path d="M92 96l4 11 11 4-11 4-4 11-4-11-11-4 11-4z" fill="var(--hero-strong)"/>
+  <path d="M214 188l3.4 9 9 3.4-9 3.4-3.4 9-3.4-9-9-3.4 9-3.4z" fill="var(--accent-grape)"/>
+  <circle cx="210" cy="108" r="8" fill="var(--accent-coral)"/>
+  <circle cx="96" cy="196" r="7" fill="var(--strength-${tk1})"/>`;
+
+/* confetti — deterministic scatter, clear of the centre text column */
+const COL = ['var(--hero)','var(--strength-'+tk1+')','var(--strength-'+tk2+')','var(--accent-grape)','var(--accent-coral)','var(--secondary)'];
+const PIECES = [
+  [70,70,'dot',16],[930,90,'dot',13],[120,300,'tri',16],[945,360,'dot',18],
+  [62,560,'dot',12],[980,640,'tri',14],[80,900,'dot',16],[955,930,'dot',12],
+  [150,1130,'tri',16],[900,1140,'dot',14],[60,1180,'dot',11],[975,1200,'dot',15],
+];
+document.getElementById("confetti").innerHTML = PIECES.map((p,i)=>{
+  const [x,y,kind,s]=p, c=COL[i%COL.length];
+  if(kind==='tri') return `<i class="tri" style="left:${x-40}px;top:${y-40}px;border-left:${s}px solid transparent;border-right:${s}px solid transparent;border-bottom:${s*1.6}px solid ${c}"></i>`;
+  return `<i class="dot" style="left:${x-40}px;top:${y-40}px;width:${s}px;height:${s}px;background:${c}"></i>`;
+}).join("");
+
+/* Scaling: by default fit the artboard to the viewport. When an embedder wants
+   to control the scale itself (it sizes + transforms the <iframe> element), it
+   passes ?embed=1 and we stay at natural 1080×1350. */
+function fit(){
+  if(qp.get("embed")==="1") return;             /* embedded: parent scales iframe */
+  const s = Math.min(window.innerWidth/1080, window.innerHeight/1350);
+  const sc = document.getElementById("scaler");
+  sc.style.transform = `scale(${s})`;
+  document.body.style.height = (1350*s)+"px";
+  document.body.style.width = (1080*s)+"px";
+  document.body.style.margin = "0 auto";
+}
+fit(); window.addEventListener("resize", fit);
+</script>
+</body>
+</html>

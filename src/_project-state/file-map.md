@@ -108,7 +108,7 @@
 | `src/components/test/visuals/index.ts` | Visuals barrel (`Glyph`, `StemVisual`, `stemAlt`, `toyVar`). |
 | `.claude/launch.json` | Local preview launch config (dev/prod) for the Claude preview tool (no app effect). |
 
-## Email gate + temporary results (phase 1.08)
+## Email gate + lead capture (phase 1.08)
 
 | Path | Description |
 |---|---|
@@ -119,8 +119,34 @@
 | `src/lib/leads/submit-lead.test.ts` | Vitest suite: band map, summary-only/no-IQ, consent-false rejected, honeypot no-insert, unknown-key stripping, action control flow. |
 | `src/lib/leads/lead-context.ts` | `iqup.leadContext.v1` sessionStorage hand-off (`LeadContext` + `isLeadContext`/read/write) — the "gate completed" signal for `/result`. |
 | `src/lib/leads/lead-context.test.ts` | Vitest guard suite for `isLeadContext`. |
-| `src/app/[locale]/result/page.tsx` | Temporary `/result` Server shell: per-locale metadata, resolves `ResultCopy`, mounts the island. |
-| `src/components/result/ResultPlaceholder.tsx` | Temporary client island: reads `TestResult` + lead-context (via `useSyncExternalStore`), guards direct access, shows name + top 3 strengths. `// PLUGS INTO 1.10` seam. |
+| `src/app/[locale]/result/page.tsx` | The real `/result` Server shell (SSG): per-locale metadata, resolves `ResultChrome` server-side, mounts `ResultView`, renders header + footer (phase 1.10). |
+
+## Results profile + certificate (phase 1.10)
+
+| Path | Description |
+|---|---|
+| `src/content/results/types.ts` | Types for the result/strengths-profile copy (`StrengthResultBlurb`, `ResultTemplates`). |
+| `src/content/results/strength-copy.ts` | Per-strength §6A blurbs (celebrated + growing) + short badge descriptor, MK verbatim / EN mirror (provisional). |
+| `src/content/results/templates.ts` | §6B/§6C wrapper templates per locale (kid celebration, headline, also/growing lines, trial CTA, closing, certificate). |
+| `src/content/results/index.ts` | `getResultCopy(result, name, locale)` accessor + `joinNames`/`fillSlots`; assembles celebrated/also/growing copy from the ranked `TestResult`. |
+| `src/content/results/results.test.ts` | Vitest: §6 coverage (strength×tier×locale), MK/EN parity, no-forbidden-token (no digits/%/score/rank/deficit), `getResultCopy` assembly. |
+| `src/content/centers.ts` | The 10 IqUp centres (single source, from brand.md §4) — `Center`, `CENTERS`, `getCenter`, `IQUP_CONTACT_URL`. PROVISIONAL (verify phones/addresses). |
+| `src/content/centers.test.ts` | Vitest centers integrity (10 centres, required fields, unique ids/emails, https contact URL). |
+| `src/components/result/ResultView.tsx` | The real results client island (replaces `ResultPlaceholder` at the `// PLUGS INTO 1.10` seam): reads the hand-off, guards direct access, renders profile + certificate + band handoff. |
+| `src/components/result/ResultHero.tsx` | Reveal hero (playful): kid-celebration eyebrow, name-highlighted title, no-scores lede. |
+| `src/components/result/StrengthsConstellation.tsx` | Three non-evaluative tiers — celebrated badges, also chip, growing chips (no charts/numbers). |
+| `src/components/result/ParentNote.tsx` | Parent-facing §6 prose: headline + celebrated blurbs + also/growing lines. |
+| `src/components/result/CertificateCard.tsx` | Scaled certificate preview + Download (html-to-image PNG) + Share (Web Share + copy-link fallback). |
+| `src/components/result/Certificate.tsx` | The 1080×1350 portrait certificate artboard (per-child tint, Bibi placeholder, chips, wordmark, date) — capture-safe inline styles. |
+| `src/components/result/certificate-model.ts` | Pure certificate logic: deterministic tint rule, name sizing, date format, strength list (Vitest-friendly). |
+| `src/components/result/certificate-model.test.ts` | Vitest: tint determinism + AA contrast (every tint the rule can produce) + sizing/date/list. |
+| `src/components/result/StrengthGlyph.tsx` | Per-strength inline-SVG glyph (shared by constellation + certificate; capture-safe). |
+| `src/components/result/TrialInvite.tsx` | Trial invite (bands 3–5 / 6–9): city picker + chosen-centre card + working contact CTAs (`// TODO(booking 2.05)`). |
+| `src/components/result/CuriousMindEnding.tsx` | Band 10–13 close (no trial) — §6 closing + signoff. |
+| `src/components/result/bibi.ts` | Bibi art drop-in swap point (`BIBI_CERT_ART = null` → placeholder until licensed art lands). |
+| `src/components/result/copy.ts` | `ResultChrome` type — the server-resolved on-screen chrome handed to `ResultView`. |
+| `src/lib/a11y/contrast.ts` | WCAG relative-luminance + contrast-ratio helpers (used by the certificate AA test). |
+| `src/app/[locale]/result/opengraph-image.tsx` | Generic, name-free per-locale `/result` OG image (`next/og`, 1200×630, Cyrillic Rubik). |
 
 ## Supabase leads pipeline (phase 1.05)
 
@@ -156,13 +182,14 @@
 | Path | Description |
 |---|---|
 | `docs/design-handovers/Part-1-Phase-03-Handover.md` | 1.03 Design Foundation: tokens, type, components, landing + test layout. |
+| `docs/design-handovers/Part-1-Phase-09-Handover.md` | 1.09 Results + Certificate handover — an honest index pointing at the delivered HTML mockups (the written handover was not delivered; see the file's note). |
+| `docs/design-handovers/Part-1-Phase-09-assets/` | The delivered 1.09 mockups (`Result.html`, `Certificate.html`, `Phase-09-Mockups.html`) + a reconstructed `tokens.css` (review aid) + `sample-certificates/` (a live PNG rendered by the 1.10 build). |
 
 ## Reserved folders (tracked, filled in later phases)
 
 | Path | Description |
 |---|---|
-| `public/bibi/.gitkeep` | Licensed Bibi image assets (gathered by Cowork) — still awaiting; `HeroArt` is a placeholder until then. |
+| `public/bibi/.gitkeep` | Licensed Bibi image assets (gathered by Cowork) — still awaiting; `HeroArt` + the certificate placeholder stand in until then. |
 | `public/og/.gitkeep` | Static OG images (not needed — the OG image is generated dynamically per locale). |
-| `src/content/results/.gitkeep` | Strengths-profile result templates (MK/EN) — phase 1.10. |
 
-*(`src/lib/supabase/.gitkeep` was removed in phase 1.05, and `src/content/test/.gitkeep` + `src/lib/scoring/.gitkeep` in phase 1.07, now that those folders hold real files.)*
+*(`src/lib/supabase/.gitkeep` was removed in phase 1.05, `src/content/test/.gitkeep` + `src/lib/scoring/.gitkeep` in phase 1.07, and `src/content/results/.gitkeep` in phase 1.10, now that those folders hold real files.)*

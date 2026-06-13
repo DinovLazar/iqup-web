@@ -1,0 +1,87 @@
+/* =============================================================================
+   tokens.css — companion stylesheet for the Phase 1.09 mockups
+   (Result.html · Certificate.html · Phase-09-Mockups.html)
+
+   The mockups were delivered linking `tokens.css`, but the file itself was not
+   in the drop. This reconstruction lets the filed mockups render for review. It
+   mirrors the live 1.03 brand tokens in `src/app/globals.css` (the source of
+   truth) and adds the small spacing / type / motion scale tokens the mockups
+   reference but Tailwind v4 owns in the real app (where utilities replace them).
+
+   This file is a REVIEW AID only — it is not imported by the Next.js app. If the
+   brand re-skins, update `src/app/globals.css`; this copy can lag.
+   ============================================================================= */
+:root {
+  /* ---- surfaces (globals.css) ---- */
+  --bg: #ffffff;
+  --background: #ffffff;
+  --surface: #ffffff;
+  --card: #ffffff;
+  --canvas: #fbf8f3;
+  --field: #f6f4f0;
+
+  /* ---- ink ---- */
+  --ink: #241f36;
+  --ink-soft: #5a5570;
+  --ink-faint: #8a8499;
+
+  /* ---- brand ---- */
+  --hero: #ffc83d; --hero-strong: #f4b000; --hero-tint: #fff3d1; --hero-ink: #2a2440;
+  --secondary: #11689e; --secondary-strong: #0e5278; --secondary-tint: #e3f1fb; --secondary-ink: #0e5278;
+  --brand-blue: #1e88c7;
+  --accent-coral: #ff7a59; --accent-grape: #7a5af0;
+
+  /* ---- status ---- */
+  --success: #1e9e5a; --success-tint: #e2f4e8; --success-ink: #136138;
+  --error: #d7263d; --error-tint: #fbe4e7; --error-ink: #951323;
+
+  /* ---- lines / focus ---- */
+  --line: #ece8e1;        /* = --border */
+  --line-strong: #dad5cc; /* = --input  */
+  --ring: #1e88c7;
+
+  /* ---- strengths (globals.css) ---- */
+  --strength-pattern: #5b5bd6;  --strength-pattern-tint: #ecebfb;  --strength-pattern-ink: #3a33ae;
+  --strength-logic:   #2e7dd1;  --strength-logic-tint:   #e4f0fb;  --strength-logic-ink:   #18558f;
+  --strength-memory:  #e05a8a;  --strength-memory-tint:  #fce7ef;  --strength-memory-ink:  #a8295c;
+  --strength-spatial: #109b8e;  --strength-spatial-tint: #ddf3f0;  --strength-spatial-ink: #0a625a;
+  --strength-numeracy:#e08a12;  --strength-numeracy-tint:#fcefd6;  --strength-numeracy-ink:#8a5206;
+  --strength-verbal:  #2e9e58;  --strength-verbal-tint:  #e2f4e8;  --strength-verbal-ink:  #1a6638;
+
+  /* ---- fonts ---- */
+  --font-display: "Rubik", system-ui, sans-serif;
+  --font-body: "Nunito Sans", system-ui, sans-serif;
+
+  /* ---- radius scale (globals.css @theme + pill) ---- */
+  --radius-sm: 0.5rem;  --radius-md: 0.75rem; --radius-lg: 1.25rem;
+  --radius-xl: 1.75rem; --radius-2xl: 2.25rem; --radius-pill: 999px;
+
+  /* ---- spacing scale (mockup-only; Tailwind utilities own this in the app) ---- */
+  --sp-2: 0.5rem;  --sp-3: 0.75rem; --sp-4: 1rem;   --sp-5: 1.25rem;
+  --sp-6: 1.5rem;  --sp-8: 2rem;    --sp-10: 2.5rem; --sp-12: 3rem;  --sp-16: 4rem;
+
+  /* ---- type scale (mockup-only) ---- */
+  --t-h1: clamp(1.7rem, 4.5vw, 2.25rem);
+  --t-h2: clamp(1.4rem, 3.5vw, 1.75rem);
+  --t-h3: 1.2rem;
+  --t-body-lg: 1.125rem;  --lh-body-lg: 1.6;
+  --t-body: 1rem;
+  --t-body-sm: 0.875rem;
+  --t-caption: 0.75rem;
+
+  /* ---- elevation (globals.css + xs) ---- */
+  --shadow-xs: 0 1px 2px rgb(36 31 54 / 0.05);
+  --shadow-sm: 0 1px 2px rgb(36 31 54 / 0.06);
+  --shadow-md: 0 6px 20px -8px rgb(36 31 54 / 0.12), 0 2px 6px -2px rgb(36 31 54 / 0.08);
+  --shadow-lg: 0 18px 40px -16px rgb(36 31 54 / 0.18);
+  --shadow-hero: 0 12px 28px -10px rgb(244 176 0 / 0.55), 0 4px 10px -4px rgb(244 176 0 / 0.40);
+
+  /* ---- motion (globals.css + durations) ---- */
+  --dur-fast: 160ms;
+  --dur-slow: 460ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--font-body); color: var(--ink); }

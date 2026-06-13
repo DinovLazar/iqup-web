@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="mk">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>IqUp · Results (mockup)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap&subset=cyrillic,cyrillic-ext,latin" rel="stylesheet" />
+<link rel="stylesheet" href="tokens.css" />
+<style>
+  /* ===========================================================================
+     /result — the payoff screen. Two moods in one scroll:
+     reveal + constellation + certificate = PLAYFUL (child) · handoff = CALM (parent).
+     No score / IQ / % / bars / gauges / ordinal medals anywhere.
+     =========================================================================== */
+  body{ background:var(--canvas); color:var(--ink); }
+  .page{ max-width:1240px; margin:0 auto; }
+  img,svg{ display:block; }
+  a{ color:inherit; }
+
+  /* --- Top bar (reused) --- */
+  .topbar{
+    position:sticky; top:0; z-index:30; display:flex; align-items:center; justify-content:space-between;
+    gap:var(--sp-4); padding:var(--sp-3) var(--sp-5);
+    background:color-mix(in srgb, var(--bg) 86%, transparent);
+    backdrop-filter:saturate(1.4) blur(10px); border-bottom:1px solid var(--line);
+  }
+  .logo{ display:inline-flex; align-items:center; gap:.12em; font-family:var(--font-display); font-weight:800;
+    font-size:1.4rem; letter-spacing:-.01em; line-height:1; text-decoration:none; padding:6px 4px; }
+  .logo .iq{ color:var(--secondary-strong); } .logo .up{ color:var(--ink); }
+  .logo .bang{ background:var(--hero); color:var(--hero-ink); width:1.15em; height:1.4em; display:inline-grid;
+    place-items:center; border-radius:7px; margin-left:.12em; transform:rotate(4deg); box-shadow:var(--shadow-xs); }
+  .langtoggle{ display:inline-flex; padding:3px; gap:2px; background:var(--field); border:1px solid var(--line); border-radius:var(--radius-pill); }
+  .langtoggle button{ font-family:var(--font-body); font-weight:700; font-size:13px; min-width:44px; min-height:36px; padding:0 12px;
+    border:0; background:transparent; color:var(--ink-soft); border-radius:var(--radius-pill); cursor:pointer; transition:background var(--dur-fast), color var(--dur-fast); }
+  .langtoggle button[aria-pressed="true"]{ background:var(--bg); color:var(--ink); box-shadow:var(--shadow-xs); }
+
+  /* --- mockup-only dev switcher (NOT part of the product) --- */
+  .devbar{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 12px; justify-content:center;
+    padding:7px 12px; background:#2A2440; color:#cfc9e6; font-size:11px; font-weight:700; font-family:var(--font-body); letter-spacing:.02em; }
+  .devbar .grp{ display:inline-flex; align-items:center; gap:6px; }
+  .devbar button{ font:inherit; cursor:pointer; border:1px solid #4a4366; background:transparent; color:#cfc9e6; padding:4px 10px; border-radius:999px; }
+  .devbar button[aria-pressed="true"]{ background:var(--hero); color:var(--hero-ink); border-color:var(--hero); }
+
+  /* ============================ PLAYFUL ZONE ============================== */
+  .play{
+    position:relative; overflow:hidden;
+    background:
+      radial-gradient(130% 70% at 50% -8%, var(--hero-tint) 0%, transparent 60%),
+      var(--canvas);
+  }
+  .play-confetti{ position:absolute; inset:0 0 auto; height:340px; z-index:0; pointer-events:none; }
+  .play-confetti i{ position:absolute; display:block; opacity:.85; }
+  .play-confetti .dot{ border-radius:50%; }
+
+  .wrap{ position:relative; z-index:1; max-width:760px; margin:0 auto; padding:0 var(--sp-5); }
+
+  /* --- A.1 reveal hero --- */
+  .reveal{ text-align:center; padding:var(--sp-10) 0 var(--sp-8); }
+  .reveal .eyebrow{ display:inline-flex; align-items:center; gap:8px; font-weight:800; font-size:var(--t-body-sm);
+    letter-spacing:.04em; color:var(--hero-ink); background:var(--hero-tint); padding:7px 16px; border-radius:var(--radius-pill); margin-bottom:var(--sp-5); }
+  h1.reveal-title{ font-size:clamp(2rem, 8vw, 3rem); line-height:1.08; letter-spacing:-.02em; color:var(--ink); margin:0 auto var(--sp-4); max-width:16ch; text-wrap:balance; }
+  h1.reveal-title .nm{ position:relative; white-space:nowrap; color:var(--secondary-strong); }
+  h1.reveal-title .nm::after{ content:""; position:absolute; left:-.04em; right:-.04em; bottom:.06em; height:.28em; background:var(--hero); border-radius:6px; z-index:-1; opacity:.92; }
+  .reveal .lede{ font-size:var(--t-body-lg); line-height:var(--lh-body-lg); color:var(--ink-soft); max-width:42ch; margin:0 auto; }
+
+  /* --- A.2 constellation --- */
+  .constellation{ padding:var(--sp-4) 0 var(--sp-10); }
+  .tier{ margin-top:var(--sp-8); }
+  .tier-head{ display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:var(--sp-5); text-align:center; }
+  .tier-head .ic{ color:var(--hero-strong); }
+  .tier-head h2{ font-size:var(--t-h3); color:var(--ink); }
+  .tier-head .sub{ display:block; font-family:var(--font-body); font-weight:600; font-size:var(--t-body-sm); color:var(--ink-soft); margin-top:2px; }
+
+  /* celebrated (1–3) — big badges, centred & balanced for any count */
+  .badges{ display:flex; flex-wrap:wrap; justify-content:center; gap:var(--sp-4); }
+  .badge{
+    flex:0 1 200px; max-width:230px; background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--radius-xl); box-shadow:var(--shadow-md); padding:var(--sp-6) var(--sp-5) var(--sp-5);
+    display:flex; flex-direction:column; align-items:center; text-align:center; gap:var(--sp-2); position:relative;
+  }
+  .badge .spark{ position:absolute; top:14px; right:16px; color:var(--hero-strong); font-size:16px; }
+  .badge .mdl{
+    width:88px; height:88px; border-radius:50%; display:grid; place-items:center; margin-bottom:var(--sp-2);
+    background:var(--c-tint); box-shadow:inset 0 0 0 3px color-mix(in srgb, var(--c-solid) 26%, white);
+  }
+  .badge .mdl svg{ width:44px; height:44px; color:var(--c-solid); }
+  .badge .nm{ font-family:var(--font-display); font-weight:700; font-size:var(--t-h3); color:var(--c-ink); line-height:1.2; text-wrap:balance; }
+  .badge .desc{ font-size:var(--t-body-sm); color:var(--ink-soft); font-weight:600; }
+
+  /* also strong — medium chips */
+  .chips{ display:flex; flex-wrap:wrap; justify-content:center; gap:var(--sp-3); }
+  .chip{ display:inline-flex; align-items:center; gap:10px; padding:10px 18px 10px 12px; border-radius:var(--radius-pill);
+    background:var(--c-tint); border:1px solid color-mix(in srgb, var(--c-solid) 22%, white); }
+  .chip .ci{ width:34px; height:34px; border-radius:50%; flex:0 0 auto; display:grid; place-items:center; background:var(--c-solid); color:#fff; }
+  .chip .ci svg{ width:20px; height:20px; }
+  .chip .nm{ font-family:var(--font-display); font-weight:700; font-size:var(--t-body); color:var(--c-ink); }
+
+  /* growing — warm small group, encouraging (never a weakness) */
+  .growing{ background:var(--surface); border:1px dashed var(--line-strong); border-radius:var(--radius-lg);
+    padding:var(--sp-5) var(--sp-5) var(--sp-6); max-width:560px; margin:0 auto; text-align:center; }
+  .growing .glabel{ display:inline-flex; align-items:center; gap:8px; font-family:var(--font-display); font-weight:700;
+    font-size:var(--t-body); color:var(--success-ink); margin-bottom:6px; }
+  .growing .glabel svg{ color:var(--success); }
+  .growing .gsub{ font-size:var(--t-body-sm); color:var(--ink-soft); margin:0 0 var(--sp-4); }
+  .grow-chips{ display:flex; flex-wrap:wrap; justify-content:center; gap:var(--sp-2); }
+  .grow-chip{ display:inline-flex; align-items:center; gap:8px; padding:7px 14px; border-radius:var(--radius-pill);
+    background:var(--canvas); border:1px solid var(--line-strong); font-family:var(--font-display); font-weight:700; font-size:var(--t-body-sm); color:var(--ink); }
+  .grow-chip .gd{ width:10px; height:10px; border-radius:50%; background:var(--c-solid); flex:0 0 auto; }
+
+  /* --- A.3 certificate preview + actions --- */
+  .certblock{ padding:var(--sp-6) 0 var(--sp-12); }
+  .cert-card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-xl);
+    box-shadow:var(--shadow-md); padding:var(--sp-6); max-width:520px; margin:0 auto; text-align:center; }
+  .cert-card h2{ font-size:var(--t-h2); color:var(--ink); margin-bottom:6px; }
+  .cert-card .ctxt{ font-size:var(--t-body); color:var(--ink-soft); margin:0 auto var(--sp-5); max-width:36ch; }
+  .cert-preview{
+    width:268px; height:335px; margin:0 auto var(--sp-5); border-radius:18px; overflow:hidden;
+    box-shadow:var(--shadow-lg); border:1px solid var(--line); background:var(--canvas);
+  }
+  .cert-preview iframe{ width:1080px; height:1350px; border:0; transform:scale(.24815); transform-origin:top left; }
+  .cert-actions{ display:flex; gap:var(--sp-3); justify-content:center; flex-wrap:wrap; }
+
+  .btn{ font-family:var(--font-body); font-weight:700; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:10px;
+    border-radius:var(--radius-pill); border:0; min-height:52px; padding:0 24px; font-size:var(--t-body);
+    transition:transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast), background var(--dur-fast); }
+  .btn:focus-visible{ outline:3px solid var(--ring); outline-offset:3px; }
+  .btn-primary{ background:var(--hero); color:var(--hero-ink); box-shadow:var(--shadow-hero); }
+  .btn-primary:hover{ background:var(--hero-strong); transform:translateY(-2px); }
+  .btn-primary:active{ transform:translateY(0); }
+  .btn-primary:disabled{ background:var(--line-strong); color:var(--ink-faint); box-shadow:none; cursor:not-allowed; }
+  .btn-secondary{ background:var(--secondary-strong); color:#fff; }
+  .btn-secondary:hover{ background:#0d5786; transform:translateY(-2px); }
+  .btn-ghost{ background:transparent; color:var(--secondary-strong); box-shadow:inset 0 0 0 2px var(--line-strong); }
+  .btn-ghost:hover{ box-shadow:inset 0 0 0 2px var(--secondary); }
+  .btn svg{ width:20px; height:20px; }
+
+  /* ============================ CALM ZONE (parent) ======================= */
+  .calm{ background:var(--bg); border-top:1px solid var(--line); }
+  .calm-wrap{ max-width:680px; margin:0 auto; padding:var(--sp-12) var(--sp-5) var(--sp-10); }
+  .calm-eyebrow{ display:block; text-align:center; font-weight:800; letter-spacing:.14em; text-transform:uppercase;
+    font-size:12px; color:var(--ink-faint); margin-bottom:var(--sp-5); }
+
+  /* trial invite (3-5 / 6-9) */
+  .trial{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-xl); box-shadow:var(--shadow-sm); padding:var(--sp-8) var(--sp-6); text-align:center; }
+  .trial h2{ font-size:var(--t-h1); color:var(--ink); margin-bottom:var(--sp-3); text-wrap:balance; }
+  .trial p.intro{ font-size:var(--t-body-lg); color:var(--ink-soft); max-width:42ch; margin:0 auto var(--sp-6); line-height:var(--lh-body-lg); }
+  .center-card{ display:flex; align-items:center; gap:var(--sp-4); text-align:left; background:var(--canvas);
+    border:1px solid var(--line); border-radius:var(--radius-lg); padding:var(--sp-4) var(--sp-5); max-width:420px; margin:0 auto var(--sp-6); }
+  .center-card .pin{ flex:0 0 auto; width:48px; height:48px; border-radius:var(--radius-md); display:grid; place-items:center;
+    background:var(--secondary-tint); color:var(--secondary-strong); }
+  .center-card .ctitle{ font-family:var(--font-display); font-weight:700; font-size:var(--t-body); color:var(--ink); }
+  .center-card .caddr{ font-size:var(--t-body-sm); color:var(--ink-soft); }
+  .center-card .cnote{ font-size:var(--t-caption); color:var(--ink-faint); font-weight:600; margin-top:3px; }
+  .trial-actions{ display:flex; gap:var(--sp-3); justify-content:center; flex-wrap:wrap; }
+  .trial .reassure{ margin-top:var(--sp-5); font-size:var(--t-body-sm); color:var(--ink-soft); display:flex; align-items:center; justify-content:center; gap:8px; }
+  .trial .reassure svg{ color:var(--success); }
+
+  /* ending (10-13) — distinct, fully resolved, no trial */
+  .ending{ text-align:center; padding:var(--sp-6) 0; }
+  .ending .seal{ width:84px; height:84px; border-radius:50%; margin:0 auto var(--sp-5); display:grid; place-items:center;
+    background:linear-gradient(135deg, var(--hero-tint), var(--secondary-tint)); color:var(--hero-strong); }
+  .ending h2{ font-size:var(--t-h1); color:var(--ink); margin-bottom:var(--sp-4); text-wrap:balance; }
+  .ending p{ font-size:var(--t-body-lg); color:var(--ink-soft); max-width:46ch; margin:0 auto var(--sp-5); line-height:var(--lh-body-lg); }
+  .ending .signoff{ display:inline-flex; align-items:center; gap:10px; font-size:var(--t-body-sm); font-weight:700;
+    color:var(--secondary-ink); background:var(--secondary-tint); padding:9px 18px; border-radius:var(--radius-pill); }
+
+  /* footer (reused) */
+  footer{ padding:var(--sp-6) var(--sp-5) var(--sp-10); border-top:1px solid var(--line);
+    display:flex; flex-wrap:wrap; gap:var(--sp-4); align-items:center; justify-content:space-between; color:var(--ink-soft); font-size:var(--t-body-sm); }
+  footer nav{ display:flex; gap:var(--sp-5); flex-wrap:wrap; }
+  footer a{ text-decoration:none; font-weight:600; } footer a:hover{ text-decoration:underline; }
+
+  .hidden{ display:none !important; }
+
+  /* --- desktop --- */
+  @media (min-width:900px){
+    .reveal{ padding:var(--sp-16) 0 var(--sp-8); }
+    .wrap{ max-width:880px; }
+    .badge{ flex-basis:220px; }
+    .certblock .cert-card{ max-width:880px; display:grid; grid-template-columns:300px 1fr; align-items:center;
+      gap:var(--sp-8); text-align:left; padding:var(--sp-8); }
+    .certblock .cert-preview{ margin:0; }
+    .certblock .cert-actions{ justify-content:flex-start; }
+    .certblock .ctxt{ margin-left:0; }
+    .topbar{ padding:var(--sp-4) var(--sp-8); }
+  }
+
+  /* --- A.5 staggered reveal. The end-state is the DEFAULT (elements always
+     visible) so print, PDF, reduced motion and any raster capture are clean.
+     A transient `.reveal-play` class (added on load, removed after it finishes)
+     drives the one-shot entrance. Reduced motion never arms it. --- */
+  @media (prefers-reduced-motion: no-preference){
+    .reveal-play .reveal .eyebrow,
+    .reveal-play .reveal-title,
+    .reveal-play .reveal .lede,
+    .reveal-play .badges .badge,
+    .reveal-play .also-wrap,
+    .reveal-play .growing,
+    .reveal-play .cert-card{ animation:popIn var(--dur-slow) var(--ease-spring) both; }
+    .reveal-play .reveal-title{ animation-delay:50ms; }
+    .reveal-play .reveal .lede{ animation-delay:100ms; }
+    .reveal-play .badges .badge:nth-child(1){ animation-delay:180ms; }
+    .reveal-play .badges .badge:nth-child(2){ animation-delay:260ms; }
+    .reveal-play .badges .badge:nth-child(3){ animation-delay:340ms; }
+    .reveal-play .also-wrap{ animation-delay:420ms; }
+    .reveal-play .growing{ animation-delay:500ms; }
+    .reveal-play .cert-card{ animation-delay:560ms; }
+    @keyframes popIn{ from{ opacity:0; transform:translateY(16px) scale(.96); } to{ opacity:1; transform:none; } }
+  }
+  @media print{ *{ animation:none !important; } }
+</style>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <a class="logo" href="Landing.html" aria-label="IqUp"><span class="iq">IQ</span><span class="up">UP</span><span class="bang">!</span></a>
+      <div class="langtoggle" role="group" aria-label="Language / Јазик">
+        <button data-lang="mk" aria-pressed="true">МК</button>
+        <button data-lang="en" aria-pressed="false">EN</button>
+      </div>
+    </header>
+
+    <!-- mockup-only controls -->
+    <div class="devbar" aria-hidden="true">
+      <span class="grp"><b>Band:</b>
+        <button data-band="3-5">3–5</button>
+        <button data-band="6-9" aria-pressed="true">6–9</button>
+        <button data-band="10-13">10–13</button>
+      </span>
+      <span class="grp"><b>Celebrated:</b>
+        <button data-cele="1">1</button>
+        <button data-cele="2">2</button>
+        <button data-cele="3" aria-pressed="true">3</button>
+      </span>
+    </div>
+
+    <main>
+      <!-- ============ PLAYFUL ZONE ============ -->
+      <div class="play">
+        <div class="play-confetti" id="confetti" aria-hidden="true"></div>
+        <div class="wrap">
+          <!-- A.1 reveal -->
+          <section class="reveal">
+            <span class="eyebrow">✦ <span data-i="done"></span></span>
+            <h1 class="reveal-title" data-i-html="title"></h1>
+            <p class="lede" data-i="lede"></p>
+          </section>
+
+          <!-- A.2 constellation -->
+          <section class="constellation" aria-label="Strengths">
+            <div class="tier">
+              <div class="tier-head">
+                <span class="ic" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.7 6.2.6-4.7 4.1 1.4 6.1L12 16.9 6.6 19.5 8 13.4 3.3 9.3l6.2-.6z"/></svg></span>
+                <div><h2 data-i="t_celebrated"></h2><span class="sub" data-i="t_celebrated_sub"></span></div>
+              </div>
+              <div class="badges" id="badges"></div>
+            </div>
+
+            <div class="tier also-wrap" id="alsoWrap">
+              <div class="tier-head">
+                <span class="ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.7 6.2.6-4.7 4.1 1.4 6.1L12 16.9 6.6 19.5 8 13.4 3.3 9.3l6.2-.6z"/></svg></span>
+                <div><h2 data-i="t_also"></h2><span class="sub" data-i="t_also_sub"></span></div>
+              </div>
+              <div class="chips" id="chips"></div>
+            </div>
+
+            <div class="tier" id="growWrap">
+              <div class="growing">
+                <span class="glabel"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V12M12 12C12 8 9 5 4 5c0 5 3 8 8 7zM12 12c0-3.5 2.5-6.5 7-6.5 0 4.5-2.8 7.2-7 6.5z"/></svg><span data-i="t_growing"></span></span>
+                <p class="gsub" data-i="t_growing_sub"></p>
+                <div class="grow-chips" id="growChips"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- A.3 certificate preview + actions -->
+          <section class="certblock">
+            <div class="cert-card">
+              <div class="cert-preview">
+                <iframe id="certFrame" title="" loading="lazy"></iframe>
+              </div>
+              <div>
+                <h2 data-i="cert_h"></h2>
+                <p class="ctxt" data-i="cert_p"></p>
+                <div class="cert-actions">
+                  <button class="btn btn-primary" id="dlBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l4-4m-4 4l-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+                    <span data-i="cert_dl"></span>
+                  </button>
+                  <button class="btn btn-secondary" id="shBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
+                    <span data-i="cert_sh"></span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- ============ CALM ZONE (parent) ============ -->
+      <div class="calm">
+        <div class="calm-wrap">
+          <span class="calm-eyebrow" data-i="parent_eyebrow"></span>
+
+          <!-- trial invite (bands 3-5 / 6-9) -->
+          <div class="trial" id="trial">
+            <h2 data-i="trial_h"></h2>
+            <p class="intro" data-i="trial_p"></p>
+            <div class="center-card">
+              <span class="pin" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+              <div>
+                <div class="ctitle" data-i="center_title"></div>
+                <div class="caddr" data-i="center_addr"></div>
+                <div class="cnote" data-i="center_note"></div>
+              </div>
+            </div>
+            <div class="trial-actions">
+              <button class="btn btn-primary"><span data-i="trial_cta"></span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </button>
+              <button class="btn btn-ghost"><span data-i="trial_cta2"></span></button>
+            </div>
+            <div class="reassure">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+              <span data-i="trial_reassure"></span>
+            </div>
+          </div>
+
+          <!-- ending (band 10-13) -->
+          <div class="ending hidden" id="ending">
+            <div class="seal" aria-hidden="true"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.7 6.2.6-4.7 4.1 1.4 6.1L12 16.9 6.6 19.5 8 13.4 3.3 9.3l6.2-.6z"/></svg></div>
+            <h2 data-i="end_h"></h2>
+            <p data-i="end_p"></p>
+            <span class="signoff"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 6.9H22l-6 4.4 2.3 7L12 16l-6.3 4.3 2.3-7-6-4.4h7.6z"/></svg><span data-i="end_signoff"></span></span>
+          </div>
+        </div>
+
+        <footer>
+          <span data-i="copyright"></span>
+          <nav>
+            <a href="#" data-i="f_privacy"></a>
+            <a href="#" data-i="f_about"></a>
+            <a href="#" data-i="f_contact"></a>
+          </nav>
+        </footer>
+      </div>
+    </main>
+  </div>
+
+<script>
+/* ===========================================================================
+   Strength model — reused glyphs + colour-token binding (words_obs → verbal).
+   =========================================================================== */
+const STR = {
+  pattern:  { mk:"Препознавање облици", en:"Pattern recognition", token:"pattern",
+    descMk:"Гледа обрасци насекаде", descEn:"Spots patterns everywhere",
+    glyph:'<circle cx="6.5" cy="6.5" r="3"/><rect x="14" y="3.5" width="6" height="6" rx="1.6"/><path d="M6.5 14l3 5.5h-6z"/><rect x="14" y="14" width="6" height="6" rx="1.6"/>' },
+  logic:    { mk:"Логичко мислење", en:"Logical reasoning", token:"logic",
+    descMk:"Решава чекор по чекор", descEn:"Reasons step by step",
+    glyph:'<circle cx="12" cy="5" r="2.5"/><circle cx="5.5" cy="19" r="2.5"/><circle cx="18.5" cy="19" r="2.5"/><path d="M12 7.5v2.2c0 1.5-1 2.3-2.4 3.1C8 13.8 5.5 14.5 5.5 16.5M12 9.7c0 1.5 1 2.3 2.4 3.1 1.6.9 4.1 1.6 4.1 3.7"/>' },
+  memory:   { mk:"Меморија", en:"Memory", token:"memory",
+    descMk:"Памти со леснотија", descEn:"Remembers with ease",
+    glyph:'<path d="M4 12a8 8 0 1 1 2.5 5.8"/><polyline points="3 18.5 3.5 13.5 8.5 14"/><circle cx="12" cy="12" r="2.2"/>' },
+  spatial:  { mk:"Просторно мислење", en:"Spatial thinking", token:"spatial",
+    descMk:"Мисли во простор", descEn:"Thinks in 3D",
+    glyph:'<path d="M21 8.2l-9-5-9 5v7.6l9 5 9-5V8.2z"/><path d="M3 8.2l9 5 9-5M12 13.2v8"/>' },
+  numeracy: { mk:"Броеви", en:"Numbers", token:"numeracy",
+    descMk:"Ужива во броеви", descEn:"Loves numbers",
+    glyph:'<line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10.5" y1="3.5" x2="8.5" y2="20.5"/><line x1="15.5" y1="3.5" x2="13.5" y2="20.5"/>' },
+  words_obs:{ mk:"Набљудување и зборови", en:"Words & observation", token:"verbal",
+    descMk:"Забележува детали", descEn:"Notices the details",
+    glyph:'<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>' },
+};
+
+/* per-band mock context (name + ranked strengths). Provisional copy. */
+const SCENARIO = {
+  "3-5":  { name:{mk:"Ива", en:"Ivy"},   rank:["spatial","words_obs","pattern","memory","logic","numeracy"] },
+  "6-9":  { name:{mk:"Марко", en:"Maya"}, rank:["pattern","spatial","numeracy","logic","memory","words_obs"] },
+  "10-13":{ name:{mk:"Ана", en:"Leo"},   rank:["logic","numeracy","pattern","words_obs","spatial","memory"] },
+};
+
+const COPY = {
+  mk:{
+    done:"Готово!",
+    title:'Сјајна работа, <span class="nm" data-name></span>!',
+    lede:"Еве што открија играта — твоите најсилни страни, без оценки и без бројки.",
+    t_celebrated:"Најмногу блеска", t_celebrated_sub:"Областите што светат најсилно",
+    t_also:"Исто така силно", t_also_sub:"Тука се движи одлично",
+    t_growing:"Расте", t_growing_sub:"Области што допрва процветуваат — со секоја игра стануваат посилни.",
+    cert_h:"Твојот сертификат", cert_p:"Магичен спомен што можеш да го закачиш на ѕид или да го споделиш со семејството.",
+    cert_dl:"Преземи", cert_sh:"Сподели",
+    parent_eyebrow:"За родителите",
+    trial_h:"Следен чекор: бесплатен пробен час",
+    trial_p:"Видете како вашето дете учи во живо. Резервирајте бесплатен пробен час во најблискиот IqUp центар — без обврска.",
+    center_title:"IqUp центар во ваша близина", center_addr:"Се одредува автоматски според локација",
+    center_note:"Точниот центар се избира во следниот чекор",
+    trial_cta:"Резервирај бесплатен час", trial_cta2:"Сите центри",
+    trial_reassure:"Без обврска · откажување во секое време",
+    end_h:"Што следува за љубопитен ум?",
+    end_p:"Засега немаме програма за 10–13 години — но љубопитноста никогаш не застанува. Зачувај го сертификатот и продолжи да истражуваш нови предизвици.",
+    end_signoff:"Од светот на Биби · IqUp",
+    copyright:"© 2026 IqUp", f_privacy:"Приватност", f_about:"За нас", f_contact:"Контакт",
+  },
+  en:{
+    done:"All done!",
+    title:'Brilliant work, <span class="nm" data-name></span>!',
+    lede:"Here's what the games revealed — your strongest areas, with no scores and no numbers.",
+    t_celebrated:"Shining brightest", t_celebrated_sub:"The areas that light up most",
+    t_also:"Also strong", t_also_sub:"Doing really well here too",
+    t_growing:"Growing", t_growing_sub:"Areas blossoming next — getting stronger with every game.",
+    cert_h:"Your certificate", cert_p:"A magical keepsake to hang on the wall or share with the family.",
+    cert_dl:"Download", cert_sh:"Share",
+    parent_eyebrow:"For parents",
+    trial_h:"Next step: a free trial class",
+    trial_p:"See how your child learns in person. Book a free trial class at your nearest IqUp center — no commitment.",
+    center_title:"An IqUp center near you", center_addr:"Found automatically by location",
+    center_note:"The exact center is chosen in the next step",
+    trial_cta:"Book a free class", trial_cta2:"All centers",
+    trial_reassure:"No commitment · cancel anytime",
+    end_h:"What's next for a curious mind?",
+    end_p:"We don't have a program for ages 10–13 just yet — but curiosity never stops. Keep the certificate and keep exploring new challenges.",
+    end_signoff:"From the world of Bibi · IqUp",
+    copyright:"© 2026 IqUp", f_privacy:"Privacy", f_about:"About", f_contact:"Contact",
+  }
+};
+
+/* ---- state ---- */
+const qp = new URLSearchParams(location.search);
+let lang = qp.get("lang")==="en" ? "en" : "mk";
+let band = ["3-5","6-9","10-13"].includes(qp.get("band")) ? qp.get("band") : "6-9";
+let cele = [1,2,3].includes(+qp.get("cele")) ? +qp.get("cele") : 3;
+
+const $ = s=>document.querySelector(s);
+function chipHtml(code, cls){
+  const s=STR[code], t=s.token;
+  return `<span class="${cls}" style="--c-tint:var(--strength-${t}-tint);--c-solid:var(--strength-${t});--c-ink:var(--strength-${t}-ink)">
+    <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${s.glyph}</svg></span>
+    <span class="nm">${s[lang]}</span></span>`;
+}
+
+function render(){
+  const c = COPY[lang], sc = SCENARIO[band];
+  const name = sc.name[lang];
+  document.documentElement.lang = lang;
+
+  /* text */
+  document.querySelectorAll("[data-i]").forEach(el=>{ if(c[el.dataset.i]!==undefined) el.textContent=c[el.dataset.i]; });
+  document.querySelectorAll("[data-i-html]").forEach(el=>{ el.innerHTML=c[el.dataset.iHtml]??""; });
+  const nameEl = document.querySelector("[data-name]"); if(nameEl) nameEl.textContent = name;
+
+  /* tiers from rank + celebrated count */
+  const rank = sc.rank;
+  const celebrated = rank.slice(0, cele);
+  const also = rank.slice(cele, cele+2);
+  const growing = rank.slice(cele+2);
+
+  /* celebrated badges */
+  $("#badges").innerHTML = celebrated.map(code=>{
+    const s=STR[code], t=s.token;
+    return `<div class="badge" style="--c-tint:var(--strength-${t}-tint);--c-solid:var(--strength-${t});--c-ink:var(--strength-${t}-ink)">
+      <span class="spark" aria-hidden="true">✦</span>
+      <span class="mdl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${s.glyph}</svg></span>
+      <span class="nm">${s[lang]}</span>
+      <span class="desc">${lang==="en"?s.descEn:s.descMk}</span>
+    </div>`;
+  }).join("");
+
+  /* also chips */
+  $("#alsoWrap").classList.toggle("hidden", also.length===0);
+  $("#chips").innerHTML = also.map(code=>chipHtml(code,"chip")).join("");
+
+  /* growing chips */
+  $("#growWrap").classList.toggle("hidden", growing.length===0);
+  $("#growChips").innerHTML = growing.map(code=>{
+    const s=STR[code], t=s.token;
+    return `<span class="grow-chip"><span class="gd" style="--c-solid:var(--strength-${t});background:var(--strength-${t})"></span>${s[lang]}</span>`;
+  }).join("");
+
+  /* certificate preview (top-tier strengths only) + alt text */
+  const top = celebrated.join(",");
+  const altNames = celebrated.map(x=>STR[x][lang]);
+  const listStr = altNames.length>1 ? altNames.slice(0,-1).join(", ")+(lang==="en"?" and ":" и ")+altNames.slice(-1) : altNames[0];
+  const frame = $("#certFrame");
+  frame.src = `Certificate.html?embed=1&lang=${lang}&name=${encodeURIComponent(name)}&top=${top}`;
+  frame.title = lang==="en" ? `IqUp certificate for ${name}` : `IqUp сертификат за ${name}`;
+  $(".cert-preview").setAttribute("aria-label",
+    lang==="en" ? `IqUp certificate for ${name}, celebrating their strongest areas: ${listStr}.`
+                : `IqUp сертификат за ${name} — сјае во: ${listStr}.`);
+
+  /* handoff variant by band */
+  const isEnding = band==="10-13";
+  $("#trial").classList.toggle("hidden", isEnding);
+  $("#ending").classList.toggle("hidden", !isEnding);
+  document.querySelector(".calm-eyebrow").classList.toggle("hidden", isEnding); /* ending reads as a distinct close */
+
+  /* dev switcher state */
+  document.querySelectorAll(".devbar [data-band]").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.band===band)));
+  document.querySelectorAll(".devbar [data-cele]").forEach(b=>b.setAttribute("aria-pressed", String(+b.dataset.cele===cele)));
+  document.querySelectorAll(".langtoggle button").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.lang===lang)));
+
+  replayReveal();
+}
+
+/* play the one-shot staggered entrance, then disarm it so the page sits at a
+   clean, capture/print-safe rest state */
+let revealTimer=null;
+function replayReveal(){
+  const body=document.body;
+  body.classList.remove("reveal-play"); void body.offsetWidth; body.classList.add("reveal-play");
+  clearTimeout(revealTimer);
+  revealTimer=setTimeout(()=>body.classList.remove("reveal-play"), 1100);
+}
+
+/* confetti scatter (subtle, top of playful zone) */
+const COL=['var(--hero)','var(--accent-grape)','var(--accent-coral)','var(--secondary)','var(--strength-spatial)','var(--strength-memory)'];
+(function(){
+  const N=18, out=[];
+  for(let i=0;i<N;i++){
+    const x=Math.round((i*53+17)%100), y=Math.round(8+((i*37)%64)), s=6+((i*7)%9);
+    out.push(`<i class="dot" style="left:${x}%;top:${y}px;width:${s}px;height:${s}px;background:${COL[i%COL.length]}"></i>`);
+  }
+  $("#confetti").innerHTML=out.join("");
+})();
+
+/* events */
+document.querySelectorAll(".langtoggle button").forEach(b=>b.addEventListener("click",()=>{ lang=b.dataset.lang; render(); }));
+document.querySelectorAll(".devbar [data-band]").forEach(b=>b.addEventListener("click",()=>{ band=b.dataset.band; render(); }));
+document.querySelectorAll(".devbar [data-cele]").forEach(b=>b.addEventListener("click",()=>{ cele=+b.dataset.cele; render(); }));
+
+render();
+</script>
+</body>
+</html>
