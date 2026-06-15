@@ -278,3 +278,51 @@ guard). `/[locale]/result/opengraph-image` prerenders for both locales.
 `globals.css`. The certificate's constant cream (`#FFFBF2`) and the OG image's
 inlined hexes are the only literal colours (documented build-artifact exceptions,
 same rationale as the landing OG). Vitest unchanged.
+
+---
+
+## Phase 1.11 — QA tooling (dev-only) + a11y/perf config notes
+
+**New devDependencies (pinned exact via `--save-exact`; NOT in the app bundle):**
+
+| Package | Exact version | Purpose |
+|---|---|---|
+| `@lhci/cli` | 0.15.1 | Repeatable median-of-5 Lighthouse vs the production build (`lhci:mobile` / `lhci:desktop`). |
+| `@playwright/test` | 1.61.0 | Headless-Chromium e2e: axe scans + reliable screenshots + the device matrix. |
+| `@axe-core/playwright` | 4.11.3 | Programmatic WCAG (axe) scans wired into Playwright. |
+
+Browser: only Chromium installed (`npx playwright install chromium`).
+
+**New npm scripts:** `test:a11y` (axe), `qa:screens` (device matrix + screenshots),
+`lhci:mobile` / `lhci:desktop` (LHCI median-of-5), `lh:median` (Windows-tolerant
+local median runner). `npm test` is unchanged (Vitest only) — the Playwright e2e
+suite runs via its own scripts, so unit CI is unaffected.
+
+**How an operator re-runs each (copy-paste):**
+- Accessibility scan: `npm run build` → in one terminal `npm run start`, in another `npm run test:a11y`.
+- Screenshots / device matrix: `npm run qa:screens` (starts its own dev server).
+- Lighthouse (clean infra / CI): `npm run lhci:mobile` then `npm run lhci:desktop`.
+- Lighthouse (this Windows machine): `npm run build` → `npm run start` (one terminal) → `npm run lh:median` (another).
+
+**LHCI vs `lh:median` (Windows EPERM):** on this machine every Lighthouse child
+process dies on an `EPERM` while chrome-launcher removes its temp profile dir
+*after* the audit completes — which makes LHCI mark the (otherwise valid) run
+"failed" and discard it. `scripts/lh-median.mjs` calls the Lighthouse CLI directly
+(`node node_modules/lighthouse/cli/index.js …`), writes each report, and reads it
+back regardless of that post-run cleanup error. The LHCI configs are kept as the
+canonical, clean-infra/CI artifact (they encode the same fixed mobile preset).
+
+**Font config (perf):** **unchanged typefaces** — Rubik (display, preloaded) +
+Nunito Sans (body, `preload:false`), both Latin+Cyrillic, `display:'swap'` with
+next/font's `size-adjust` metric-matched fallback (CLS ~0). The Lighthouse trace
+showed the mobile LCP element is the hero **explainer `<p>` (body text)**, which
+paints immediately in the swap fallback — so no font change improves it; the
+remaining gap is framework-JS execution under the 4× CPU throttle (see the 1.11
+completion report's performance verdict). The one shipped perf change is making
+`html-to-image` a **dynamic import** in `CertificateCard.tsx` (loads on the
+certificate download/share, not in the initial `/result` bundle).
+
+**Config note:** added a catch-all `src/app/[locale]/[...rest]/page.tsx` (calls
+`notFound()`) so unmatched locale routes render the localized `[locale]/not-found.tsx`
+inside the locale layout — fixing a hydration mismatch the global `not-found.tsx`
+caused for locale-prefixed unknown URLs. `next.config.ts` is unchanged.

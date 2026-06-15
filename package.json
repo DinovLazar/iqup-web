@@ -9,6 +9,11 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:a11y": "playwright test tests/e2e/a11y.spec.ts",
+    "qa:screens": "playwright test tests/e2e/screenshots.spec.ts",
+    "lhci:mobile": "lhci autorun --config=./lighthouserc.mobile.cjs",
+    "lhci:desktop": "lhci autorun --config=./lighthouserc.desktop.cjs",
+    "lh:median": "node scripts/lh-median.mjs",
     "db:push": "supabase db push --linked",
     "db:types": "supabase gen types --lang typescript --linked --schema public > src/lib/supabase/types.ts",
     "test:insert": "tsx --conditions=react-server scripts/test-insert.ts"
@@ -33,6 +38,9 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.11.3",
+    "@lhci/cli": "0.15.1",
+    "@playwright/test": "1.61.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

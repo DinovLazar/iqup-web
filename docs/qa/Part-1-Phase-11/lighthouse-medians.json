@@ -1,0 +1,67 @@
+[
+  {
+    "url": "/",
+    "formFactor": "mobile",
+    "runs": 5,
+    "performance": 92,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "seo": 100,
+    "lcpMs": 3354,
+    "cls": 0.015,
+    "tbtMs": 75,
+    "lcpElement": "<p class=\"mt-4 max-w-prose text-lg leading-relaxed text-ink-soft text-pretty\">"
+  },
+  {
+    "url": "/en",
+    "formFactor": "mobile",
+    "runs": 5,
+    "performance": 92,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "seo": 100,
+    "lcpMs": 3320,
+    "cls": 0,
+    "tbtMs": 57,
+    "lcpElement": "<p class=\"mt-4 max-w-prose text-lg leading-relaxed text-ink-soft text-pretty\">"
+  },
+  {
+    "url": "/test",
+    "formFactor": "mobile",
+    "runs": 3,
+    "performance": 91,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "seo": 100,
+    "lcpMs": 3410,
+    "cls": 0,
+    "tbtMs": 104,
+    "lcpElement": "<h1 class=\"font-display text-2xl font-bold text-ink text-balance\">"
+  },
+  {
+    "url": "/",
+    "formFactor": "desktop",
+    "runs": 3,
+    "performance": 100,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "seo": 100,
+    "lcpMs": 714,
+    "cls": 0,
+    "tbtMs": 0,
+    "lcpElement": "<h1 class=\"mt-5 font-display text-4xl leading-[1.1] font-extrabold text-ink text-bala…\">"
+  },
+  {
+    "url": "/en",
+    "formFactor": "desktop",
+    "runs": 3,
+    "performance": 100,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "seo": 100,
+    "lcpMs": 722,
+    "cls": 0,
+    "tbtMs": 1,
+    "lcpElement": "<h1 class=\"mt-5 font-display text-4xl leading-[1.1] font-extrabold text-ink text-bala…\">"
+  }
+]

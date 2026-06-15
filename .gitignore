@@ -13,6 +13,17 @@
 # testing
 /coverage
 
+# QA tooling output (Phase 1.11) — dev-only, regenerated on demand
+/.lighthouseci/
+/.lhtmp/
+/.nextstart.log
+/.lighthouseci*.log
+/.lhmedian.log
+/.pw*.log
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
 # next.js
 /.next/
 /out/

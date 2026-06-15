@@ -1,5 +1,6 @@
 'use client';
 
+import {useId} from 'react';
 import {ArrowLeft} from 'lucide-react';
 
 /**
@@ -23,6 +24,10 @@ export function ProgressHeader({
   onBack: () => void;
 }) {
   const percent = Math.round((current / total) * 100);
+  // The visible "Question X of Y" line is the progressbar's accessible name
+  // (WCAG 4.1.2 / axe `aria-progressbar-name`); `aria-valuetext` carries the
+  // spoken value.
+  const labelId = useId();
 
   return (
     <div className="flex flex-col gap-2">
@@ -37,6 +42,7 @@ export function ProgressHeader({
         </button>
         <div
           role="progressbar"
+          aria-labelledby={labelId}
           aria-valuenow={current}
           aria-valuemin={1}
           aria-valuemax={total}
@@ -50,6 +56,7 @@ export function ProgressHeader({
         </div>
       </div>
       <p
+        id={labelId}
         className="pl-14 text-sm font-semibold text-ink-soft"
         aria-live="polite"
       >

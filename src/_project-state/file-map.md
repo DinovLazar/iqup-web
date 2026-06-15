@@ -46,9 +46,12 @@
 | `src/app/[locale]/layout.tsx` | Root layout per locale: `<html lang>`, Rubik + Nunito Sans (`next/font`), `metadataBase`, hreflang, NextIntlClientProvider. |
 | `src/app/[locale]/page.tsx` | The landing page (Server Component) — composes the landing sections; per-locale `generateMetadata` (title/description/canonical/hreflang/OG/Twitter). |
 | `src/app/[locale]/opengraph-image.tsx` | Dynamic per-locale OG image (1200×630, `next/og` + Cyrillic Rubik woff from `@fontsource/rubik`). |
+| `src/app/[locale]/not-found.tsx` | Localized 404 (1.11) — skip-link + header/footer + AA copy, rendered inside the locale layout (correct `<html lang>`). |
+| `src/app/[locale]/[...rest]/page.tsx` | Catch-all (1.11): routes unmatched locale paths through `notFound()` → the localized 404 (avoids the global-not-found hydration mismatch). |
+| `src/app/not-found.tsx` | Global 404 fallback (1.11) for Next's internal `/_not-found` — self-contained `<html>`, bilingual, skip-link, AA contrast. |
 | `src/app/globals.css` | Tailwind v4 + the 1.03 brand tokens (palette, status, strengths, radii, shadows, motion) via `@theme inline`; reduced-motion reset; light-only (no `.dark`). |
 | `src/app/favicon.ico` | Default favicon (placeholder until brand asset lands). |
-| `src/components/LanguageToggle.tsx` | Accessible MK/EN pill switcher; preserves the current path; label via prop. |
+| `src/components/LanguageToggle.tsx` | Accessible MK/EN pill switcher; preserves the current path **and query string** (so a mid-test `?age` survives the switch — 1.11); label via prop. |
 | `src/components/ui/button.tsx` | shadcn/ui Button primitive. |
 | `src/components/ui/card.tsx` | shadcn/ui Card primitive (used by the hero + step/trust cards). |
 | `src/components/ui/radio-group.tsx` | shadcn/ui RadioGroup primitive (design-system; consumed in 1.07). |
@@ -163,6 +166,21 @@
 | `scripts/test-insert.ts` | Throwaway live end-to-end test (`npm run test:insert`): insert via `insertLead()`, service read, anon read+insert blocked, cleanup. |
 | `.env.local.example` | Committed env template (placeholders only) for the three Supabase keys. |
 
+## QA tooling (phase 1.11 — dev-only, not in the app bundle)
+
+| Path | Description |
+|---|---|
+| `lighthouserc.mobile.cjs` | Lighthouse CI mobile config (median-of-5, fixed simulated slow-4G + 4× CPU, `Accept-Language: mk`) against the prod build. |
+| `lighthouserc.desktop.cjs` | Lighthouse CI desktop config (median-of-5, desktop preset). |
+| `scripts/lh-median.mjs` | Windows-tolerant Lighthouse median runner (`npm run lh:median`) — calls Lighthouse directly and reads each report despite the post-run temp-dir `EPERM` that makes LHCI discard runs on this machine. Writes `docs/qa/Part-1-Phase-11/lighthouse-medians.json`. |
+| `playwright.config.ts` | Playwright config (mobile + desktop projects) for the axe + screenshot QA; runs against the dev server. |
+| `tests/e2e/fixtures.ts` | Shared e2e fixtures: valid `TestResult`/`LeadContext` per band (for injecting `/result` states) + helpers. |
+| `tests/e2e/a11y.spec.ts` | `@axe-core/playwright` WCAG scans across every route × state × locale (§5); asserts zero serious/critical. |
+| `tests/e2e/parity.spec.ts` | Asserts the language switch preserves full path + query (`?age` survives MK↔EN). |
+| `tests/e2e/screenshots.spec.ts` | Device-matrix screenshots, no-horizontal-overflow checks, and certificate download/share-fallback on mobile. |
+| `.claude/agents/{perf-auditor,a11y-auditor,parity-auditor,device-qa}.md` | Version-controlled, scoped auditor subagent definitions (Workstreams A–D) for repeatable re-runs. |
+| `docs/qa/Part-1-Phase-11/` | Evidence record: `lighthouse-medians.json`, `axe-summary.{mobile,desktop}.json`, and `<project>/*.png` device screenshots. |
+
 ## Project-state docs
 
 | Path | Description |
@@ -176,6 +194,8 @@
 | `src/_project-state/Part-1-Phase-06-Completion.md` | Phase 1.06 completion report. |
 | `src/_project-state/Part-1-Phase-07-Completion.md` | Phase 1.07 completion report. |
 | `src/_project-state/Part-1-Phase-08-Completion.md` | Phase 1.08 completion report. |
+| `src/_project-state/Part-1-Phase-10-Completion.md` | Phase 1.10 completion report. |
+| `src/_project-state/Part-1-Phase-11-Completion.md` | Phase 1.11 completion report (parity + a11y + performance finalisation). |
 
 ## Design handovers
 
@@ -193,3 +213,5 @@
 | `public/og/.gitkeep` | Static OG images (not needed — the OG image is generated dynamically per locale). |
 
 *(`src/lib/supabase/.gitkeep` was removed in phase 1.05, `src/content/test/.gitkeep` + `src/lib/scoring/.gitkeep` in phase 1.07, and `src/content/results/.gitkeep` in phase 1.10, now that those folders hold real files.)*
+
+*(Phase 1.11 deleted the two non-canonical duplicate copies of the 1.04 content spec — `Part-1-Phase-04-Content-Spec.md` (repo root) and `docs/Part-1-Phase-04-Content-Spec.md`. The canonical `docs/content/Part-1-Phase-04-Content-Spec.md` is unchanged. No code referenced the deleted paths; the only live doc references already point at the canonical copy.)*

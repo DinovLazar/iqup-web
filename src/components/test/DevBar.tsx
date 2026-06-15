@@ -21,7 +21,10 @@ export function DevBar({
   const jumpAge: Record<BandKey, number> = {'3-5': 4, '6-9': 8, '10-13': 12};
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-amber-300 bg-amber-50/95 backdrop-blur-sm">
+    <div
+      data-dev-only
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-amber-300 bg-amber-50/95 backdrop-blur-sm"
+    >
       <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2 text-xs">
         <span className="font-bold tracking-wide text-amber-700 uppercase">dev</span>
 

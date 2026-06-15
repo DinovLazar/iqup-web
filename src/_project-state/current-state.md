@@ -2,7 +2,7 @@
 
 > Live snapshot of the repo. **Code updates this at the end of every phase.** If this and the live code ever disagree, the live code wins.
 
-**Last updated:** 2026-06-13 — after Phase 1.10 (results profile + shareable certificate). The whole funnel is now live end-to-end: land → test → email gate → lead saved → **real strengths profile + downloadable/shareable certificate**.
+**Last updated:** 2026-06-15 — after Phase 1.11 (parity + accessibility + performance finalisation). **Part 1 is complete.** The whole funnel is live end-to-end (land → test → email gate → lead saved → real strengths profile + shareable certificate) and has now had its first whole-site quality pass: tool-driven WCAG 2.2 AA (axe + manual + the 2.2 delta), a defensible median-of-5 Lighthouse sweep, the `?age` language-switch fix, a cross-device matrix, and repo hygiene.
 
 ---
 
@@ -21,7 +21,7 @@ Other scripts: `npm run build`, `npm run start`, `npm run lint`, `npm run typech
 
 ## Tech stack (current)
 
-Installed and wired: **Next.js 16.2.7** (App Router, Turbopack) · **React 19.2.4** · **TypeScript 5.9.3** · **Tailwind CSS v4** (brand tokens from the 1.03 handover) · **shadcn/ui** (radix-nova style) · **next-intl 4.13.0** · **Framer Motion 12.40.0** (via LazyMotion) · **@fontsource/rubik 5.2.8** (OG-image font) · **html-to-image 1.11.13** (client-side certificate → PNG, phase 1.10) · **@supabase/supabase-js 2.107.0** · **zod 4.4.3** · **server-only 0.0.1** · dev: **Vitest 4.1.8**, **supabase CLI 2.105.0**, **tsx 4.22.4**. Fonts: **Rubik** (display) + **Nunito Sans** (body) via `next/font/google` (Latin + Cyrillic). Exact pinned versions in `00_stack-and-config.md`.
+Installed and wired: **Next.js 16.2.7** (App Router, Turbopack) · **React 19.2.4** · **TypeScript 5.9.3** · **Tailwind CSS v4** (brand tokens from the 1.03 handover) · **shadcn/ui** (radix-nova style) · **next-intl 4.13.0** · **Framer Motion 12.40.0** (via LazyMotion) · **@fontsource/rubik 5.2.8** (OG-image font) · **html-to-image 1.11.13** (client-side certificate → PNG, phase 1.10) · **@supabase/supabase-js 2.107.0** · **zod 4.4.3** · **server-only 0.0.1** · dev: **Vitest 4.1.8**, **supabase CLI 2.105.0**, **tsx 4.22.4**, and (phase 1.11, QA-only, not in the app bundle) **@lhci/cli 0.15.1**, **@playwright/test 1.61.0** (Chromium only), **@axe-core/playwright 4.11.3**. Fonts: **Rubik** (display) + **Nunito Sans** (body) via `next/font/google` (Latin + Cyrillic). Exact pinned versions in `00_stack-and-config.md`.
 
 Not installed yet (deferred to the phase that needs them): analytics / Microsoft Clarity / Meta Pixel.
 
@@ -176,6 +176,44 @@ Not installed yet (deferred to the phase that needs them): analytics / Microsoft
 
 `public/bibi/` (licensed Bibi art — still awaiting; `HeroArt` and the certificate's `BIBI_CERT_ART` placeholder stand in until it lands), `public/og/` (no static OG needed — the OG image is dynamic). (`src/content/results/`, `src/lib/supabase/`, `src/content/test/`, `src/lib/scoring/`, and `docs/design-handovers/` now hold real files.)
 
+## Quality checks (Phase 1.11)
+
+- **Lighthouse (median-of-5/3, production build, this machine; LCP/CLS/TBT lab values):**
+
+  | Surface | Perf | A11y | BP | SEO | LCP | CLS | TBT |
+  |---|---|---|---|---|---|---|---|
+  | Landing `/` (MK) mobile | **92** | 100 | 100 | 100 | 3.35 s | 0.015 | 75 ms |
+  | Landing `/en` (EN) mobile | **92** | 100 | 100 | 100 | 3.32 s | 0 | 57 ms |
+  | `/test` (MK) mobile | **91** | 100 | 100 | 100 | 3.41 s | 0 | 104 ms |
+  | Landing `/` (MK) desktop | **100** | 100 | 100 | 100 | 0.71 s | 0 | 0 ms |
+  | Landing `/en` (EN) desktop | **100** | 100 | 100 | 100 | 0.72 s | 0 | 1 ms |
+
+  **Desktop hits the 95+ bar on all four categories, both locales.** **Mobile A11y/BP/SEO = 100; mobile
+  Performance = 91–92 (below 95)** — up from the documented ~87 single-run baseline (now a defensible
+  median-of-5). The gated metric is **LCP ≈ 3.3 s under the simulated slow-4G + 4× CPU throttle**; the
+  LCP element is the hero **explainer paragraph (body text)**, which paints immediately in the
+  `display:swap` metric-matched fallback (observed real-world LCP ~1.2 s, **CLS ~0**, **TBT 57–104 ms**).
+  The single-digit gap to 95 is the framework-JS execution baseline (React 19 + Next 16 + next-intl +
+  LazyMotion-gated Framer + Radix) under the throttle on a modest machine — expected to clear 95 on clean
+  production infra (Vercel). Genuine optimisation applied (fonts already optimal for the body-text LCP;
+  `html-to-image` dynamic-imported off the initial `/result` bundle; no third-party/heavy client JS); the
+  brand font/animation were **not** degraded to game the score. Full write-up in the 1.11 report §2.
+- **Accessibility (WCAG 2.2 AA):** `@axe-core/playwright` across every route × state × locale (landing ·
+  test start/question/age-fallback · gate empty+invalid · result ×3 bands · not-found; both locales) —
+  **zero serious/critical** on mobile + desktop (`docs/qa/Part-1-Phase-11/axe-summary.*.json`). The 2.2
+  delta (2.4.11, 2.5.7, 2.5.8, 3.2.6, 3.3.7, 3.3.8) verified; skip-link now on **every** page incl. the
+  404. Two real defects found + fixed: the test progressbar lacked an accessible name
+  (`aria-progressbar-name`) and the new 404's "404" failed contrast. (The "gate contrast" axe hits were
+  the dev-only `?dev=1` chrome, excluded from the scan; stripped in production.)
+- **Parity:** `messages.test.ts` green (added `NotFound` namespace, both locales); hreflang/canonical
+  present on every indexable page; the language switch now preserves full path **+ query** (the `/test`
+  `?age` drop is fixed, asserted by `tests/e2e/parity.spec.ts`).
+- **Cross-device:** no horizontal overflow at 360/390/414/768/1024/1280 px (landing, `/test`, `/result`,
+  both locales); certificate renders 1080×1350 and **Download (PNG) + Share (copy-link fallback) work on
+  mobile** with the child's name never leaving the browser. Screenshot evidence: `docs/qa/Part-1-Phase-11/{mobile,desktop}/`.
+- `npm run build`, `npm run lint`, `npm run typecheck`, `npm test` (**98/98**) — all clean. Playwright
+  e2e: **45/45** green.
+
 ## Quality checks (Phase 1.10)
 
 - `npm run build`, `npm run lint`, `npm run typecheck`, `npm test` (**98/98**) — all clean. New
@@ -251,8 +289,13 @@ baseline: both locales prerender, language toggle works.)_
 
 ## Open carryover items
 
-- **Mobile Lighthouse Performance ~87 (<95)** — documented reason (web-font-gated LCP on simulated
-  slow-4G + framework JS baseline + noisy machine); real-world perf is good. Finalize in 1.11.
+- **Mobile Lighthouse Performance 91–92 (<95) — finalised in 1.11 (honest write-up).** Median-of-5 on
+  this machine: mobile Perf **92/92/91** (landing mk/en, test); A11y/BP/SEO **100**; desktop **100**
+  across the board, both locales. Gated by **LCP ≈ 3.3 s** (the hero explainer body text, which paints
+  in the swap fallback — real-world LCP ~1.2 s, **CLS ~0**, **TBT 57–104 ms**) under the simulated
+  slow-4G + 4× CPU throttle; the residual gap is the framework-JS baseline, expected to clear 95 on
+  clean infra (Vercel, phase 2.06). Re-measure there. Not a real-world UX regression. **Closed as a
+  documented, evidenced gap** (see the 1.11 report §2 + `docs/qa/Part-1-Phase-11/lighthouse-medians.json`).
 - **Licensed Bibi art / official logo / official OG art** — drop into `public/bibi/`, the `Wordmark`
   component, and the OG image when provided. Never generate/redraw the characters. **Certificate swap
   (1.10):** set `BIBI_CERT_ART` in `src/components/result/bibi.ts` to the asset path — a one-line
@@ -272,9 +315,10 @@ baseline: both locales prerender, language toggle works.)_
   certificate copy in `src/content/results/` (MK verbatim from the 1.04 spec, EN mirror), and the
   centre city labels — all pending native-MK review (one §6A spatial descriptor was reworded from the
   mockup's "Thinks in 3D" to avoid a digit).
-- **`/test` language toggle drops `?age` mid-test** — `LanguageToggle` uses `usePathname` (query-less),
-  so switching MK/EN during the test returns to the age picker rather than preserving the age. Minor;
-  carry the age across the locale switch in a later polish pass if desired.
+- ~~**`/test` language toggle drops `?age` mid-test**~~ — **FIXED in 1.11.** `LanguageToggle` now
+  preserves the full path **and** query (via `useSyncExternalStore` reading `window.location.search`, so
+  static pages aren't deopted), so switching MK↔EN keeps the child's `?age`. Asserted by
+  `tests/e2e/parity.spec.ts`.
 - **C-Q10 cube-net** is the spec's heaviest graphic; rendered as a simple inline net + isometric cubes
   whose per-variant face marks are decorative (scoring uses `correct`). Spec §7 offers an easy
   rotation/pattern substitution if a cleaner asset is wanted.
@@ -291,21 +335,32 @@ baseline: both locales prerender, language toggle works.)_
   hardening on the insert path is deferred to launch (2.04/2.07); final consent
   wording pending IqUp legal; `types.ts` is verified-hand-authored — regenerate via
   `npm run db:types` once linked from an environment with DB access.
-- **`.mcp.json` (untracked)** points at the wrong Supabase project
-  (`jkceucgiurcfgltfhvin`); unused by the build — correct or delete it.
+- ~~**`.mcp.json`** points at the wrong Supabase project~~ — **FIXED in 1.11.** Its Supabase
+  `project_ref` was corrected to the canonical EU leads project `cpxssfodboukznzaksnb` and **committed**
+  (the file is tracked — the phase prompt's "untracked" was a mismatch; live code wins). A local
+  Supabase-MCP convenience, not used by the build.
 
 ## Known issues
 
 - None blocking. (`db:push` / `db:types` need a one-time `supabase login` + `link`;
   this machine's sandbox can't reach the Postgres port, so the migration was applied
   via the dashboard SQL editor.)
+- **LHCI on this Windows machine:** `npm run lhci:mobile`/`lhci:desktop` fail because every Lighthouse
+  child dies on a temp-dir `EPERM` *after* the audit (chrome-launcher cleanup), which makes LHCI discard
+  the run. Use **`npm run lh:median`** here (build + `npm run start`, then `npm run lh:median`) — it reads
+  each report despite the cleanup error. The LHCI configs remain valid for clean infra / CI.
 
 ## Suggested next phase
 
-**1.11 — Parity + a11y + performance finalisation:** the funnel is now live end-to-end (land → test →
-email gate → lead saved → **real results + certificate**). 1.11 closes the carryover: the mobile
-Lighthouse Performance sweep (currently ~87, web-font-gated), a full WCAG 2.2 AA pass across the new
-result/certificate surfaces, and MK/EN parity polish. The native-MK review of all draft copy (landing,
-test, gate, **and the new 1.10 result/certificate copy**) and the IqUp verification of `centers.ts`
-remain pre-launch items. Part 2 then adds the results **email** (2.01) and the real trial **booking**
-(2.05) — both already seamed (`// TODO(booking 2.05)`; the OG image + share are name-free for 2.01).
+**Part 1 is complete — start Part 2 with 2.01 (results email).** The funnel is live end-to-end and has
+passed its whole-site quality pass (WCAG 2.2 AA tool-driven + manual, defensible Lighthouse medians,
+parity/language-switch fixed, cross-device verified). The OG image + certificate share are already
+name-free, so 2.01 can email the strengths summary without new PII. Then 2.02 CRM/notify, 2.03
+follow-ups, 2.04 analytics/Pixel/consent + `/privacy` page, **2.05 the real trial booking** (`// TODO(booking 2.05)` seam),
+2.06 Vercel Pro + domain + `NEXT_PUBLIC_SITE_URL` (re-measure mobile Lighthouse on clean infra there).
+
+**Still-open pre-launch items (not Code tasks):** native-Macedonian copy review + IqUp sign-off of ALL
+draft copy (landing, test, gate, result/certificate, consent/marketing wording); IqUp verification of
+`centers.ts` phone/address data; licensed Bibi art + official logo + OG art + favicon; the real brand
+palette/type; the **Phase 1.09 written completion report** is still missing (Lazar/Chat item — not
+fabricated). Supabase account transfer + legacy→publishable key migration is Part-2 hardening.

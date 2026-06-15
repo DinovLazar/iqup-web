@@ -313,7 +313,10 @@ export function EmailGate({
       {/* Dev-only: a compact view of the computed strengths so the full flow can
           be verified without answering every question. Stripped in production. */}
       {dev ? (
-        <div className="mt-2 w-full rounded-2xl border border-dashed border-input bg-canvas p-4 text-left">
+        <div
+          data-dev-only
+          className="mt-2 w-full rounded-2xl border border-dashed border-input bg-canvas p-4 text-left"
+        >
           <p className="mb-3 text-xs font-bold tracking-wide text-ink-faint uppercase">
             dev · {safeResult.band} · {safeResult.locale} · age {age}
           </p>

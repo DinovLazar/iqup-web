@@ -149,6 +149,9 @@
   }
   html {
     @apply font-sans;
+    /* WCAG 2.2 §2.4.11 Focus Not Obscured: keep a control scrolled into view
+       clear of the 64px sticky SiteHeader when tabbing/anchor-jumping to it. */
+    scroll-padding-top: 5rem;
   }
 }
 

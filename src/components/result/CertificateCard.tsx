@@ -1,7 +1,6 @@
 'use client';
 
 import {useRef, useState} from 'react';
-import {toBlob} from 'html-to-image';
 import {Download, Share2, Check, Loader2} from 'lucide-react';
 import type {Locale} from '@/content/locale';
 import type {StrengthCode} from '@/content/strengths';
@@ -64,6 +63,10 @@ export function CertificateCard({
     // Embed the self-hosted Cyrillic fonts correctly (html-to-image can otherwise
     // drop web fonts) — wait for them before serialising the SVG.
     if (document.fonts?.ready) await document.fonts.ready;
+    // Load html-to-image only on the first download/share, so its bundle stays
+    // out of the initial /result client payload (it is never needed to *view*
+    // the result — only to export the certificate).
+    const {toBlob} = await import('html-to-image');
     const blob = await toBlob(node, {
       width: 1080,
       height: 1350,
