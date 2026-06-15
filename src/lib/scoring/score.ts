@@ -36,7 +36,22 @@ export const TIE_BREAK_ORDER: readonly StrengthCode[] = [
 const tieBreakIndex = (code: StrengthCode): number =>
   TIE_BREAK_ORDER.indexOf(code);
 
-function tierForRank(rank: number): Tier {
+/**
+ * The single, total ordering over strengths: highest ratio first, ties broken by
+ * the fixed `TIE_BREAK_ORDER`. Shared by `score()` (from raw answers) and
+ * `reconstructResult()` (from the lead's rounded ratio summary) so both produce
+ * the byte-identical ranking. Only `code` + `ratio` are read.
+ */
+export function compareStrengthScores(
+  a: {ratio: number; code: StrengthCode},
+  b: {ratio: number; code: StrengthCode}
+): number {
+  if (b.ratio !== a.ratio) return b.ratio - a.ratio; // highest ratio first
+  return tieBreakIndex(a.code) - tieBreakIndex(b.code); // fixed tie-break
+}
+
+/** Rank → tier (spec §3): ranks 1–2 celebrated, 3 also, 4–6 growing. */
+export function tierForRank(rank: number): Tier {
   if (rank <= 2) return 'celebrated';
   if (rank === 3) return 'also';
   return 'growing';
@@ -89,10 +104,7 @@ export function score(
     };
   });
 
-  ranked.sort((a, b) => {
-    if (b.ratio !== a.ratio) return b.ratio - a.ratio; // highest ratio first
-    return tieBreakIndex(a.code) - tieBreakIndex(b.code); // fixed tie-break
-  });
+  ranked.sort(compareStrengthScores);
 
   ranked.forEach((s, i) => {
     s.rank = i + 1;

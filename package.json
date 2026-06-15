@@ -16,10 +16,14 @@
     "lh:median": "node scripts/lh-median.mjs",
     "db:push": "supabase db push --linked",
     "db:types": "supabase gen types --lang typescript --linked --schema public > src/lib/supabase/types.ts",
-    "test:insert": "tsx --conditions=react-server scripts/test-insert.ts"
+    "test:insert": "tsx --conditions=react-server scripts/test-insert.ts",
+    "test:email": "tsx --tsconfig scripts/email-runtime/tsconfig.json scripts/test-email.ts"
   },
   "dependencies": {
+    "@fontsource/nunito-sans": "5.2.7",
     "@fontsource/rubik": "^5.2.8",
+    "@react-email/components": "1.0.12",
+    "@react-email/render": "2.0.8",
     "@supabase/supabase-js": "^2.107.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

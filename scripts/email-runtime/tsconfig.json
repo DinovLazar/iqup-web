@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "../..",
+    "paths": {
+      "@/*": ["src/*"],
+      "server-only": ["scripts/email-runtime/empty.ts"],
+      "client-only": ["scripts/email-runtime/empty.ts"]
+    }
+  }
+}

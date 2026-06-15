@@ -2,7 +2,7 @@
 
 > Live snapshot of the repo. **Code updates this at the end of every phase.** If this and the live code ever disagree, the live code wins.
 
-**Last updated:** 2026-06-15 — after Phase 1.11 (parity + accessibility + performance finalisation). **Part 1 is complete.** The whole funnel is live end-to-end (land → test → email gate → lead saved → real strengths profile + shareable certificate) and has now had its first whole-site quality pass: tool-driven WCAG 2.2 AA (axe + manual + the 2.2 delta), a defensible median-of-5 Lighthouse sweep, the `?age` language-switch fix, a cross-device matrix, and repo hygiene.
+**Last updated:** 2026-06-15 — after Phase 2.01 (results email). **Part 2 has begun.** The funnel now reaches the parent's inbox: the instant a lead saves, a warm bilingual **results email** (the child's strengths profile in the body + a server-rendered certificate PNG attached) is sent via Brevo — fully isolated from lead capture (a send failure can never break the save or the redirect), and a logged no-op until the `BREVO_API_KEY` lands. Live delivery is **deferred-pending-key** (build/render/wiring all verified). _(Previously: after Phase 1.11 — Part 1 complete; the whole funnel land → test → email gate → lead saved → real strengths profile + shareable certificate, with a tool-driven WCAG 2.2 AA pass, a median-of-5 Lighthouse sweep, the `?age` language-switch fix, a cross-device matrix, and repo hygiene.)_
 
 ---
 
@@ -21,7 +21,7 @@ Other scripts: `npm run build`, `npm run start`, `npm run lint`, `npm run typech
 
 ## Tech stack (current)
 
-Installed and wired: **Next.js 16.2.7** (App Router, Turbopack) · **React 19.2.4** · **TypeScript 5.9.3** · **Tailwind CSS v4** (brand tokens from the 1.03 handover) · **shadcn/ui** (radix-nova style) · **next-intl 4.13.0** · **Framer Motion 12.40.0** (via LazyMotion) · **@fontsource/rubik 5.2.8** (OG-image font) · **html-to-image 1.11.13** (client-side certificate → PNG, phase 1.10) · **@supabase/supabase-js 2.107.0** · **zod 4.4.3** · **server-only 0.0.1** · dev: **Vitest 4.1.8**, **supabase CLI 2.105.0**, **tsx 4.22.4**, and (phase 1.11, QA-only, not in the app bundle) **@lhci/cli 0.15.1**, **@playwright/test 1.61.0** (Chromium only), **@axe-core/playwright 4.11.3**. Fonts: **Rubik** (display) + **Nunito Sans** (body) via `next/font/google` (Latin + Cyrillic). Exact pinned versions in `00_stack-and-config.md`.
+Installed and wired: **Next.js 16.2.7** (App Router, Turbopack) · **React 19.2.4** · **TypeScript 5.9.3** · **Tailwind CSS v4** (brand tokens from the 1.03 handover) · **shadcn/ui** (radix-nova style) · **next-intl 4.13.0** · **Framer Motion 12.40.0** (via LazyMotion) · **@fontsource/rubik 5.2.8** + **@fontsource/nunito-sans 5.2.7** (OG-image + email-certificate fonts) · **html-to-image 1.11.13** (client-side certificate → PNG, phase 1.10) · **@react-email/components 1.0.12** + **@react-email/render 2.0.8** (results email, phase 2.01) · **@supabase/supabase-js 2.107.0** · **zod 4.4.3** · **server-only 0.0.1** · dev: **Vitest 4.1.8**, **supabase CLI 2.105.0**, **tsx 4.22.4**, and (phase 1.11, QA-only, not in the app bundle) **@lhci/cli 0.15.1**, **@playwright/test 1.61.0** (Chromium only), **@axe-core/playwright 4.11.3**. Fonts: **Rubik** (display) + **Nunito Sans** (body) via `next/font/google` (Latin + Cyrillic). Exact pinned versions in `00_stack-and-config.md`.
 
 Not installed yet (deferred to the phase that needs them): analytics / Microsoft Clarity / Meta Pixel.
 
@@ -151,6 +151,36 @@ Not installed yet (deferred to the phase that needs them): analytics / Microsoft
 - **i18n:** the `Result` namespace was rewritten for the real chrome (hero, constellation, certificate
   face, parents, trial, ending) in both locales (exact parity). **All new MK provisional.**
 
+## Results email (phase 2.01)
+
+- **The funnel now reaches the inbox.** After `insertLead()` succeeds, `submitLead`
+  schedules `after(() => sendResultsEmail(...))` (`after` from `next/server`), so the parent's
+  redirect to `/result` is never delayed and the work still completes on serverless. The honeypot
+  path returns before this — **bots never send**.
+- **Fully isolated.** `sendResultsEmail` (`src/lib/email/send-results-email.ts`, `server-only`) is
+  internally try/caught and **never throws**; a slow/failing/unconfigured Brevo can't affect the
+  lead save or the redirect. With `BREVO_API_KEY` unset it logs `skipped-no-key` and returns (the
+  app runs locally before Cowork's account exists).
+- **Same content as the screen, no new data.** It rebuilds the on-screen ranking from the lead's
+  stored ratio summary via `reconstructResult` (`src/lib/scoring/reconstruct.ts`, reusing `score()`'s
+  comparator/tiers — proven byte-identical), assembles the body from `getResultCopy` (the single
+  source), and renders the **certificate PNG** (`src/lib/email/certificate-image.tsx`, Satori/`next/og`,
+  1080×1350, Rubik + Nunito Sans Cyrillic, per-child tint, Bibi placeholder) **attached** to the email.
+  The child's name is rendered in memory and attached — **never stored, never in a URL**.
+- **The email** (`src/emails/ResultsEmail.tsx`, React Email): greeting → strengths profile → "your
+  certificate is attached" → trial CTA button (bands **3–5 / 6–9** only) / curious-mind ending (band
+  **10–13**) → IqUp identity + contact footer. Literal-hex brand tokens (`src/lib/email/brand.ts`),
+  web-safe fonts, mobile-first. Rendered to HTML + plain text. **No score/IQ/%/rank** anywhere
+  (forbidden-token test extended over the rendered email + the new strings).
+- **Brevo** (`src/lib/email/brevo.ts`, `server-only`): a thin typed `fetch` client (no SDK) →
+  `POST /v3/smtp/email` with the `api-key` header, the message + base64 `certificate.png` attachment,
+  and `tags: ['results-email', band, locale]` for later segmentation. **No CRM/lists/automations**
+  (2.02 owns lead routing); **no nurture** (2.03, marketing-opt-in-gated). One transactional send.
+- **i18n:** a new **`Email` namespace** (chrome only) in `mk.json`/`en.json` (exact parity; all MK
+  provisional, footer/identity flagged for IqUp legal — tied to `CONSENT_VERSION`).
+- **Dev check:** `npm run test:email` drives the real orchestrator per band × locale to
+  `TEST_EMAIL_TO` (refuses prod/CI). **Live delivery is deferred-pending-key** — see Open carryover.
+
 ## Bilingual shell
 
 - next-intl wired: `routing.ts` (locales `mk`/`en`, default `mk`, `localePrefix: 'as-needed'`), `request.ts` (loads `src/messages/<locale>.json`), `navigation.ts`, and `src/proxy.ts` (Next 16 middleware convention).
@@ -170,7 +200,13 @@ Not installed yet (deferred to the phase that needs them): analytics / Microsoft
   **Phase 1.08 now drives this:** the email gate's `'use server'` `submitLead` action (after a
   honeypot check) builds the snake_case lead and calls `insertLead()` — verified live (real rows
   inserted in both locales with the summary only + correct band map, then deleted; anon still denied).
-- analytics / Pixel / email = Part 2.
+- **Results email (phase 2.01) — wired; live delivery deferred-pending-key.** The `submitLead`
+  action fires `sendResultsEmail` via `after()` once the lead saves; it renders the strengths
+  profile + an attached certificate PNG and sends one transactional email via **Brevo** (thin
+  `fetch` client, no SDK). Build/render/wiring verified end-to-end (incl. the real Next runtime);
+  the actual Gmail/Outlook delivery is verified once Cowork adds `BREVO_API_KEY` + `EMAIL_FROM_ADDRESS`
+  (`npm run test:email`). **Brevo is a new data processor → on the Part-2 legal-review list.**
+- analytics / Pixel = Part 2 (2.04). CRM/list routing = 2.02; nurture/follow-ups = 2.03.
 
 ## Reserved folders (created, awaiting content)
 
@@ -289,6 +325,20 @@ baseline: both locales prerender, language toggle works.)_
 
 ## Open carryover items
 
+- **Results email live delivery — DEFERRED PENDING `BREVO_API_KEY` (phase 2.01).** Everything is
+  built, tested, and the render path is verified in the real Next runtime; the no-key path no-ops
+  cleanly. When Cowork adds `BREVO_API_KEY` + `EMAIL_FROM_ADDRESS` (+ optional `EMAIL_FROM_NAME` /
+  `EMAIL_REPLY_TO`) and `TEST_EMAIL_TO` to `.env.local`, run **`npm run test:email`** and confirm in
+  the inbox: the email arrives (Gmail at least, ideally Outlook), the **Cyrillic** subject + body
+  render, the **certificate attachment** opens as a valid 1080×1350 PNG (right name/strengths/tint,
+  no tofu), and the **trial CTA shows only for the 3–5 / 6–9 bands**.
+- **Brevo is a NEW data processor → Part-2 legal-review list (phase 2.01).** The results email sends
+  the child's first name + parent email + strengths summary to Brevo. Add **Brevo DPA + EU data
+  residency** to the IqUp legal/privacy review (alongside the consent/privacy wording). The branded
+  `@iqup.mk` sender + SPF/DKIM/DMARC + the production `NEXT_PUBLIC_SITE_URL` are finalised in 2.06.
+- **Native-MK review additions (phase 2.01):** the new **`Email` namespace** (subject, greeting,
+  intro, certificate-attached line, trial heading/body/CTA, curious-mind ending, footer) — all
+  provisional MK; the **footer identity line is flagged for IqUp legal** (tied to `CONSENT_VERSION`).
 - **Mobile Lighthouse Performance 91–92 (<95) — finalised in 1.11 (honest write-up).** Median-of-5 on
   this machine: mobile Perf **92/92/91** (landing mk/en, test); A11y/BP/SEO **100**; desktop **100**
   across the board, both locales. Gated by **LCP ≈ 3.3 s** (the hero explainer body text, which paints
@@ -352,12 +402,15 @@ baseline: both locales prerender, language toggle works.)_
 
 ## Suggested next phase
 
-**Part 1 is complete — start Part 2 with 2.01 (results email).** The funnel is live end-to-end and has
-passed its whole-site quality pass (WCAG 2.2 AA tool-driven + manual, defensible Lighthouse medians,
-parity/language-switch fixed, cross-device verified). The OG image + certificate share are already
-name-free, so 2.01 can email the strengths summary without new PII. Then 2.02 CRM/notify, 2.03
-follow-ups, 2.04 analytics/Pixel/consent + `/privacy` page, **2.05 the real trial booking** (`// TODO(booking 2.05)` seam),
-2.06 Vercel Pro + domain + `NEXT_PUBLIC_SITE_URL` (re-measure mobile Lighthouse on clean infra there).
+**2.01 (results email) is done — next is 2.02 (CRM / lead notification / list routing).** The
+transactional results email is wired (Brevo, deferred-pending-key). 2.02 owns routing the saved lead
+into a CRM / contact list and notifying the team (the `tags: ['results-email', band, locale]` on each
+send are there to help segment later); it is the explicit seam 2.01 left untouched. Then 2.03
+follow-ups (marketing-opt-in-gated), 2.04 analytics/Pixel/consent + `/privacy` page, **2.05 the real
+trial booking** (`// TODO(booking 2.05)` seam — and the email's trial CTA link target should point at
+the booking flow then), 2.06 Vercel Pro + domain + production `NEXT_PUBLIC_SITE_URL` + the branded
+`@iqup.mk` sender with SPF/DKIM/DMARC (and re-measure mobile Lighthouse on clean infra; **run the
+deferred `npm run test:email` live check once `BREVO_API_KEY` lands**).
 
 **Still-open pre-launch items (not Code tasks):** native-Macedonian copy review + IqUp sign-off of ALL
 draft copy (landing, test, gate, result/certificate, consent/marketing wording); IqUp verification of

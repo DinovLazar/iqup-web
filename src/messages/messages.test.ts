@@ -70,6 +70,27 @@ describe('i18n message parity (mk ↔ en)', () => {
     }
   });
 
+  it('includes the new Email namespace (results email chrome) in both locales', () => {
+    const required = [
+      'Email.subject',
+      'Email.preview',
+      'Email.greeting',
+      'Email.intro',
+      'Email.certificateAttached',
+      'Email.trial.heading',
+      'Email.trial.body',
+      'Email.trial.cta',
+      'Email.curiousMind',
+      'Email.footer.identity',
+      'Email.footer.contact',
+      'Email.footer.signoff'
+    ];
+    for (const key of required) {
+      expect(mkPaths.has(key), `mk missing ${key}`).toBe(true);
+      expect(enPaths.has(key), `en missing ${key}`).toBe(true);
+    }
+  });
+
   it('uses the same placeholders for every shared key', () => {
     for (const [key, mkValue] of mkPaths) {
       const enValue = enPaths.get(key);

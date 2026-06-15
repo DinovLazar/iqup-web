@@ -18,7 +18,18 @@ vi.mock('./insert-lead', () => ({
   insertLead: (input: unknown) => insertLeadMock(input)
 }));
 
-// Imported after the mock is registered (vi.mock is hoisted above imports).
+// Mock the results-email orchestrator (server-only + Brevo + next/og) so it is
+// never really loaded, and run `after()` callbacks synchronously so we can assert
+// exactly when the email send is scheduled.
+const sendResultsEmailMock = vi.fn();
+vi.mock('@/lib/email/send-results-email', () => ({
+  sendResultsEmail: (p: unknown) => sendResultsEmailMock(p)
+}));
+vi.mock('next/server', () => ({
+  after: (fn: () => unknown) => fn()
+}));
+
+// Imported after the mocks are registered (vi.mock is hoisted above imports).
 import {submitLead} from './submit-lead';
 
 /** A representative computed result (NOT band-distribution-bound — synthetic). */
@@ -61,6 +72,7 @@ const FORBIDDEN = /"?(iq|percentile|grade|pass|fail|total|score|answers?)"?\s*:/
 
 beforeEach(() => {
   insertLeadMock.mockReset();
+  sendResultsEmailMock.mockReset();
 });
 
 describe('band mapping (TestResult key → leadSchema band)', () => {
@@ -188,5 +200,35 @@ describe('submitLead (server action control flow)', () => {
     insertLeadMock.mockRejectedValueOnce(new Error('db exploded'));
     const result = await submitLead(sampleSubmission());
     expect(result).toEqual({ok: false, error: 'generic'});
+  });
+});
+
+describe('submitLead (results-email scheduling — Phase 2.01)', () => {
+  it('schedules the results email after a successful insert, with the submission data', async () => {
+    insertLeadMock.mockResolvedValueOnce({id: 'row-1', created_at: 'now'});
+    const submission = sampleSubmission();
+    await submitLead(submission);
+
+    expect(sendResultsEmailMock).toHaveBeenCalledTimes(1);
+    expect(sendResultsEmailMock).toHaveBeenCalledWith({
+      email: submission.email,
+      childFirstName: submission.childFirstName,
+      band: submission.band,
+      locale: submission.locale,
+      scores: submission.topStrengths.scores
+    });
+  });
+
+  it('never sends for a honeypot (bot) submission', async () => {
+    const result = await submitLead(sampleSubmission({honeypot: 'gotcha'}));
+    expect(result).toEqual({ok: true});
+    expect(insertLeadMock).not.toHaveBeenCalled();
+    expect(sendResultsEmailMock).not.toHaveBeenCalled();
+  });
+
+  it('never sends when the lead insert fails', async () => {
+    insertLeadMock.mockRejectedValueOnce(new Error('db exploded'));
+    await submitLead(sampleSubmission());
+    expect(sendResultsEmailMock).not.toHaveBeenCalled();
   });
 });

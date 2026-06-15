@@ -35,9 +35,9 @@
 | `src/i18n/request.ts` | Per-request next-intl config; loads `src/messages/<locale>.json`. |
 | `src/i18n/navigation.ts` | Locale-aware navigation APIs (`Link`, `redirect`, `usePathname`, …). |
 | `src/proxy.ts` | Next.js 16 proxy (ex-middleware) applying next-intl locale routing. |
-| `src/messages/mk.json` | Macedonian UI strings (Meta, Landing, Test, Gate, Result namespaces; default locale; draft). |
+| `src/messages/mk.json` | Macedonian UI strings (Meta, Landing, Test, Gate, Result, **Email** namespaces; default locale; draft). |
 | `src/messages/en.json` | English UI strings (mirror of mk.json; draft). |
-| `src/messages/messages.test.ts` | Vitest i18n parity suite (identical mk↔en key sets + matching `{placeholders}` + no empty strings). |
+| `src/messages/messages.test.ts` | Vitest i18n parity suite (identical mk↔en key sets + matching `{placeholders}` + no empty strings; required-key lists incl. the `Email` namespace). |
 
 ## App shell & components
 
@@ -91,10 +91,12 @@
 | `src/content/test/index.ts` | Question-bank registry: `TEST_CONTENT`, `getQuestionsForBand`, `ALL_QUESTIONS`. |
 | `src/content/test/content.test.ts` | Vitest content-integrity suite (counts, distribution, one-strength-per-Q, MK/EN parity, reveal items). |
 | `src/lib/scoring/types.ts` | `Answers`, `Tier`, `StrengthScore`, and the `TestResult` hand-off contract (no total, no IQ). |
-| `src/lib/scoring/score.ts` | Deterministic `score(answers, band, locale)` per spec §3 + the fixed `TIE_BREAK_ORDER`. |
+| `src/lib/scoring/score.ts` | Deterministic `score(answers, band, locale)` per spec §3 + the fixed `TIE_BREAK_ORDER`; exports the shared `compareStrengthScores` + `tierForRank` (reused by `reconstruct.ts`). |
+| `src/lib/scoring/reconstruct.ts` | `reconstructResult(scores, band, locale)` (2.01): re-derives the on-screen ranked `TestResult` from the lead's stored ratio summary, using the same comparator/tiers as `score()` (no new data). |
+| `src/lib/scoring/reconstruct.test.ts` | Vitest: cross-checks `reconstructResult` reproduces `score()`’s exact ranking + tiers for every band × answer shape, plus determinism/edge cases. |
 | `src/lib/scoring/storage.ts` | `TEST_RESULT_STORAGE_KEY` + `isTestResult`/`readTestResult` (the sessionStorage hand-off key + typed reader/guard). |
 | `src/lib/scoring/storage.test.ts` | Vitest guard suite for `isTestResult` (valid/invalid persisted results). |
-| `src/lib/scoring/index.ts` | Scoring public surface (`score`, `TIE_BREAK_ORDER`, `TEST_RESULT_STORAGE_KEY`, `isTestResult`, `readTestResult`, types). |
+| `src/lib/scoring/index.ts` | Scoring public surface (`score`, `TIE_BREAK_ORDER`, `compareStrengthScores`, `tierForRank`, `reconstructResult`, `TEST_RESULT_STORAGE_KEY`, `isTestResult`, `readTestResult`, types). |
 | `src/lib/scoring/score.test.ts` | Vitest scoring suite (ranking, tiers, determinism, no-total/no-IQ invariants). |
 | `src/app/[locale]/test/page.tsx` | Server shell for `/test`: per-locale metadata, `?age=N`→band, runner mount (passes `age` + resolved `gateCopy`), age-picker fallback. |
 | `src/components/test/TestRunner.tsx` | Client island: phases (start/running/**gate**), answers, sessionStorage hand-off, dynamic-imported `EmailGate`, dev preview wiring. |
@@ -117,8 +119,8 @@
 |---|---|
 | `src/components/gate/EmailGate.tsx` | The parent-facing email-gate form island (email, child name, required consent, optional marketing, honeypot); validates, calls the submit action, persists lead-context, navigates to `/result`. |
 | `src/components/gate/copy.ts` | `GateCopy` type + `fillName` (server-resolved gate chrome strings). |
-| `src/lib/leads/lead-mapping.ts` | Pure/isomorphic mapping: `LEAD_BAND_BY_KEY`, `toTopStrengths` (summary), `buildLeadInput`, `CONSENT_VERSION`, `GateSubmission`/`SubmitResult` types. |
-| `src/lib/leads/submit-lead.ts` | `'use server'` `submitLead` action: honeypot check → `buildLeadInput` → existing service-role `insertLead()`; returns a typed friendly result. |
+| `src/lib/leads/lead-mapping.ts` | Pure/isomorphic mapping: `LEAD_BAND_BY_KEY` + **`BAND_KEY_BY_LEAD`** (inverse, for 2.01), `toTopStrengths` (summary), `buildLeadInput`, `CONSENT_VERSION`, `GateSubmission`/`SubmitResult` types. |
+| `src/lib/leads/submit-lead.ts` | `'use server'` `submitLead` action: honeypot check → `buildLeadInput` → service-role `insertLead()` → **`after(() => sendResultsEmail(...))`** (2.01: fire-and-forget results email, never blocks/affects the save); returns a typed friendly result. |
 | `src/lib/leads/submit-lead.test.ts` | Vitest suite: band map, summary-only/no-IQ, consent-false rejected, honeypot no-insert, unknown-key stripping, action control flow. |
 | `src/lib/leads/lead-context.ts` | `iqup.leadContext.v1` sessionStorage hand-off (`LeadContext` + `isLeadContext`/read/write) — the "gate completed" signal for `/result`. |
 | `src/lib/leads/lead-context.test.ts` | Vitest guard suite for `isLeadContext`. |
@@ -164,7 +166,7 @@
 | `src/lib/validation/lead.ts` | zod 4 `leadSchema` + `topStrengthsSchema` (`.strict()`) and `Lead` / `LeadInput` types; the validation source of truth. |
 | `src/lib/leads/insert-lead.ts` | `insertLead(input: unknown)` — validates every field, then inserts via the service-role client (server-only). |
 | `scripts/test-insert.ts` | Throwaway live end-to-end test (`npm run test:insert`): insert via `insertLead()`, service read, anon read+insert blocked, cleanup. |
-| `.env.local.example` | Committed env template (placeholders only) for the three Supabase keys. |
+| `.env.local.example` | Committed env template (placeholders only): the three Supabase keys + the 2.01 email vars (`BREVO_API_KEY`, `EMAIL_FROM_ADDRESS`, `EMAIL_FROM_NAME`, `EMAIL_REPLY_TO`, `TEST_EMAIL_TO`, `NEXT_PUBLIC_SITE_URL`). |
 
 ## QA tooling (phase 1.11 — dev-only, not in the app bundle)
 
@@ -181,6 +183,26 @@
 | `.claude/agents/{perf-auditor,a11y-auditor,parity-auditor,device-qa}.md` | Version-controlled, scoped auditor subagent definitions (Workstreams A–D) for repeatable re-runs. |
 | `docs/qa/Part-1-Phase-11/` | Evidence record: `lighthouse-medians.json`, `axe-summary.{mobile,desktop}.json`, and `<project>/*.png` device screenshots. |
 
+## Results email — Brevo + React Email + server certificate (phase 2.01)
+
+| Path | Description |
+|---|---|
+| `src/lib/email/brand.ts` | Literal-hex mirror of the `globals.css` brand tokens (`BRAND`, `STRENGTH_HEX`, `strengthHex`) — for Satori + React Email, which can't resolve CSS vars. |
+| `src/lib/email/brevo.ts` | Thin typed Brevo transactional client (`server-only`): `sendTransactionalEmail(params, apiKey)` → `POST /v3/smtp/email`; throws typed `BrevoError` on non-2xx. No SDK. |
+| `src/lib/email/brevo.test.ts` | Vitest (mocked `fetch`): endpoint, `api-key` header, body + attachment shape, non-2xx throws `BrevoError`. |
+| `src/lib/email/send-results-email.ts` | `server-only` orchestrator: reconstruct ranking → `getResultCopy` → render certificate PNG + email HTML/text → Brevo send. Internally try/caught (never throws); logged no-op when `BREVO_API_KEY` unset. |
+| `src/lib/email/send-results-email.test.ts` | Vitest (mocked brevo/cert/render + stubbed env): no-key skip, isolation (never throws), Brevo payload + attachment + tags, same-content-as-screen, locale site URL. |
+| `src/lib/email/certificate-image.tsx` | `server-only` Satori certificate renderer (`renderCertificatePng`) — 1080×1350 PNG via `next/og`, Rubik + Nunito Sans (Cyrillic), per-child tint, Bibi placeholder (`BIBI_CERT_ART`). |
+| `src/lib/email/certificate-image.test.ts` | Vitest: valid PNG signature + size for Cyrillic/Latin/single-strength samples; different children → different bytes. |
+| `src/emails/types.ts` | Shared seam: `EmailChrome` + `ResultsEmailProps` (orchestrator resolves, template consumes). |
+| `src/emails/ResultsEmail.tsx` | React Email template (`@react-email/components`): greeting → strengths profile (from `getResultCopy`) → certificate-attached line → trial CTA (3–5/6–9) / curious-mind ending (10–13) → footer. Literal-hex brand, web-safe fonts, mobile-first. |
+| `src/emails/render.ts` | `renderResultsEmail(props)` → `{html, text}` via `@react-email/render`. |
+| `src/emails/ResultsEmail.test.ts` | Vitest per band × locale: child name + strengths copy present, no forbidden tokens in visible text, trial CTA present (3–5/6–9) / absent (10–13), absolute links. |
+| `scripts/test-email.ts` | Dev-only live-delivery check (`npm run test:email`): drives the real orchestrator per band × locale to `TEST_EMAIL_TO`. Refuses prod/CI; reports no-key skip. |
+| `scripts/email-runtime/tsconfig.json` | Script-only tsconfig aliasing `server-only`→empty so `test:email` runs under `tsx` without `--conditions=react-server` (which would break the React Email renderer's `react-dom/server`). |
+| `scripts/email-runtime/empty.ts` | The empty stub the alias above points at. |
+| `docs/qa/Part-2-Phase-01/` | QA evidence: a rendered sample certificate PNG (Cyrillic) + sample email HTML (en 3–5 with trial CTA, mk 10–13 ending). |
+
 ## Project-state docs
 
 | Path | Description |
@@ -196,6 +218,7 @@
 | `src/_project-state/Part-1-Phase-08-Completion.md` | Phase 1.08 completion report. |
 | `src/_project-state/Part-1-Phase-10-Completion.md` | Phase 1.10 completion report. |
 | `src/_project-state/Part-1-Phase-11-Completion.md` | Phase 1.11 completion report (parity + a11y + performance finalisation). |
+| `src/_project-state/Part-2-Phase-01-Completion.md` | Phase 2.01 completion report (results email: Brevo + React Email + server certificate). |
 
 ## Design handovers
 

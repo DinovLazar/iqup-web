@@ -1,6 +1,8 @@
 'use server';
 
+import {after} from 'next/server';
 import {insertLead} from './insert-lead';
+import {sendResultsEmail} from '@/lib/email/send-results-email';
 import {
   buildLeadInput,
   type GateSubmission,
@@ -39,6 +41,24 @@ export async function submitLead(
 
   try {
     await insertLead(lead);
+
+    // Phase 2.01: send the warm results email (strengths profile + attached
+    // certificate). Scheduled with `after()` so it runs AFTER the response is
+    // sent — the parent's redirect to `/result` is never delayed — and on
+    // serverless the work still completes. `sendResultsEmail` is internally
+    // wrapped so it never throws: a slow/failing/unconfigured send can NEVER
+    // affect this lead save or the client redirect. Reached only on a real
+    // insert (the honeypot path above returns before this), so bots never send.
+    after(() =>
+      sendResultsEmail({
+        email: submission.email,
+        childFirstName: submission.childFirstName,
+        band: submission.band,
+        locale: submission.locale,
+        scores: submission.topStrengths.scores
+      })
+    );
+
     return {ok: true};
   } catch (error) {
     // Log the real cause server-side (a ZodError on bad input, or a DB failure)

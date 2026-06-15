@@ -36,6 +36,18 @@ export const LEAD_BAND_BY_KEY: Record<BandKey, Band> = {
   '10-13': 'band-c'
 };
 
+/**
+ * Inverse of `LEAD_BAND_BY_KEY`: the stored `leadSchema` band enum → the canonical
+ * `BandKey`. The results-email orchestrator (Phase 2.01) receives the stored band
+ * and needs the canonical key back to reproduce the on-screen result (drive the
+ * trial-CTA rule and re-rank via `src/lib/scoring`). Pure derivation — no new data.
+ */
+export const BAND_KEY_BY_LEAD: Record<Band, BandKey> = {
+  'band-a': '3-5',
+  'band-b': '6-9',
+  'band-c': '10-13'
+};
+
 /** Round to two decimals — clean per-strength figures, deterministic. */
 function round2(n: number): number {
   return Math.round(n * 100) / 100;

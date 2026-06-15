@@ -207,5 +207,23 @@
       "heading": "What's next for a curious mind?",
       "signoff": "From the world of Bibi · IqUp"
     }
+  },
+  "Email": {
+    "subject": "{name}’s results are ready",
+    "preview": "A warm look at {name}’s strengths from the IqUp Brain Games.",
+    "greeting": "Hi there,",
+    "intro": "Thank you for playing the IqUp Brain Games with {name}. Here’s a warm look at the strengths that shone through.",
+    "certificateAttached": "We’ve attached {name}’s certificate — print it for the wall, or share it with the family.",
+    "trial": {
+      "heading": "Come and play with us",
+      "body": "See your child’s curiosity in action at a free trial class — playful, hands-on, and with no pressure at all.",
+      "cta": "Find your nearest centre"
+    },
+    "curiousMind": "These strengths are {name}’s to build on — keep feeding that curious mind.",
+    "footer": {
+      "identity": "IqUp — free brain games that reveal your child’s strengths.",
+      "contact": "Questions? Just reply to this email — we’re happy to help.",
+      "signoff": "From the world of Bibi · IqUp"
+    }
   }
 }

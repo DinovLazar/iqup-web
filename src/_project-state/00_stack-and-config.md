@@ -326,3 +326,55 @@ certificate download/share, not in the initial `/result` bundle).
 `notFound()`) so unmatched locale routes render the localized `[locale]/not-found.tsx`
 inside the locale layout — fixing a hydration mismatch the global `not-found.tsx`
 caused for locale-prefixed unknown URLs. `next.config.ts` is unchanged.
+
+---
+
+## 2026-06-15 — Phase 2.01 results email (Brevo + React Email + server certificate)
+
+**Packages added (exact resolved versions, pinned without a caret):**
+
+| Package | Version | Scope |
+|---|---|---|
+| @react-email/components | 1.0.12 | dependency (the email template components) |
+| @react-email/render | 2.0.8 | dependency (render the template → HTML + plain text) |
+| @fontsource/nunito-sans | 5.2.7 | dependency (Cyrillic Nunito Sans `.woff` for the Satori certificate body font) |
+
+Installed with `npm install --save-exact`. **No SDK for Brevo** — the client is a thin
+typed `fetch` POST to `https://api.brevo.com/v3/smtp/email` (lower weight, mockable). The
+certificate PNG reuses the already-present **`next/og`** (Satori) + **`@fontsource/rubik`**;
+**no `@resvg/resvg-js` fallback was needed** — `ImageResponse.arrayBuffer()` yields the PNG
+bytes directly (verified in Vitest and in the live Next runtime). The npm install emitted
+deprecation warnings for React Email's *individual* sub-packages (`@react-email/head`,
+`button`, …) — expected, as they are consolidated into `@react-email/components`, which is
+the only one imported. `npm audit` reports pre-existing dev-tree advisories only; not changed.
+
+**New env vars (server-only except `NEXT_PUBLIC_SITE_URL`):** `BREVO_API_KEY`,
+`EMAIL_FROM_ADDRESS`, `EMAIL_FROM_NAME`, optional `EMAIL_REPLY_TO`, dev-only `TEST_EMAIL_TO`,
+and the existing carryover `NEXT_PUBLIC_SITE_URL` (dev fallback `http://localhost:3000`).
+Names (no values) added to `.env.local.example`. **Graceful degradation:** with `BREVO_API_KEY`
+unset the send is a logged no-op and the funnel runs normally.
+
+**The send mechanism:** `submitLead` schedules `after(() => sendResultsEmail(...))` (`after`
+from `next/server`) once the lead insert resolves — so the parent's redirect is never delayed
+and the work still completes on serverless. The orchestrator is internally try/caught and never
+throws. The Satori certificate + React Email render run in the Node server runtime (server
+action / route handler), where `next/og` and `react-dom/server` both work — **verified live**
+via a temporary route handler returning real HTML + a valid 1080×1350 PNG.
+
+**Brand hex inlined:** `src/lib/email/brand.ts` mirrors the `globals.css` tokens as literal hex
+(Satori + email clients can't resolve `var(--…)`) — the same documented exception as the OG
+routes. No new visual direction; the certificate matches `Certificate.tsx` within Satori's CSS
+subset (flexbox only, no grid/`color-mix`; soft mixes precomputed).
+
+**New scripts (`package.json`):**
+- `npm run test:email` → `tsx --tsconfig scripts/email-runtime/tsconfig.json scripts/test-email.ts`.
+  A dev-only live-delivery check that drives the real orchestrator per band × locale to
+  `TEST_EMAIL_TO`. **It refuses to run in production / CI.** It does **not** use
+  `--conditions=react-server` (the way `test:insert` does) because that condition blocks
+  `react-dom/server`, which the React Email renderer needs; instead `scripts/email-runtime/
+  tsconfig.json` aliases the `server-only` import to an empty stub (`paths`), so the script
+  runs `react-dom/server` + `next/og` exactly as the real Next runtime does.
+
+**Vitest:** unchanged config. New server-only modules are unit-tested by mocking `server-only`
+per file (`vi.mock('server-only', () => ({}))`) — the established repo pattern (no global
+config change). `next/og`'s `ImageResponse` renders PNG bytes under Vitest directly.
