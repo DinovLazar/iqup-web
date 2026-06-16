@@ -32,6 +32,7 @@ import type {EmailChrome} from '@/emails/types';
 import {renderResultsEmail} from '@/emails/render';
 import {renderCertificatePng} from './certificate-image';
 import {sendTransactionalEmail} from './brevo';
+import {siteUrlFor} from './site-url';
 import enMessages from '@/messages/en.json';
 import mkMessages from '@/messages/mk.json';
 
@@ -44,15 +45,6 @@ export interface SendResultsEmailParams {
   readonly locale: Locale;
   /** Per-strength ratio summary (`top_strengths.scores`) — number-only, no answers. */
   readonly scores: Record<string, number>;
-}
-
-/** Absolute site URL for the trial CTA, locale-prefixed (EN at `/en`). */
-function siteUrlFor(locale: Locale): string {
-  const base = (process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000').replace(
-    /\/+$/,
-    ''
-  );
-  return locale === 'en' ? `${base}/en` : base;
 }
 
 /** Resolve the `Email` chrome for a locale, `{name}` slots filled. */

@@ -2,7 +2,7 @@
 
 > Live snapshot of the repo. **Code updates this at the end of every phase.** If this and the live code ever disagree, the live code wins.
 
-**Last updated:** 2026-06-16 — after Phase 2.02 (CRM contact routing + new-lead notification). The instant a lead saves, the same isolated `after()` work now fans out **three** side-effects: the 2.01 results email, **a Brevo Contacts upsert** (the parent becomes a CRM contact by email, on an operational "all leads" list always + a marketing/nurture list **only on `marketing_opt_in`**), and **an internal new-lead notification** to IqUp's team — each fully isolated (any one failing/slow/unconfigured can never break the save, the redirect, or the others), and each a logged no-op until its Brevo env lands. Nothing stored changed (no schema/column, no Brevo id persisted — Supabase stays the system of record). Live delivery is **deferred-pending-config** (build/typecheck/lint/test all verified; 190 tests). _(Previously: after Phase 2.01 — the funnel reached the parent's inbox with a warm bilingual results email + attached certificate via Brevo, deferred-pending-key. After Phase 1.11 — Part 1 complete: the whole funnel land → test → gate → lead saved → strengths profile + certificate, with a WCAG 2.2 AA pass, a median-of-5 Lighthouse sweep, and a cross-device matrix.)_
+**Last updated:** 2026-06-16 — after Phase 2.03 (follow-up nurture emails — Code half). The lead lifecycle's final content piece now exists as version-controlled, bilingual **nurture email templates** — a warm welcome (trial + general) and two gentle trial nudges (trial band) — authored as React Email components that **reuse the 2.01 brand/layout**, personalised purely by **Brevo merge tags** (child first name with a graceful fallback; age/locale are branch conditions only — nothing new collected or stored) and rendered to **8 static HTML files** (`docs/email-templates/Part-2-Phase-03-nurture/`) the Cowork half loads into Brevo. No certificate attached; no new route/dependency/schema; **258 tests** green; route table unchanged. The app funnel is unchanged. Previously, after Phase 2.02 (CRM contact routing + new-lead notification): the instant a lead saves, the same isolated `after()` work now fans out **three** side-effects: the 2.01 results email, **a Brevo Contacts upsert** (the parent becomes a CRM contact by email, on an operational "all leads" list always + a marketing/nurture list **only on `marketing_opt_in`**), and **an internal new-lead notification** to IqUp's team — each fully isolated (any one failing/slow/unconfigured can never break the save, the redirect, or the others), and each a logged no-op until its Brevo env lands. Nothing stored changed (no schema/column, no Brevo id persisted — Supabase stays the system of record). Live delivery is **deferred-pending-config** (build/typecheck/lint/test all verified; 190 tests). _(Previously: after Phase 2.01 — the funnel reached the parent's inbox with a warm bilingual results email + attached certificate via Brevo, deferred-pending-key. After Phase 1.11 — Part 1 complete: the whole funnel land → test → gate → lead saved → strengths profile + certificate, with a WCAG 2.2 AA pass, a median-of-5 Lighthouse sweep, and a cross-device matrix.)_
 
 ---
 
@@ -214,6 +214,42 @@ Not installed yet (deferred to the phase that needs them): analytics / Microsoft
 - **i18n:** no namespace touched — the notification is internal and English-only (the parent's locale
   is reported as a field), so `messages.test.ts` is unchanged.
 
+## Follow-up nurture emails (phase 2.03 — Code half)
+
+- **The content half of the lead lifecycle's last piece.** Four follow-up "nurture" emails, authored
+  as React Email components in `src/emails/nurture/` and rendered to **8 static HTML files** in
+  `docs/email-templates/Part-2-Phase-03-nurture/` (the Cowork half loads them into Brevo). The app
+  funnel does not change; **nothing new is collected or stored**.
+- **The four emails** (each MK + EN, reusing the 2.01 brand/layout + a wordmark stand-in, mobile-first;
+  **no certificate attached**): `welcome-trial` (trial track, age ≤ 9 — thank-you + "your strengths +
+  certificate are already in your inbox" + a soft trial mention), `welcome-general` (general track,
+  age ≥ 10 — thank-you + certificate reminder, **no trial CTA**, a quiet "explore IqUp" link),
+  `trial-invite` (trial track — the §2 story → hands-on discovery → create lesson, Bibi/Bobi/Oliver-led,
+  + the trial CTA), and `nudge` (trial track — a gentle final note + the trial CTA once more).
+- **Personalisation = Brevo merge tags only**, using only attributes Brevo already has from 2.02:
+  `CHILD_FIRST_NAME` (greeted with a graceful `default:` fallback so an absent name reads naturally),
+  and `CHILD_AGE`/`LOCALE` as **branch conditions only** (the child's age is **never shown**). The
+  render helper (`src/emails/nurture/render.ts`) restores the literal quotes React escapes inside
+  `{{ }}` so Brevo gets a valid filter.
+- **Guardrails (tested):** **no numbers/scores** anywhere (copy + rendered HTML — the 2.01 forbidden-
+  token discipline, proven non-vacuous); **unsubscribe + legal sender identity + postal address**
+  (`IKUP d.o.o.`, Todor Aleksandrov, Skopje) in every footer; **UTM-tagged links** (`utm_source=brevo`,
+  `utm_medium=email`, per-email `utm_campaign`); the **trial CTA present in welcome-trial / trial-invite /
+  nudge and ABSENT in welcome-general**.
+- **Trial CTA target = the 2.01 email's target**, behind a `// TODO(booking 2.05)` seam: both now
+  resolve it from one shared place — `src/lib/email/site-url.ts` `siteUrlFor` (extracted from 2.01, no
+  behaviour change) + the UTM in `src/emails/nurture/links.ts`. Link host = `NEXT_PUBLIC_SITE_URL` (dev
+  placeholder until 2.06); booking flow swaps in at 2.05 — both emails update in one place.
+- **Render + tests:** `npm run emails:nurture` renders the 8 files (same script-local tsconfig as 2.01's
+  `test:email`). `copy.test.ts` (MK/EN parity + slots + forbidden-token) and `render-smoke.test.ts`
+  (merge tag + unsubscribe + identity + UTM + CTA split + forbidden-token over the rendered HTML) both
+  run under the default `npm test`. **No new dependency** (reuses React Email + render from 2.01).
+- **README** (`docs/email-templates/Part-2-Phase-03-nurture/README.md`) is the authoritative Cowork
+  hand-off: file→workflow-step mapping, subjects/preview per email, the **exact Brevo trigger + branch
+  conditions** (entry = contact added to the **marketing list** `BREVO_MARKETING_LIST_ID`, never the
+  ops "all leads" list; trial split = `CHILD_AGE` at most 9; language split = `LOCALE` mk/en), the
+  workflow shape, and the link/sender 2.05/2.06 notes. **The automation stays paused until launch.**
+
 ## Bilingual shell
 
 - next-intl wired: `routing.ts` (locales `mk`/`en`, default `mk`, `localePrefix: 'as-needed'`), `request.ts` (loads `src/messages/<locale>.json`), `navigation.ts`, and `src/proxy.ts` (Next 16 middleware convention).
@@ -247,8 +283,12 @@ Not installed yet (deferred to the phase that needs them): analytics / Microsoft
   `BREVO_MARKETING_LIST_ID`, `LEAD_NOTIFY_TO` (+ creates the 8 UPPERCASE attributes) — one Brevo setup
   lights up 2.01 + 2.02 together. **No new data processor** (Brevo already on the Part-2 legal list from
   2.01); the **operational-list-vs-marketing-list consent boundary is flagged for IqUp legal/privacy.**
-- nurture/follow-up sequences = 2.03 (run on the marketing list 2.02 populates); analytics / Pixel /
-  consent banner / `/privacy` = 2.04; real trial booking = 2.05.
+- **Nurture / follow-up emails (phase 2.03 — Code half) — templates authored + rendered; the Brevo
+  automation is the Cowork half.** The 8 bilingual HTML templates + the README hand-off are in
+  `docs/email-templates/Part-2-Phase-03-nurture/`; they run on the **marketing list 2.02 populates**
+  (and only that list, so the marketing-opt-in consent gate carries through). **The Cowork half builds
+  + stages the automation in Brevo from the README** (trigger, branches, sender) and keeps it **paused
+  until launch**. Analytics / Pixel / consent banner / `/privacy` = 2.04; real trial booking = 2.05.
 
 ## Reserved folders (created, awaiting content)
 
@@ -396,6 +436,16 @@ baseline: both locales prerender, language toggle works.)_
 - **Native-MK review additions (phase 2.01):** the new **`Email` namespace** (subject, greeting,
   intro, certificate-attached line, trial heading/body/CTA, curious-mind ending, footer) — all
   provisional MK; the **footer identity line is flagged for IqUp legal** (tied to `CONSENT_VERSION`).
+- **Nurture emails — Cowork build + reviews still open (phase 2.03).** The 8 templates + README are
+  done (Code half); **the Cowork half builds + stages the Brevo automation** from
+  `docs/email-templates/Part-2-Phase-03-nurture/README.md` (marketing-list trigger; `CHILD_AGE ≤ 9`
+  trial split; `LOCALE` language split; ~Day 1/3/7 cadence; staging sender) and **keeps it paused
+  until launch**. Open: **all nurture MK copy is provisional** (native-MK review; EN mirrors it), and
+  the **footer legal/postal line + marketing wording is flagged for IqUp legal** (tied to
+  `CONSENT_VERSION`, continuing the 2.01/2.02 legal-review list). The trial-CTA link host is the dev
+  placeholder until **2.06** (`NEXT_PUBLIC_SITE_URL`) — re-run `npm run emails:nurture` + reload then;
+  the trial CTA points at the real **booking flow at 2.05** (`// TODO(booking 2.05)` seam in
+  `src/emails/nurture/links.ts` + `src/lib/email/site-url.ts`, shared with the 2.01 email).
 - **Mobile Lighthouse Performance 91–92 (<95) — finalised in 1.11 (honest write-up).** Median-of-5 on
   this machine: mobile Perf **92/92/91** (landing mk/en, test); A11y/BP/SEO **100**; desktop **100**
   across the board, both locales. Gated by **LCP ≈ 3.3 s** (the hero explainer body text, which paints
@@ -459,11 +509,12 @@ baseline: both locales prerender, language toggle works.)_
 
 ## Suggested next phase
 
-**2.02 (CRM contact routing + new-lead notification) is done — next is 2.03 (marketing-opt-in-gated
-follow-up sequences).** The saved lead is now routed into Brevo Contacts (consent-gated lists) and the
-team is notified (both deferred-pending-config). **2.03 builds the nurture / follow-up automations that
-run on the marketing list 2.02 populates** — and only that list, so the marketing-opt-in consent gate
-carries through. Then 2.04 analytics/Pixel/consent + `/privacy` page, **2.05 the real trial booking**
+**2.03 (follow-up nurture emails) — Code half is done; next is the 2.03 Cowork half.** The four
+nurture emails are authored + rendered to 8 bilingual HTML files with the README hand-off
+(`docs/email-templates/Part-2-Phase-03-nurture/`). **The Cowork half builds + stages the automation in
+Brevo from that README** — the marketing-list trigger, the `CHILD_AGE ≤ 9` trial split + `LOCALE`
+language split, the ~Day 1/3/7 cadence, the staging sender — and keeps it **paused until launch**. Then
+2.04 analytics/Pixel/consent + `/privacy` page, **2.05 the real trial booking**
 (`// TODO(booking 2.05)` seam — and the email's trial CTA link target should point at the booking flow
 then), 2.06 Vercel Pro + domain + production `NEXT_PUBLIC_SITE_URL` + the branded `@iqup.mk` sender with
 SPF/DKIM/DMARC (and re-measure mobile Lighthouse on clean infra). **Run the deferred 2.01 + 2.02 live

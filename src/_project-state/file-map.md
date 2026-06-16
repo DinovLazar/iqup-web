@@ -222,6 +222,26 @@
 | `src/lib/email/send-lead-notification.ts` | `server-only` notification orchestrator: reads `BREVO_API_KEY` + `LEAD_NOTIFY_TO` + `LEAD_NOTIFY_FROM`/`EMAIL_FROM_ADDRESS`, sends via the existing `sendTransactionalEmail` (tags `['lead-notification', band, locale]`); never throws; no-op + log when unconfigured. |
 | `src/lib/email/send-lead-notification.test.ts` | Vitest (mocked brevo + stubbed env): no-key/no-recipients/no-sender skips, recipients parsed, from override, tags, never throws on send rejection. |
 
+## Follow-up nurture emails (phase 2.03 — Code half)
+
+| Path | Description |
+|---|---|
+| `src/lib/email/site-url.ts` | Pure shared seam: `siteUrlFor(locale)` (locale-prefixed site base for email CTAs) — extracted from `send-results-email.ts` so the 2.01 email + the 2.03 nurture emails resolve the trial-CTA target from one place (decision #97). |
+| `src/emails/nurture/copy.ts` | Bilingual (MK+EN) copy for all four nurture emails (subject/preview/heading/greeting/intro/body/cta/footer) + the `MERGE` tags + the legal/postal line; reuses the 2.01 `Email.footer` identity/signoff. No numbers; child-name merge tag with a graceful fallback. MK provisional. |
+| `src/emails/nurture/links.ts` | The single link source: per-email `UTM_CAMPAIGN`, `withUtm`, and `ctaHref` (trial-CTA target via `siteUrlFor`, behind a `// TODO(booking 2.05)` seam). |
+| `src/emails/nurture/styles.ts` | Shared style objects — a faithful reuse of the 2.01 `ResultsEmail` presentation (literal-hex brand, web-safe fonts, same container/button/footer). Not a parallel design system. |
+| `src/emails/nurture/NurtureLayout.tsx` | Shared shell (Html/Head/Preview/Body/Container) — wordmark stand-in header + the legally-required marketing footer (identity, transparency line, legal+postal, `{{ unsubscribe }}`, signoff). |
+| `src/emails/nurture/NurtureBody.tsx` | Renders one email's data (intro → body → CTA) inside `NurtureLayout`; `ctaKind:'trial'` → the pill CTA button, `ctaKind:'general'` → a quiet link (welcome-general, no trial CTA). |
+| `src/emails/nurture/WelcomeTrial.tsx` | `welcome-trial` template (trial track, age ≤ 9) — thin wrapper over `NurtureBody`; takes only `locale`. |
+| `src/emails/nurture/WelcomeGeneral.tsx` | `welcome-general` template (general track, age ≥ 10; NO trial CTA) — thin wrapper; takes only `locale`. |
+| `src/emails/nurture/TrialInvite.tsx` | `trial-invite` template (trial track; the §2 story→discovery→create lesson + trial CTA) — thin wrapper; takes only `locale`. |
+| `src/emails/nurture/Nudge.tsx` | `nudge` template (trial track; gentle final note + trial CTA) — thin wrapper; takes only `locale`. |
+| `src/emails/nurture/render.ts` | `renderNurtureEmail(key, locale)` → Brevo-ready HTML (no JSX, so the `.test.ts` can import it); `finalizeMergeTags` restores the literal quotes React escapes inside `{{ }}`. |
+| `src/emails/nurture/copy.test.ts` | Vitest: MK/EN parity (same emails/footer keys/body length/ctaKind), every slot present, personalisation (CHILD_FIRST_NAME merge tag; no CHILD_AGE), CTA split, and no forbidden tokens (digit/%/score-IQ-rank, EN+MK) — with a non-vacuous self-check. |
+| `src/emails/nurture/render-smoke.test.ts` | Vitest over the rendered HTML: merge tag with literal quotes, unsubscribe + identity + postal address, per-email UTM, trial-CTA present (trial emails) / absent (welcome-general), no forbidden tokens (masking URLs/wordmark/legal line). |
+| `scripts/render-nurture.mts` | `npm run emails:nurture` — renders the four templates × 2 locales → 8 static HTML files in `docs/email-templates/Part-2-Phase-03-nurture/` (same script-local tsconfig as 2.01's `test:email`). |
+| `docs/email-templates/Part-2-Phase-03-nurture/` | The 8 rendered Brevo-ready HTML templates + `README.md` (the authoritative Cowork hand-off: file→step mapping, subjects/preview, exact Brevo trigger/branch conditions, link/sender notes). |
+
 ## Project-state docs
 
 | Path | Description |
@@ -238,6 +258,8 @@
 | `src/_project-state/Part-1-Phase-10-Completion.md` | Phase 1.10 completion report. |
 | `src/_project-state/Part-1-Phase-11-Completion.md` | Phase 1.11 completion report (parity + a11y + performance finalisation). |
 | `src/_project-state/Part-2-Phase-01-Completion.md` | Phase 2.01 completion report (results email: Brevo + React Email + server certificate). |
+| `src/_project-state/Part-2-Phase-02-Completion.md` | Phase 2.02 completion report (CRM contact routing + new-lead notification). |
+| `src/_project-state/Part-2-Phase-03-Code-Completion.md` | Phase 2.03 completion report (follow-up nurture emails — Code half). |
 
 ## Design handovers
 

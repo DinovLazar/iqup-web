@@ -418,3 +418,37 @@ already exist in Brevo are ignored by the API, so this step is required for the 
 side-effects (results email + contact upsert + notification), each never-throwing, run via
 `Promise.allSettled` so the parent's redirect is never delayed and the serverless `after()` work
 completes. The honeypot path returns before `after()`, so bots never route or notify.
+
+---
+
+## 2026-06-16 — Phase 2.03 follow-up nurture emails (Code half)
+
+**No new dependencies.** The four nurture templates reuse the **already-installed** 2.01 email
+stack: `@react-email/components` 1.0.12 + `@react-email/render` 2.0.8 (templates + render), and the
+literal-hex brand tokens in `src/lib/email/brand.ts`. No image/render libs (these emails attach
+**no certificate**), no Brevo SDK, no analytics/Slack tools. Vitest unchanged (`npm test` stays
+Vitest-only; **258 tests**, up from 190 — +68 from `copy.test.ts` + `render-smoke.test.ts`). The
+render smoke runs under the **default** Vitest env (the templates import no `server-only`, like
+2.01's `ResultsEmail.test.ts`).
+
+**New script (`package.json`):**
+- `npm run emails:nurture` → `tsx --tsconfig scripts/email-runtime/tsconfig.json scripts/render-nurture.mts`.
+  Renders the four templates × 2 locales → 8 static HTML files in
+  `docs/email-templates/Part-2-Phase-03-nurture/`. Runs under the **same script-local tsconfig the
+  2.01 `test:email` uses** (aliases `server-only`→empty so `@react-email/render` + `react-dom/server`
+  work under `tsx`; NOT `--conditions=react-server`, which blocks `react-dom/server` — decision #87).
+  Pure render-to-file (no Brevo key, no send), safe to run anywhere; Brevo auto-generates the
+  plain-text part from the HTML.
+
+**Shared seam (no behaviour change):** `siteUrlFor` was extracted from `send-results-email.ts` (2.01)
+into a new pure `src/lib/email/site-url.ts` and 2.01 now imports it, so the 2.01 results email and the
+2.03 nurture emails resolve their trial-CTA target from one place (decision #97). The trial-CTA link
+host is baked from `NEXT_PUBLIC_SITE_URL` at render time (dev placeholder `http://localhost:3000` when
+unset — finalised in 2.06); the booking target is behind a `// TODO(booking 2.05)` seam in
+`src/emails/nurture/links.ts`.
+
+**Env vars:** unchanged — reuses the existing `NEXT_PUBLIC_SITE_URL`. The nurture personalisation +
+list routing use Brevo attributes/lists already documented in 2.01/2.02 (`CHILD_FIRST_NAME`,
+`CHILD_AGE`, `LOCALE`, `BREVO_MARKETING_LIST_ID`); **no new env var, no schema change, nothing stored.**
+
+**No new app route** — the route table is unchanged (verified in `next build`).
