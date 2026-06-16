@@ -2,7 +2,7 @@
 
 > Live snapshot of the repo. **Code updates this at the end of every phase.** If this and the live code ever disagree, the live code wins.
 
-**Last updated:** 2026-06-15 — after Phase 2.01 (results email). **Part 2 has begun.** The funnel now reaches the parent's inbox: the instant a lead saves, a warm bilingual **results email** (the child's strengths profile in the body + a server-rendered certificate PNG attached) is sent via Brevo — fully isolated from lead capture (a send failure can never break the save or the redirect), and a logged no-op until the `BREVO_API_KEY` lands. Live delivery is **deferred-pending-key** (build/render/wiring all verified). _(Previously: after Phase 1.11 — Part 1 complete; the whole funnel land → test → email gate → lead saved → real strengths profile + shareable certificate, with a tool-driven WCAG 2.2 AA pass, a median-of-5 Lighthouse sweep, the `?age` language-switch fix, a cross-device matrix, and repo hygiene.)_
+**Last updated:** 2026-06-16 — after Phase 2.02 (CRM contact routing + new-lead notification). The instant a lead saves, the same isolated `after()` work now fans out **three** side-effects: the 2.01 results email, **a Brevo Contacts upsert** (the parent becomes a CRM contact by email, on an operational "all leads" list always + a marketing/nurture list **only on `marketing_opt_in`**), and **an internal new-lead notification** to IqUp's team — each fully isolated (any one failing/slow/unconfigured can never break the save, the redirect, or the others), and each a logged no-op until its Brevo env lands. Nothing stored changed (no schema/column, no Brevo id persisted — Supabase stays the system of record). Live delivery is **deferred-pending-config** (build/typecheck/lint/test all verified; 190 tests). _(Previously: after Phase 2.01 — the funnel reached the parent's inbox with a warm bilingual results email + attached certificate via Brevo, deferred-pending-key. After Phase 1.11 — Part 1 complete: the whole funnel land → test → gate → lead saved → strengths profile + certificate, with a WCAG 2.2 AA pass, a median-of-5 Lighthouse sweep, and a cross-device matrix.)_
 
 ---
 
@@ -181,6 +181,39 @@ Not installed yet (deferred to the phase that needs them): analytics / Microsoft
 - **Dev check:** `npm run test:email` drives the real orchestrator per band × locale to
   `TEST_EMAIL_TO` (refuses prod/CI). **Live delivery is deferred-pending-key** — see Open carryover.
 
+## CRM contact routing + new-lead notification (phase 2.02)
+
+- **The 2.01 `after()` hook is now a 3-way fan-out.** `submitLead` schedules
+  `after(() => runAfterLead(...))` (`src/lib/leads/after-lead.ts`) once the lead saves; `runAfterLead`
+  runs the **results email** (2.01), the **Brevo contact upsert** (2.02), and the **internal new-lead
+  notification** (2.02) — each in an `isolate` try/catch inside `Promise.allSettled`, so one failing
+  (even a synchronous throw), slow, or unconfigured side-effect can never affect the lead save, the
+  `/result` redirect, or the others. The honeypot path returns **before** `after()`, so **bots never
+  route into the CRM and never notify.** `submitLead` passes only data it already has + the saved row's
+  `created_at` as the timestamp (no new data collected or stored).
+- **Brevo contact upsert** (`src/lib/email/{brevo-contacts,contact-mapping,upsert-lead-contact}.ts`):
+  a thin typed `fetch` client → `POST /v3/contacts` with `updateEnabled: true` (**upsert by email** —
+  a re-take updates, never duplicates), mirroring the 2.01 `brevo.ts` pattern (no SDK). **Stateless:**
+  the returned contact id is discarded — no schema change, no new column, no id persisted (Supabase
+  stays the system of record). Eight UPPERCASE attributes (`CHILD_FIRST_NAME`, `CHILD_AGE`, `BAND` =
+  digit-free human label, `LOCALE`, `MARKETING_OPT_IN`, `CONSENT_VERSION`, `TOP_STRENGTHS` = the two
+  celebrated strength names in English, `SOURCE` = `website-quiz`). **Consent gate (the headline
+  guardrail):** every lead → the operational list (`BREVO_LEADS_LIST_ID`) always; the marketing list
+  (`BREVO_MARKETING_LIST_ID`) **iff `marketing_opt_in === true`** — a non-opt-in lead is never on the
+  marketing list. Missing/invalid list id → skipped (the contact still upserts). No-op + logged when
+  `BREVO_API_KEY` unset.
+- **Internal new-lead notification** (`src/lib/email/{lead-notification,send-lead-notification}.ts`):
+  an **English-only** ops alert sent through the **existing** transactional `sendTransactionalEmail`
+  (tags `['lead-notification', band, locale]`) to `LEAD_NOTIFY_TO` (comma-separated allowed), from
+  `LEAD_NOTIFY_FROM` || `EMAIL_FROM_ADDRESS`. Contains child first name, parent email, child age
+  (**worded**), band (human label), locale, marketing opt-in (Yes/No), consent version, timestamp, and
+  the "parent already received their strengths profile + certificate" line. **No raw answers, no
+  score/IQ/%/rank/number** (forbidden-token coverage extended; the only digit-bearing values — email,
+  consent version, timestamp — are masked in the test, the age is worded). No-op + logged when its env
+  is unset.
+- **i18n:** no namespace touched — the notification is internal and English-only (the parent's locale
+  is reported as a field), so `messages.test.ts` is unchanged.
+
 ## Bilingual shell
 
 - next-intl wired: `routing.ts` (locales `mk`/`en`, default `mk`, `localePrefix: 'as-needed'`), `request.ts` (loads `src/messages/<locale>.json`), `navigation.ts`, and `src/proxy.ts` (Next 16 middleware convention).
@@ -206,7 +239,16 @@ Not installed yet (deferred to the phase that needs them): analytics / Microsoft
   `fetch` client, no SDK). Build/render/wiring verified end-to-end (incl. the real Next runtime);
   the actual Gmail/Outlook delivery is verified once Cowork adds `BREVO_API_KEY` + `EMAIL_FROM_ADDRESS`
   (`npm run test:email`). **Brevo is a new data processor → on the Part-2 legal-review list.**
-- analytics / Pixel = Part 2 (2.04). CRM/list routing = 2.02; nurture/follow-ups = 2.03.
+- **CRM contact routing + new-lead notification (phase 2.02) — wired; live delivery deferred-pending-config.**
+  On a saved lead the same `after()` work now upserts the parent into **Brevo Contacts** by email
+  (consent-gated lists) and emails IqUp's team an internal new-lead alert via the existing transactional
+  path. Build/typecheck/lint/test verified end-to-end (190 tests); the actual contact landing, list
+  membership, and alert delivery are verified once Cowork sets `BREVO_LEADS_LIST_ID`,
+  `BREVO_MARKETING_LIST_ID`, `LEAD_NOTIFY_TO` (+ creates the 8 UPPERCASE attributes) — one Brevo setup
+  lights up 2.01 + 2.02 together. **No new data processor** (Brevo already on the Part-2 legal list from
+  2.01); the **operational-list-vs-marketing-list consent boundary is flagged for IqUp legal/privacy.**
+- nurture/follow-up sequences = 2.03 (run on the marketing list 2.02 populates); analytics / Pixel /
+  consent banner / `/privacy` = 2.04; real trial booking = 2.05.
 
 ## Reserved folders (created, awaiting content)
 
@@ -336,6 +378,21 @@ baseline: both locales prerender, language toggle works.)_
   the child's first name + parent email + strengths summary to Brevo. Add **Brevo DPA + EU data
   residency** to the IqUp legal/privacy review (alongside the consent/privacy wording). The branded
   `@iqup.mk` sender + SPF/DKIM/DMARC + the production `NEXT_PUBLIC_SITE_URL` are finalised in 2.06.
+- **CRM routing + notification live-verify — DEFERRED PENDING BREVO CONFIG (phase 2.02).** Built,
+  tested, no-op-clean without env. When Cowork: (1) creates the **two lists** → `BREVO_LEADS_LIST_ID` /
+  `BREVO_MARKETING_LIST_ID`; (2) creates the **8 UPPERCASE attributes** (`CHILD_FIRST_NAME` text,
+  `CHILD_AGE` number, `BAND` text, `LOCALE` text, `MARKETING_OPT_IN` boolean, `CONSENT_VERSION` text,
+  `TOP_STRENGTHS` text, `SOURCE` text) — attributes that don't exist are silently ignored by the API;
+  (3) sets `LEAD_NOTIFY_TO` (+ optional `LEAD_NOTIFY_FROM`); with `BREVO_API_KEY` + `EMAIL_FROM_ADDRESS`
+  (2.01) — submit a marketing-opt-in lead and a non-opt-in lead in both locales (`?dev=1`) and confirm:
+  the contact appears with the right attributes; **opt-in → BOTH lists, non-opt-in → ops list only**; a
+  re-submit **updates** (no duplicate); the notification arrives with the right fields and **no
+  numbers/scores**; the lead still saved + the 2.01 results email still sent. Then delete the test
+  contacts/leads. Full checklist in the 2.02 completion report §7.
+- **CONSENT BOUNDARY for IqUp legal/privacy (phase 2.02).** No new processor (Brevo already on the
+  list from 2.01), but the **operational "all leads" list (operational visibility, not marketing) vs the
+  marketing/nurture list (opt-ins only)** distinction must be explicitly reviewed — a lead without
+  marketing opt-in must never be marketed to. 2.03's nurture sequences run on the marketing list.
 - **Native-MK review additions (phase 2.01):** the new **`Email` namespace** (subject, greeting,
   intro, certificate-attached line, trial heading/body/CTA, curious-mind ending, footer) — all
   provisional MK; the **footer identity line is flagged for IqUp legal** (tied to `CONSENT_VERSION`).
@@ -402,15 +459,16 @@ baseline: both locales prerender, language toggle works.)_
 
 ## Suggested next phase
 
-**2.01 (results email) is done — next is 2.02 (CRM / lead notification / list routing).** The
-transactional results email is wired (Brevo, deferred-pending-key). 2.02 owns routing the saved lead
-into a CRM / contact list and notifying the team (the `tags: ['results-email', band, locale]` on each
-send are there to help segment later); it is the explicit seam 2.01 left untouched. Then 2.03
-follow-ups (marketing-opt-in-gated), 2.04 analytics/Pixel/consent + `/privacy` page, **2.05 the real
-trial booking** (`// TODO(booking 2.05)` seam — and the email's trial CTA link target should point at
-the booking flow then), 2.06 Vercel Pro + domain + production `NEXT_PUBLIC_SITE_URL` + the branded
-`@iqup.mk` sender with SPF/DKIM/DMARC (and re-measure mobile Lighthouse on clean infra; **run the
-deferred `npm run test:email` live check once `BREVO_API_KEY` lands**).
+**2.02 (CRM contact routing + new-lead notification) is done — next is 2.03 (marketing-opt-in-gated
+follow-up sequences).** The saved lead is now routed into Brevo Contacts (consent-gated lists) and the
+team is notified (both deferred-pending-config). **2.03 builds the nurture / follow-up automations that
+run on the marketing list 2.02 populates** — and only that list, so the marketing-opt-in consent gate
+carries through. Then 2.04 analytics/Pixel/consent + `/privacy` page, **2.05 the real trial booking**
+(`// TODO(booking 2.05)` seam — and the email's trial CTA link target should point at the booking flow
+then), 2.06 Vercel Pro + domain + production `NEXT_PUBLIC_SITE_URL` + the branded `@iqup.mk` sender with
+SPF/DKIM/DMARC (and re-measure mobile Lighthouse on clean infra). **Run the deferred 2.01 + 2.02 live
+checks together once Cowork finishes the one Brevo setup** (`npm run test:email` for the results email;
+the §7 contact/notification checklist for 2.02).
 
 **Still-open pre-launch items (not Code tasks):** native-Macedonian copy review + IqUp sign-off of ALL
 draft copy (landing, test, gate, result/certificate, consent/marketing wording); IqUp verification of

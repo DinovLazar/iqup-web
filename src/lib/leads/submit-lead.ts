@@ -2,9 +2,10 @@
 
 import {after} from 'next/server';
 import {insertLead} from './insert-lead';
-import {sendResultsEmail} from '@/lib/email/send-results-email';
+import {runAfterLead} from './after-lead';
 import {
   buildLeadInput,
+  CONSENT_VERSION,
   type GateSubmission,
   type SubmitResult
 } from './lead-mapping';
@@ -40,22 +41,34 @@ export async function submitLead(
   const lead = buildLeadInput(submission);
 
   try {
-    await insertLead(lead);
+    const inserted = await insertLead(lead);
 
-    // Phase 2.01: send the warm results email (strengths profile + attached
-    // certificate). Scheduled with `after()` so it runs AFTER the response is
-    // sent — the parent's redirect to `/result` is never delayed — and on
-    // serverless the work still completes. `sendResultsEmail` is internally
-    // wrapped so it never throws: a slow/failing/unconfigured send can NEVER
-    // affect this lead save or the client redirect. Reached only on a real
-    // insert (the honeypot path above returns before this), so bots never send.
+    // Phases 2.01 + 2.02: fan out the post-save side-effects — the warm results
+    // email + attached certificate (2.01), the Brevo CRM contact upsert onto
+    // consent-gated lists (2.02), and the internal new-lead notification (2.02).
+    // Scheduled with `after()` so they run AFTER the response is sent — the
+    // parent's redirect to `/result` is never delayed — and on serverless the
+    // work still completes. `runAfterLead` runs each side-effect fully isolated
+    // and never throws: a slow/failing/unconfigured side-effect can NEVER affect
+    // this lead save, the client redirect, or the others. Reached only on a real
+    // insert (the honeypot path above returns before this), so bots never route
+    // into the CRM and never trigger a notification. Only data the action already
+    // has is passed (no new data is collected or stored), plus the saved row's
+    // `created_at` as the lead timestamp.
     after(() =>
-      sendResultsEmail({
+      runAfterLead({
         email: submission.email,
         childFirstName: submission.childFirstName,
+        childAge: submission.childAge,
         band: submission.band,
         locale: submission.locale,
-        scores: submission.topStrengths.scores
+        marketingOptIn: submission.marketingOptIn,
+        consentVersion: CONSENT_VERSION,
+        top1: submission.topStrengths.top1,
+        top2: submission.topStrengths.top2,
+        top3: submission.topStrengths.top3,
+        scores: submission.topStrengths.scores,
+        savedAt: inserted.created_at
       })
     );
 

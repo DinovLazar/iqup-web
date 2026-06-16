@@ -120,8 +120,10 @@
 | `src/components/gate/EmailGate.tsx` | The parent-facing email-gate form island (email, child name, required consent, optional marketing, honeypot); validates, calls the submit action, persists lead-context, navigates to `/result`. |
 | `src/components/gate/copy.ts` | `GateCopy` type + `fillName` (server-resolved gate chrome strings). |
 | `src/lib/leads/lead-mapping.ts` | Pure/isomorphic mapping: `LEAD_BAND_BY_KEY` + **`BAND_KEY_BY_LEAD`** (inverse, for 2.01), `toTopStrengths` (summary), `buildLeadInput`, `CONSENT_VERSION`, `GateSubmission`/`SubmitResult` types. |
-| `src/lib/leads/submit-lead.ts` | `'use server'` `submitLead` action: honeypot check → `buildLeadInput` → service-role `insertLead()` → **`after(() => sendResultsEmail(...))`** (2.01: fire-and-forget results email, never blocks/affects the save); returns a typed friendly result. |
-| `src/lib/leads/submit-lead.test.ts` | Vitest suite: band map, summary-only/no-IQ, consent-false rejected, honeypot no-insert, unknown-key stripping, action control flow. |
+| `src/lib/leads/submit-lead.ts` | `'use server'` `submitLead` action: honeypot check → `buildLeadInput` → service-role `insertLead()` → **`after(() => runAfterLead(...))`** (2.02: fire-and-forget fan-out of all three post-save side-effects, never blocks/affects the save; passes the saved row's `created_at` as the timestamp); returns a typed friendly result. |
+| `src/lib/leads/submit-lead.test.ts` | Vitest suite: band map, summary-only/no-IQ, consent-false rejected, honeypot no-insert/no-route, unknown-key stripping, action control flow + after-lead fan-out scheduling. |
+| `src/lib/leads/after-lead.ts` | **(2.02)** `runAfterLead(lead)` — the single `after()` callback: fans out the results email (2.01) + Brevo contact upsert (2.02) + internal notification (2.02), each in an `isolate` try/catch inside `Promise.allSettled` (one failure, even synchronous, never blocks the others or propagates). `server-only`. |
+| `src/lib/leads/after-lead.test.ts` | Vitest (mocks the 3 collaborators): all three scheduled with the right args; async + synchronous throw isolation; never propagates. |
 | `src/lib/leads/lead-context.ts` | `iqup.leadContext.v1` sessionStorage hand-off (`LeadContext` + `isLeadContext`/read/write) — the "gate completed" signal for `/result`. |
 | `src/lib/leads/lead-context.test.ts` | Vitest guard suite for `isLeadContext`. |
 | `src/app/[locale]/result/page.tsx` | The real `/result` Server shell (SSG): per-locale metadata, resolves `ResultChrome` server-side, mounts `ResultView`, renders header + footer (phase 1.10). |
@@ -166,7 +168,7 @@
 | `src/lib/validation/lead.ts` | zod 4 `leadSchema` + `topStrengthsSchema` (`.strict()`) and `Lead` / `LeadInput` types; the validation source of truth. |
 | `src/lib/leads/insert-lead.ts` | `insertLead(input: unknown)` — validates every field, then inserts via the service-role client (server-only). |
 | `scripts/test-insert.ts` | Throwaway live end-to-end test (`npm run test:insert`): insert via `insertLead()`, service read, anon read+insert blocked, cleanup. |
-| `.env.local.example` | Committed env template (placeholders only): the three Supabase keys + the 2.01 email vars (`BREVO_API_KEY`, `EMAIL_FROM_ADDRESS`, `EMAIL_FROM_NAME`, `EMAIL_REPLY_TO`, `TEST_EMAIL_TO`, `NEXT_PUBLIC_SITE_URL`). |
+| `.env.local.example` | Committed env template (placeholders only): the three Supabase keys + the 2.01 email vars (`BREVO_API_KEY`, `EMAIL_FROM_ADDRESS`, `EMAIL_FROM_NAME`, `EMAIL_REPLY_TO`, `TEST_EMAIL_TO`, `NEXT_PUBLIC_SITE_URL`) + the 2.02 CRM/notification vars (`BREVO_LEADS_LIST_ID`, `BREVO_MARKETING_LIST_ID`, `LEAD_NOTIFY_TO`, `LEAD_NOTIFY_FROM`). |
 
 ## QA tooling (phase 1.11 — dev-only, not in the app bundle)
 
@@ -202,6 +204,23 @@
 | `scripts/email-runtime/tsconfig.json` | Script-only tsconfig aliasing `server-only`→empty so `test:email` runs under `tsx` without `--conditions=react-server` (which would break the React Email renderer's `react-dom/server`). |
 | `scripts/email-runtime/empty.ts` | The empty stub the alias above points at. |
 | `docs/qa/Part-2-Phase-01/` | QA evidence: a rendered sample certificate PNG (Cyrillic) + sample email HTML (en 3–5 with trial CTA, mk 10–13 ending). |
+
+## CRM contact routing + new-lead notification (phase 2.02)
+
+| Path | Description |
+|---|---|
+| `src/lib/email/lead-summary.ts` | Shared, pure presentation helpers (no `server-only`): the `SavedLead` `after()`-context shape + the digit-free human `BAND_LABEL`/`bandLabelFor` (never `band-a/b/c`). Imported by both 2.02 tracks. |
+| `src/lib/email/lead-summary.test.ts` | Vitest: band-label coverage, digit-free, and the `band-a/b/c` → human-label mapping. |
+| `src/lib/email/brevo-contacts.ts` | `server-only` thin typed Brevo Contacts client: `upsertContact(params, apiKey)` → `POST /v3/contacts` (`api-key` header, `updateEnabled`); throws typed `BrevoContactsError` on non-2xx; tolerates `204` (update). No SDK; no contact id persisted. |
+| `src/lib/email/brevo-contacts.test.ts` | Vitest (mocked `fetch`): endpoint, header, body shape (UPPERCASE attributes, integer listIds, `updateEnabled:true`), `201 {id}` vs `204 {}`, non-2xx throws, no forbidden tokens in attributes. |
+| `src/lib/email/contact-mapping.ts` | Pure `SavedLead` → Brevo upsert payload: 8 UPPERCASE attributes, `CONTACT_SOURCE`, and `contactListIds` — **the consent gate** (ops list always; marketing list iff `marketingOptIn`). No `server-only`. |
+| `src/lib/email/contact-mapping.test.ts` | Vitest (pure): attribute mapping, human BAND label, English `TOP_STRENGTHS`, the consent gate (opt-in → both lists; non-opt-in → ops only), forbidden-word guard over attributes. |
+| `src/lib/email/upsert-lead-contact.ts` | `server-only` contact-upsert orchestrator: reads `BREVO_API_KEY` + the two list-id envs (safe parse), builds the payload, calls `upsertContact`; internally try/caught (never throws); no-op + log when `BREVO_API_KEY` unset. |
+| `src/lib/email/upsert-lead-contact.test.ts` | Vitest (mocked client + stubbed env): no-key skip, consent gate end-to-end, invalid list id skipped (upsert still runs), never throws on client rejection. |
+| `src/lib/email/lead-notification.ts` | Pure internal new-lead notification builder (no `server-only`): `buildLeadNotificationContent` (English subject + HTML + text), `parseNotifyRecipients`, `ageInWords` (worded age), `localeLabel`. |
+| `src/lib/email/lead-notification.test.ts` | Vitest (pure): recipient parsing (incl. comma-separated), every required field present, and the no-number guard (masks email/consent-version/timestamp, worded age) over text + tag-stripped HTML. |
+| `src/lib/email/send-lead-notification.ts` | `server-only` notification orchestrator: reads `BREVO_API_KEY` + `LEAD_NOTIFY_TO` + `LEAD_NOTIFY_FROM`/`EMAIL_FROM_ADDRESS`, sends via the existing `sendTransactionalEmail` (tags `['lead-notification', band, locale]`); never throws; no-op + log when unconfigured. |
+| `src/lib/email/send-lead-notification.test.ts` | Vitest (mocked brevo + stubbed env): no-key/no-recipients/no-sender skips, recipients parsed, from override, tags, never throws on send rejection. |
 
 ## Project-state docs
 

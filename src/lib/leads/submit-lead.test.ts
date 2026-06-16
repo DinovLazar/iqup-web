@@ -18,12 +18,12 @@ vi.mock('./insert-lead', () => ({
   insertLead: (input: unknown) => insertLeadMock(input)
 }));
 
-// Mock the results-email orchestrator (server-only + Brevo + next/og) so it is
-// never really loaded, and run `after()` callbacks synchronously so we can assert
-// exactly when the email send is scheduled.
-const sendResultsEmailMock = vi.fn();
-vi.mock('@/lib/email/send-results-email', () => ({
-  sendResultsEmail: (p: unknown) => sendResultsEmailMock(p)
+// Mock the after-lead fan-out (server-only + Brevo + next/og collaborators) so it
+// is never really loaded, and run `after()` callbacks synchronously so we can
+// assert exactly when — and with what — the side-effects are scheduled.
+const runAfterLeadMock = vi.fn();
+vi.mock('./after-lead', () => ({
+  runAfterLead: (p: unknown) => runAfterLeadMock(p)
 }));
 vi.mock('next/server', () => ({
   after: (fn: () => unknown) => fn()
@@ -72,7 +72,7 @@ const FORBIDDEN = /"?(iq|percentile|grade|pass|fail|total|score|answers?)"?\s*:/
 
 beforeEach(() => {
   insertLeadMock.mockReset();
-  sendResultsEmailMock.mockReset();
+  runAfterLeadMock.mockReset();
 });
 
 describe('band mapping (TestResult key → leadSchema band)', () => {
@@ -203,32 +203,44 @@ describe('submitLead (server action control flow)', () => {
   });
 });
 
-describe('submitLead (results-email scheduling — Phase 2.01)', () => {
-  it('schedules the results email after a successful insert, with the submission data', async () => {
-    insertLeadMock.mockResolvedValueOnce({id: 'row-1', created_at: 'now'});
+describe('submitLead (after-lead fan-out scheduling — Phase 2.02)', () => {
+  it('schedules the after-lead side-effects after a successful insert, with the saved lead', async () => {
+    insertLeadMock.mockResolvedValueOnce({
+      id: 'row-1',
+      created_at: '2026-06-16T10:00:00.000Z'
+    });
     const submission = sampleSubmission();
     await submitLead(submission);
 
-    expect(sendResultsEmailMock).toHaveBeenCalledTimes(1);
-    expect(sendResultsEmailMock).toHaveBeenCalledWith({
+    expect(runAfterLeadMock).toHaveBeenCalledTimes(1);
+    // The fan-out gets ONLY data the action already has (no new data) + the
+    // saved row's created_at as the timestamp; the honeypot never rides along.
+    expect(runAfterLeadMock).toHaveBeenCalledWith({
       email: submission.email,
       childFirstName: submission.childFirstName,
+      childAge: submission.childAge,
       band: submission.band,
       locale: submission.locale,
-      scores: submission.topStrengths.scores
+      marketingOptIn: submission.marketingOptIn,
+      consentVersion: CONSENT_VERSION,
+      top1: submission.topStrengths.top1,
+      top2: submission.topStrengths.top2,
+      top3: submission.topStrengths.top3,
+      scores: submission.topStrengths.scores,
+      savedAt: '2026-06-16T10:00:00.000Z'
     });
   });
 
-  it('never sends for a honeypot (bot) submission', async () => {
+  it('never routes a honeypot (bot) submission — no insert, no fan-out', async () => {
     const result = await submitLead(sampleSubmission({honeypot: 'gotcha'}));
     expect(result).toEqual({ok: true});
     expect(insertLeadMock).not.toHaveBeenCalled();
-    expect(sendResultsEmailMock).not.toHaveBeenCalled();
+    expect(runAfterLeadMock).not.toHaveBeenCalled();
   });
 
-  it('never sends when the lead insert fails', async () => {
+  it('never runs the fan-out when the lead insert fails', async () => {
     insertLeadMock.mockRejectedValueOnce(new Error('db exploded'));
     await submitLead(sampleSubmission());
-    expect(sendResultsEmailMock).not.toHaveBeenCalled();
+    expect(runAfterLeadMock).not.toHaveBeenCalled();
   });
 });

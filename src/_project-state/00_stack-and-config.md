@@ -378,3 +378,43 @@ subset (flexbox only, no grid/`color-mix`; soft mixes precomputed).
 **Vitest:** unchanged config. New server-only modules are unit-tested by mocking `server-only`
 per file (`vi.mock('server-only', () => ({}))`) — the established repo pattern (no global
 config change). `next/og`'s `ImageResponse` renders PNG bytes under Vitest directly.
+
+---
+
+## 2026-06-16 — Phase 2.02 CRM contact routing + new-lead notification (Brevo Contacts)
+
+**No new dependencies.** The Brevo Contacts client is a thin typed `fetch` POST to
+`https://api.brevo.com/v3/contacts` (mirrors the 2.01 `brevo.ts` transactional client — no SDK),
+and the internal new-lead notification is a small inline-styled HTML + plain-text builder sent
+through the **existing** `sendTransactionalEmail` (2.01). No image/render libs, no Slack/Telegram
+tool. Vitest unchanged (`npm test` stays Vitest-only; 190 tests, up from 136).
+
+**New env vars (all SERVER ONLY; names only in `.env.local.example`):**
+- `BREVO_LEADS_LIST_ID` — integer id of the operational "all leads" Brevo list (every successful
+  lead). Missing/invalid → that list is skipped (the contact still upserts).
+- `BREVO_MARKETING_LIST_ID` — integer id of the marketing/nurture list; a lead is added **only**
+  when `marketing_opt_in === true`. Missing/invalid → skipped.
+- `LEAD_NOTIFY_TO` — internal recipient(s) for the new-lead alert (comma-separated allowed).
+- `LEAD_NOTIFY_FROM` *(optional)* — overrides `EMAIL_FROM_ADDRESS` as the alert's From.
+- **Reuses** `BREVO_API_KEY` + `EMAIL_FROM_ADDRESS` from 2.01 (not duplicated). **Graceful
+  degradation:** with `BREVO_API_KEY` unset, the contact upsert AND the notification each log a
+  structured no-op and the funnel is unaffected — live verification waits for Cowork's Brevo setup
+  (one setup lights up 2.01 + 2.02 together; see the 2.02 completion report's §7 checklist).
+
+**Brevo Contacts request shape (verified against current Brevo docs, developers.brevo.com):**
+`POST /v3/contacts`, headers `api-key` + `content-type: application/json` + `accept: application/json`,
+body `{ email, attributes: {UPPERCASE keys}, listIds: number[], updateEnabled: true }`. `updateEnabled`
+makes it an **upsert by email** (re-takes update, never duplicate/4xx). Create → `201 {id}`; update →
+`204 No Content` (the client tolerates the empty body). **Stateless:** the returned id is discarded —
+no schema change, no new column, no Brevo id persisted (Supabase remains the system of record).
+
+**Brevo contact attributes to create (Contacts → Settings → Contact attributes) — Cowork, §7:**
+`CHILD_FIRST_NAME` (text), `CHILD_AGE` (number), `BAND` (text), `LOCALE` (text), `MARKETING_OPT_IN`
+(boolean), `CONSENT_VERSION` (text), `TOP_STRENGTHS` (text), `SOURCE` (text). Attributes that don't
+already exist in Brevo are ignored by the API, so this step is required for the data to land.
+
+**The send mechanism (extends 2.01, no new processor):** `submitLead` now schedules
+`after(() => runAfterLead(...))` — a single fan-out (`src/lib/leads/after-lead.ts`) of three isolated
+side-effects (results email + contact upsert + notification), each never-throwing, run via
+`Promise.allSettled` so the parent's redirect is never delayed and the serverless `after()` work
+completes. The honeypot path returns before `after()`, so bots never route or notify.
