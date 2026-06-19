@@ -35,15 +35,15 @@
 | `src/i18n/request.ts` | Per-request next-intl config; loads `src/messages/<locale>.json`. |
 | `src/i18n/navigation.ts` | Locale-aware navigation APIs (`Link`, `redirect`, `usePathname`, …). |
 | `src/proxy.ts` | Next.js 16 proxy (ex-middleware) applying next-intl locale routing. |
-| `src/messages/mk.json` | Macedonian UI strings (Meta, Landing, Test, Gate, Result, **Email** namespaces; default locale; draft). |
+| `src/messages/mk.json` | Macedonian UI strings (Meta, Landing, Test, Gate, Result, Email, **Consent**, **Privacy** namespaces; default locale; draft). |
 | `src/messages/en.json` | English UI strings (mirror of mk.json; draft). |
-| `src/messages/messages.test.ts` | Vitest i18n parity suite (identical mk↔en key sets + matching `{placeholders}` + no empty strings; required-key lists incl. the `Email` namespace). |
+| `src/messages/messages.test.ts` | Vitest i18n parity suite (identical mk↔en key sets + matching `{placeholders}` + no empty strings; required-key lists incl. the `Email`, `Consent` + `Privacy` namespaces). |
 
 ## App shell & components
 
 | Path | Description |
 |---|---|
-| `src/app/[locale]/layout.tsx` | Root layout per locale: `<html lang>`, Rubik + Nunito Sans (`next/font`), `metadataBase`, hreflang, NextIntlClientProvider. |
+| `src/app/[locale]/layout.tsx` | Root layout per locale: `<html lang>`, Rubik + Nunito Sans (`next/font`), `metadataBase`, hreflang, NextIntlClientProvider, **+ `ConsentRoot`** (consent provider + banner + Manage dialog + page-view tracker — phase 2.04) wrapping all pages. |
 | `src/app/[locale]/page.tsx` | The landing page (Server Component) — composes the landing sections; per-locale `generateMetadata` (title/description/canonical/hreflang/OG/Twitter). |
 | `src/app/[locale]/opengraph-image.tsx` | Dynamic per-locale OG image (1200×630, `next/og` + Cyrillic Rubik woff from `@fontsource/rubik`). |
 | `src/app/[locale]/not-found.tsx` | Localized 404 (1.11) — skip-link + header/footer + AA copy, rendered inside the locale layout (correct `<html lang>`). |
@@ -72,7 +72,7 @@
 | `src/components/landing/HowItWorks.tsx` | Three-step "how it works" (Lucide icons, numbered). |
 | `src/components/landing/TrustCues.tsx` | Four honest parent trust cues. |
 | `src/components/landing/Reassurance.tsx` | Reassurance strip with a verified IqUp brand line. |
-| `src/components/landing/SiteFooter.tsx` | Minimal footer (wordmark + line + toggle); /about + /privacy intentionally omitted. |
+| `src/components/landing/SiteFooter.tsx` | Footer (wordmark + line + toggle) **+ Privacy policy link (`/privacy`) + Cookie settings button** (re-opens the Manage dialog) — phase 2.04. /about/locations still later. |
 | `src/components/landing/Wordmark.tsx` | `IQ UP!` wordmark stand-in (token-styled) — placeholder for the official logo. |
 | `src/components/landing/HeroArt.tsx` | Abstract decorative hero visual (`aria-hidden`) — placeholder for licensed Bibi art (never generated). |
 | `src/components/landing/Reveal.tsx` | Reduced-motion-safe entrance wrapper (Framer Motion `m`). |
@@ -176,7 +176,7 @@
 |---|---|
 | `lighthouserc.mobile.cjs` | Lighthouse CI mobile config (median-of-5, fixed simulated slow-4G + 4× CPU, `Accept-Language: mk`) against the prod build. |
 | `lighthouserc.desktop.cjs` | Lighthouse CI desktop config (median-of-5, desktop preset). |
-| `scripts/lh-median.mjs` | Windows-tolerant Lighthouse median runner (`npm run lh:median`) — calls Lighthouse directly and reads each report despite the post-run temp-dir `EPERM` that makes LHCI discard runs on this machine. Writes `docs/qa/Part-1-Phase-11/lighthouse-medians.json`. |
+| `scripts/lh-median.mjs` | Portable Lighthouse median runner (`npm run lh:median`). Default sweep + output (`docs/qa/Part-1-Phase-11/`) unchanged; phase-2.04 added opt-in env knobs: `LH_OUT_DIR`, `LH_INCLUDE_PRIVACY`, `LH_ONLY="/url:ff:runs"`. |
 | `playwright.config.ts` | Playwright config (mobile + desktop projects) for the axe + screenshot QA; runs against the dev server. |
 | `tests/e2e/fixtures.ts` | Shared e2e fixtures: valid `TestResult`/`LeadContext` per band (for injecting `/result` states) + helpers. |
 | `tests/e2e/a11y.spec.ts` | `@axe-core/playwright` WCAG scans across every route × state × locale (§5); asserts zero serious/critical. |
@@ -242,6 +242,39 @@
 | `scripts/render-nurture.mts` | `npm run emails:nurture` — renders the four templates × 2 locales → 8 static HTML files in `docs/email-templates/Part-2-Phase-03-nurture/` (same script-local tsconfig as 2.01's `test:email`). |
 | `docs/email-templates/Part-2-Phase-03-nurture/` | The 8 rendered Brevo-ready HTML templates + `README.md` (the authoritative Cowork hand-off: file→step mapping, subjects/preview, exact Brevo trigger/branch conditions, link/sender notes). |
 
+## Analytics, consent layer + `/privacy` (phase 2.04 — Code half)
+
+| Path | Description |
+|---|---|
+| `src/lib/consent/constants.ts` | `COOKIE_CONSENT_VERSION` (`cookies-v1-2026-06`), `CONSENT_COOKIE_NAME` (`iqup_consent`), ~6-month max-age — distinct from the lead `CONSENT_VERSION`. |
+| `src/lib/consent/types.ts` | `ConsentCategory`/`ConsentState`/`StoredConsent` types (cookie/tracking consent — separate from lead consent). |
+| `src/lib/consent/state.ts` | Pure deny-by-default state machine: `DENIED_CONSENT`, `acceptAllState`/`rejectAllState`/`toConsentState`, `buildStoredConsent`. |
+| `src/lib/consent/cookie.ts` | Pure + DOM cookie helpers: `serializeConsent`/`parseConsent` (version-mismatch → null), `readConsentCookie`/`writeConsentCookie` (Path=/, SameSite=Lax, Secure in prod). |
+| `src/lib/consent/ConsentProvider.tsx` | Cookie-backed `useSyncExternalStore` provider + `useConsent()` hook (deny-by-default; banner post-hydration; no setState-in-effect). |
+| `src/lib/consent/consent.test.ts` | Vitest: default-denied, accept/reject/set-preferences, cookie round-trip, **version-bump invalidation**. |
+| `src/components/consent/copy.ts` | `ConsentCopy` type — server-resolved banner + Manage dialog chrome (passed to the client islands as props). |
+| `src/components/consent/ConsentBanner.tsx` | Non-modal bottom banner: equal-styling **Accept all / Reject** + **Manage**; ≥44px; transform-only motion-safe entrance; renders post-hydration. |
+| `src/components/consent/ConsentManageDialog.tsx` | Radix Dialog Manage panel: Necessary (always-on) + Analytics + Marketing toggles **un-pre-ticked** + Save; ESC/overlay close. |
+| `src/components/consent/CookieSettingsButton.tsx` | Re-opens the Manage dialog (footer + `/privacy`); consumes `useConsent().openManage`. |
+| `src/components/consent/ConsentRoot.tsx` | The locale-layout island: `ConsentProvider` + (dynamic) banner + (dynamic) dialog + page-view tracker (`usePathname()`) + the `syncTrackers(consent)` effect. |
+| `src/lib/analytics/env.ts` | Reads the three PUBLIC tracker ids from `process.env.NEXT_PUBLIC_*` + a dev-only no-id notice. |
+| `src/lib/analytics/runtime.ts` | Live consent snapshot + per-loader idempotency flags + the `window` (`gtag`/`dataLayer`/`clarity`/`fbq`) global type augmentations. SSR-safe. |
+| `src/lib/analytics/track.ts` | `track(event, params?)` — PII-free (sanitised to `{band,locale,path}`), per-category GA/Pixel routing, no-op without consent/env/SDK. |
+| `src/lib/analytics/sync.ts` | `syncTrackers(consent)` — load on grant (GA+Clarity / Pixel), re-signal denied/`revoke` on withdrawal; called by `ConsentRoot`. |
+| `src/lib/analytics/loaders/ga.ts` | GA4 `gtag.js` injection + Consent Mode defaults-denied→update + `revokeGa`; env-gated; never throws. |
+| `src/lib/analytics/loaders/clarity.ts` | Microsoft Clarity injection + `consentv2` signal + revoke; env-gated; notes Cowork disables auto-cookies. |
+| `src/lib/analytics/loaders/pixel.ts` | Meta Pixel `fbevents.js` injection + `consent grant`→init→PageView + `revokePixel`; env-gated; `// FUTURE(CAPI 2.x)` note. |
+| `src/lib/analytics/track.test.ts` | Vitest: no-op without consent/env, per-category routing, **PII-free payload** assertion (no name/email/age keys). |
+| `src/lib/analytics/sync.test.ts` | Vitest: deny-by-default (no scripts injected), idempotent injection, withdrawal re-signalling. |
+| `src/content/privacy/types.ts` | Typed privacy-content shape: `PrivacyBlock`/`PrivacySection`/`CookieRow`/`PrivacyContent`. |
+| `src/content/privacy/mk.ts` | MK privacy policy (provisional GDPR baseline; provisional MK) + cookie table. |
+| `src/content/privacy/en.ts` | EN privacy policy (mirror) + cookie table. |
+| `src/content/privacy/index.ts` | `getPrivacyContent(locale)` accessor. |
+| `src/content/privacy/privacy.test.ts` | Vitest: MK/EN structural parity (sections + cookie rows) + forbidden-vocab (no score/IQ words; digits allowed; no IqUp false-positive). |
+| `src/app/[locale]/privacy/page.tsx` | The `/privacy` (+ `/en/privacy`) SSG page: per-locale metadata + hreflang, structured policy + cookie `<table>` (keyboard-focusable scroll region), Cookie-settings button. |
+| `tests/e2e/consent.spec.ts` | Playwright: the headline deny-by-default network assertion (both locales), Accept-loads/Reject-off, banner a11y + equal-style + ESC, `/privacy` axe + lang + skip-link + footer re-open. |
+| `docs/qa/Part-2-Phase-04/lighthouse-medians.json` | 2.04 Lighthouse medians (landing/en/test/privacy mobile + desktop). |
+
 ## Project-state docs
 
 | Path | Description |
@@ -251,7 +284,10 @@
 | `src/_project-state/00_stack-and-config.md` | Append-only stack + config log with pinned versions. |
 | `src/_project-state/Part-X-Phase-YY-Completion.template.md` | Reusable completion-report template. |
 | `src/_project-state/Part-1-Phase-02-Completion.md` | Phase 1.02 completion report. |
+| `src/_project-state/Part-1-Phase-03-Completion.md` | Phase 1.03 completion report (design foundation). |
+| `src/_project-state/Part-1-Phase-04-Completion.md` | Phase 1.04 completion report (test content + scoring). |
 | `src/_project-state/Part-1-Phase-05-Completion.md` | Phase 1.05 completion report. |
+| `src/_project-state/Part-1-Phase-05-Cowork-Completion.md` | Phase 1.05 Cowork-half completion report (Supabase project + schema setup). |
 | `src/_project-state/Part-1-Phase-06-Completion.md` | Phase 1.06 completion report. |
 | `src/_project-state/Part-1-Phase-07-Completion.md` | Phase 1.07 completion report. |
 | `src/_project-state/Part-1-Phase-08-Completion.md` | Phase 1.08 completion report. |
@@ -260,6 +296,9 @@
 | `src/_project-state/Part-2-Phase-01-Completion.md` | Phase 2.01 completion report (results email: Brevo + React Email + server certificate). |
 | `src/_project-state/Part-2-Phase-02-Completion.md` | Phase 2.02 completion report (CRM contact routing + new-lead notification). |
 | `src/_project-state/Part-2-Phase-03-Code-Completion.md` | Phase 2.03 completion report (follow-up nurture emails — Code half). |
+| `src/_project-state/Part-2-Phase-04-Code-Completion.md` | Phase 2.04 completion report (analytics, consent layer + `/privacy`). |
+| `src/_project-state/Part-2-Checkpoint-Verify-Reconcile-Completion.md` | New-machine checkpoint report (2026-06-19): verify build green on macOS + reconcile project-state docs. |
+| `src/_project-state/Mac-Setup-Completion.md` | Windows→macOS machine-setup work log (operator setup; repo move + toolchain install). |
 
 ## Design handovers
 

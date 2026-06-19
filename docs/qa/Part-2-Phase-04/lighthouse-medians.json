@@ -1,0 +1,93 @@
+[
+  {
+    "url": "/",
+    "formFactor": "mobile",
+    "runs": 5,
+    "performance": 91,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "seo": 100,
+    "lcpMs": 3388,
+    "cls": 0.015,
+    "tbtMs": 10,
+    "lcpElement": "<p class=\"mt-4 max-w-prose text-lg leading-relaxed text-ink-soft text-pretty\">"
+  },
+  {
+    "url": "/en",
+    "formFactor": "mobile",
+    "runs": 5,
+    "performance": 93,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "seo": 100,
+    "lcpMs": 3243,
+    "cls": 0,
+    "tbtMs": 10,
+    "lcpElement": "<p class=\"mt-4 max-w-prose text-lg leading-relaxed text-ink-soft text-pretty\">"
+  },
+  {
+    "url": "/test",
+    "formFactor": "mobile",
+    "runs": 3,
+    "performance": 88,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "seo": 100,
+    "lcpMs": 3926,
+    "cls": 0,
+    "tbtMs": 16,
+    "lcpElement": "<p class=\"text-sm leading-relaxed text-ink-soft\">"
+  },
+  {
+    "url": "/",
+    "formFactor": "desktop",
+    "runs": 3,
+    "performance": 100,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "seo": 100,
+    "lcpMs": 686,
+    "cls": 0,
+    "tbtMs": 0,
+    "lcpElement": "<h1 class=\"mt-5 font-display text-4xl leading-[1.1] font-extrabold text-ink text-bala…\">"
+  },
+  {
+    "url": "/en",
+    "formFactor": "desktop",
+    "runs": 3,
+    "performance": 100,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "seo": 100,
+    "lcpMs": 639,
+    "cls": 0,
+    "tbtMs": 0,
+    "lcpElement": "<h1 class=\"mt-5 font-display text-4xl leading-[1.1] font-extrabold text-ink text-bala…\">"
+  },
+  {
+    "url": "/privacy",
+    "formFactor": "mobile",
+    "runs": 5,
+    "performance": 92,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "seo": 100,
+    "lcpMs": 3233,
+    "cls": 0.001,
+    "tbtMs": 9,
+    "lcpElement": "<p class=\"text-base leading-relaxed text-ink-soft\">"
+  },
+  {
+    "url": "/privacy",
+    "formFactor": "desktop",
+    "runs": 3,
+    "performance": 100,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "seo": 100,
+    "lcpMs": 672,
+    "cls": 0,
+    "tbtMs": 0,
+    "lcpElement": "<h1 class=\"font-display text-3xl font-bold text-ink sm:text-4xl\">"
+  }
+]

@@ -19,8 +19,11 @@ import {readFileSync, writeFileSync, mkdirSync} from 'node:fs';
 
 const BASE = 'http://localhost:3000';
 const TMP = `${process.cwd()}\\.lhtmp`;
+// Output dir is overridable (default = the 1.11 baseline location, unchanged).
+// Phase 2.04 runs it with LH_OUT_DIR=docs/qa/Part-2-Phase-04 + LH_INCLUDE_PRIVACY=1.
+const OUT_DIR = process.env.LH_OUT_DIR ?? 'docs/qa/Part-1-Phase-11';
 mkdirSync('.lhtmp', {recursive: true});
-mkdirSync('docs/qa/Part-1-Phase-11', {recursive: true});
+mkdirSync(OUT_DIR, {recursive: true});
 
 const TARGETS = [
   {url: '/', ff: 'mobile', runs: 5},
@@ -29,6 +32,34 @@ const TARGETS = [
   {url: '/', ff: 'desktop', runs: 3},
   {url: '/en', ff: 'desktop', runs: 3}
 ];
+
+// Phase 2.04: opt-in /privacy measurement (mobile + desktop) without changing
+// the default 1.11 sweep.
+if (process.env.LH_INCLUDE_PRIVACY) {
+  TARGETS.push(
+    {url: '/privacy', ff: 'mobile', runs: 5},
+    {url: '/privacy', ff: 'desktop', runs: 3}
+  );
+}
+
+// Optional focus filter: LH_ONLY="/test:mobile:5" runs just that target (and an
+// optional run-count override). Comma-separated for several. Leaves the default
+// sweep intact when unset.
+if (process.env.LH_ONLY) {
+  const specs = process.env.LH_ONLY.split(',').map((s) => s.trim());
+  const picked = [];
+  for (const spec of specs) {
+    const [url, ff, runs] = spec.split(':');
+    const base = TARGETS.find((t) => t.url === url && (!ff || t.ff === ff)) ?? {
+      url,
+      ff: ff || 'mobile',
+      runs: 3
+    };
+    picked.push({...base, ff: ff || base.ff, runs: runs ? Number(runs) : base.runs});
+  }
+  TARGETS.length = 0;
+  TARGETS.push(...picked);
+}
 
 // Invoke the Lighthouse CLI via `node` directly (not `npx.cmd`, which Node
 // refuses to spawn without a shell on Windows) so args pass through unquoted.
@@ -116,7 +147,7 @@ for (const r of results) {
   );
 }
 writeFileSync(
-  'docs/qa/Part-1-Phase-11/lighthouse-medians.json',
+  `${OUT_DIR}/lighthouse-medians.json`,
   JSON.stringify(results, null, 2)
 );
-console.log('\nwrote docs/qa/Part-1-Phase-11/lighthouse-medians.json');
+console.log(`\nwrote ${OUT_DIR}/lighthouse-medians.json`);

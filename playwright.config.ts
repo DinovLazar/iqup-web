@@ -35,6 +35,14 @@ export default defineConfig({
     command: 'npm run dev',
     url: 'http://localhost:3000',
     reuseExistingServer: true,
-    timeout: 120_000
+    timeout: 120_000,
+    // Phase 2.04: dummy PUBLIC tracker ids so the consent spec can exercise the
+    // injection path after "Accept". Deny-by-default still holds with these set
+    // (that is precisely the headline guarantee the spec proves). Not secrets.
+    env: {
+      NEXT_PUBLIC_GA4_ID: 'G-E2ETEST01',
+      NEXT_PUBLIC_CLARITY_ID: 'e2eclarity',
+      NEXT_PUBLIC_META_PIXEL_ID: '1000000000000000'
+    }
   }
 });

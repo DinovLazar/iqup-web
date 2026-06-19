@@ -85,7 +85,10 @@
       "line": "Free brain games that reveal your child's strengths.",
       "tagline": "Education that inspires.",
       "org": "The first Macedonian educational franchise for children.",
-      "rights": "© {year} IqUp. All rights reserved."
+      "rights": "© {year} IqUp. All rights reserved.",
+      "privacy": "Privacy policy",
+      "cookieSettings": "Cookie settings",
+      "legalNavLabel": "Legal links"
     },
     "og": {
       "headline": "Discover your child's brain superpowers",
@@ -140,7 +143,10 @@
       "errorTooLong": "That name is too long."
     },
     "consent": {
-      "label": "I'm the parent or guardian and I agree to IqUp using this information to send the results and details about IqUp's programs. See our Privacy Policy.",
+      "label": "I'm the parent or guardian and I agree to IqUp using this information to send the results and details about IqUp's programs.",
+      "privacyPrefix": "See our ",
+      "privacyLink": "Privacy Policy",
+      "privacySuffix": ".",
       "error": "Please tick the box to continue."
     },
     "marketing": {
@@ -224,6 +230,56 @@
       "identity": "IqUp — free brain games that reveal your child’s strengths.",
       "contact": "Questions? Just reply to this email — we’re happy to help.",
       "signoff": "From the world of Bibi · IqUp"
+    }
+  },
+  "Consent": {
+    "banner": {
+      "ariaLabel": "Cookie consent notice",
+      "title": "Cookies on IqUp",
+      "body": "We use cookies to improve the site and measure our marketing. Nothing turns on without your consent. Choose what you allow.",
+      "accept": "Accept all",
+      "reject": "Reject",
+      "manage": "Manage"
+    },
+    "manage": {
+      "title": "Cookie settings",
+      "intro": "Choose which cookies you allow. Necessary ones are always on; the rest stay off until you turn them on.",
+      "save": "Save choices",
+      "cancel": "Cancel",
+      "close": "Close",
+      "alwaysOn": "Always on",
+      "necessary": {
+        "title": "Necessary",
+        "description": "Needed for the site to work — they remember your cookie choice and your language. Always on."
+      },
+      "analytics": {
+        "title": "Analytics",
+        "description": "Help us understand how the site is used (Google Analytics, Microsoft Clarity) so we can improve it."
+      },
+      "marketing": {
+        "title": "Marketing",
+        "description": "Measure how our Facebook and Instagram ads perform (Meta Pixel)."
+      },
+      "note": "Changes take effect immediately for new cookies; scripts already loaded fully stop on your next page load."
+    }
+  },
+  "Privacy": {
+    "meta": {
+      "title": "Privacy & Cookie Policy — IqUp",
+      "description": "How IqUp collects and uses data, the rights you have, and which cookies we use."
+    },
+    "lead": "This page explains what data we collect, why, and the rights you have. It's written plainly, for parents.",
+    "lastUpdatedLabel": "Last updated",
+    "versionLabel": "Version",
+    "draftNote": "Working draft — this text is being prepared and is subject to legal review by IqUp.",
+    "manageCookies": "Cookie settings",
+    "cookieTableLabel": "Cookie table",
+    "tableHeaders": {
+      "name": "Name",
+      "provider": "Provider",
+      "purpose": "Purpose",
+      "category": "Category",
+      "duration": "Duration"
     }
   }
 }

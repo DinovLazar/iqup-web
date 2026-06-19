@@ -154,7 +154,12 @@ export function ResultView({locale, chrome}: {locale: Locale; chrome: ResultChro
               signoff={chrome.ending.signoff}
             />
           ) : (
-            <TrialInvite locale={locale} intro={copy.trialIntro} copy={chrome.trial} />
+            <TrialInvite
+              locale={locale}
+              band={result.band}
+              intro={copy.trialIntro}
+              copy={chrome.trial}
+            />
           )}
         </div>
       </div>

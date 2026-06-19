@@ -136,6 +136,9 @@ async function resolveGateCopy(locale: string): Promise<GateCopy> {
     },
     consent: {
       label: t('consent.label'),
+      privacyPrefix: t('consent.privacyPrefix'),
+      privacyLink: t('consent.privacyLink'),
+      privacySuffix: t('consent.privacySuffix'),
       error: t('consent.error')
     },
     marketing: {

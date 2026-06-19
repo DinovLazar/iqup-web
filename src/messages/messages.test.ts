@@ -91,6 +91,43 @@ describe('i18n message parity (mk ↔ en)', () => {
     }
   });
 
+  it('includes the new Consent + Privacy namespaces (phase 2.04) in both locales', () => {
+    const required = [
+      'Consent.banner.title',
+      'Consent.banner.body',
+      'Consent.banner.accept',
+      'Consent.banner.reject',
+      'Consent.banner.manage',
+      'Consent.banner.ariaLabel',
+      'Consent.manage.title',
+      'Consent.manage.intro',
+      'Consent.manage.save',
+      'Consent.manage.alwaysOn',
+      'Consent.manage.necessary.title',
+      'Consent.manage.necessary.description',
+      'Consent.manage.analytics.title',
+      'Consent.manage.analytics.description',
+      'Consent.manage.marketing.title',
+      'Consent.manage.marketing.description',
+      'Consent.manage.note',
+      'Privacy.meta.title',
+      'Privacy.meta.description',
+      'Privacy.lead',
+      'Privacy.lastUpdatedLabel',
+      'Privacy.manageCookies',
+      'Privacy.tableHeaders.name',
+      'Privacy.tableHeaders.provider',
+      'Privacy.tableHeaders.purpose',
+      'Privacy.tableHeaders.category',
+      'Privacy.tableHeaders.duration',
+      'Gate.consent.privacyLink'
+    ];
+    for (const key of required) {
+      expect(mkPaths.has(key), `mk missing ${key}`).toBe(true);
+      expect(enPaths.has(key), `en missing ${key}`).toBe(true);
+    }
+  });
+
   it('uses the same placeholders for every shared key', () => {
     for (const [key, mkValue] of mkPaths) {
       const enValue = enPaths.get(key);

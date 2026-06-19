@@ -1,7 +1,8 @@
 'use client';
 
-import {useCallback, useMemo, useState} from 'react';
+import {useCallback, useMemo, useRef, useState} from 'react';
 import {ArrowRight} from 'lucide-react';
+import {track} from '@/lib/analytics/track';
 import type {Locale} from '@/content/locale';
 import {getQuestionsForBand} from '@/content/test';
 import type {TestQuestion} from '@/content/test/types';
@@ -63,6 +64,8 @@ export function TestRunner({
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
   const [result, setResult] = useState<TestResult | null>(null);
+  // Fire `test_start` only once per session (not on a Back→start→start replay).
+  const startedRef = useRef(false);
 
   const current = questions[index];
   const selected = current ? answers[current.id] : undefined;
@@ -84,6 +87,9 @@ export function TestRunner({
         // Storage may be unavailable (private mode); the in-memory result still
         // drives the gate. /result re-validates presence of the key on its own.
       }
+      // Analytics: test completed (PII-free — band + locale only; no-op until
+      // Analytics consent + GA id are present).
+      track('test_complete', {band, locale});
       // HANDOFF (1.08): the email gate is the post-test step — it reads this
       // in-memory result (and the persisted copy) to submit the lead, then
       // sends the parent on to /result.
@@ -141,6 +147,11 @@ export function TestRunner({
             count={total}
             copy={copy}
             onStart={() => {
+              // Analytics: test started — once per session, PII-free.
+              if (!startedRef.current) {
+                startedRef.current = true;
+                track('test_start', {band, locale});
+              }
               setIndex(0);
               setPhase('running');
             }}

@@ -27,6 +27,12 @@ export interface GateCopy {
   };
   consent: {
     label: string;
+    /** Text before the Privacy Policy link (e.g. "See our "). */
+    privacyPrefix: string;
+    /** The linked phrase itself (e.g. "Privacy Policy"). */
+    privacyLink: string;
+    /** Text after the link (e.g. "."). */
+    privacySuffix: string;
     error: string;
   };
   marketing: {

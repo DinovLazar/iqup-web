@@ -4,13 +4,14 @@ import {useEffect, useId, useRef, useState, type FormEvent} from 'react';
 import {Loader2, Lock} from 'lucide-react';
 import type {Locale} from '@/content/locale';
 import type {TestResult} from '@/lib/scoring';
-import {useRouter} from '@/i18n/navigation';
+import {Link, useRouter} from '@/i18n/navigation';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Checkbox} from '@/components/ui/checkbox';
 import {Label} from '@/components/ui/label';
 import {StrengthChip} from '@/components/test/StrengthChip';
 import {submitLead} from '@/lib/leads/submit-lead';
+import {track} from '@/lib/analytics/track';
 import {
   LEAD_BAND_BY_KEY,
   toTopStrengths,
@@ -123,6 +124,11 @@ export function EmailGate({
     try {
       const res = await submitLead(submission);
       if (res.ok) {
+        // Analytics: lead submitted — fired CLIENT-SIDE after the server action
+        // returns success (NOT inside the action). PII-free (band + locale).
+        // Routes GA `generate_lead` iff Analytics consent, and Pixel `Lead` iff
+        // Marketing consent — independently; no-op until the relevant id is set.
+        track('generate_lead', {band: safeResult.band, locale: safeResult.locale});
         // Persist the "gate completed" context, then go to the results screen.
         // Keep the submitting state through navigation so the button can't be
         // double-fired while the route transitions.
@@ -243,11 +249,17 @@ export function EmailGate({
                 aria-describedby={errors.consent ? consentErrId : undefined}
                 className="mt-0.5"
               />
-              {/* TODO(privacy-page): link the "Privacy Policy" phrase to
-                  /[locale]/privacy once that page is built (Part 2). Plain text
-                  for now — a documented cross-phase seam, not a dead link. */}
+              {/* The Privacy Policy phrase links to the locale-aware /privacy
+                  page (Phase 2.04 resolved this 1.08 seam). */}
               <Label htmlFor={consentId} className="text-sm leading-relaxed text-ink-soft">
-                {copy.consent.label}
+                {copy.consent.label} {copy.consent.privacyPrefix}
+                <Link
+                  href="/privacy"
+                  className="font-semibold text-secondary-ink underline underline-offset-2 hover:text-secondary"
+                >
+                  {copy.consent.privacyLink}
+                </Link>
+                {copy.consent.privacySuffix}
               </Label>
             </div>
             {errors.consent ? (

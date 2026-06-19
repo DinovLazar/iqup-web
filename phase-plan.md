@@ -10,17 +10,17 @@
 
 | # | Phase | Type | Status | Scope |
 |---|---|---|---|---|
-| 1.01 | Brand research | Chat | `[ ]` | Deep-dive IqUp (global + MK), the Bibi license, locations, voice, colors, logo → produce `brand.md`. |
-| 1.02 | Scaffold + bilingual shell | Code | `[ ]` | Next.js/TS/Tailwind/shadcn project, next-intl (MK default, `/en/`), repo init, reserved folders, state files, `CLAUDE.md` + `AGENTS.md` placed in repo. |
-| 1.03 | Design: foundation | Design | `[ ]` | Tokens (brand colors/type), landing + test-screen look, core components → handover. Chat proposes the direction in chat first. |
-| 1.04 | Test content + scoring | Chat | `[ ]` | Question banks for all 3 bands (MK/EN), scoring rules, strengths-profile templates → content spec for Code. |
-| 1.05 | Supabase + schema | Code + Cowork | `[ ]` | Create the Supabase project (EU region), the leads table, dev keys. |
-| 1.06 | Landing page | Code | `[ ]` | Hook headline, how-it-works, age input → band, start CTA, mobile-first, basic SEO/OG. Uses 1.03. |
-| 1.07 | Test engine | Code | `[ ]` | Question runner for all 3 bands: render, progress, answers, rule-based scoring. Uses 1.03 + 1.04. |
-| 1.08 | Email gate + capture | Code | `[ ]` | Pre-results form (email, child name, age, consent) → save to Supabase, then reveal results. Uses 1.05. |
-| 1.09 | Design: results + certificate | Design | `[ ]` | Visual for the results screen + shareable certificate (Bibi art) → handover. Chat proposes the direction in chat first. |
-| 1.10 | Results + certificate | Code | `[ ]` | On-screen strengths profile; downloadable/shareable certificate; trial CTA (3–5/6–9), plain end (10–13). Uses 1.04 + 1.09. |
-| 1.11 | Parity + a11y + performance | Code | `[ ]` | Full MK/EN parity, language switch, WCAG 2.2 AA, Lighthouse 95+, device QA. |
+| 1.01 | Brand research | Chat | `[x]` | Deep-dive IqUp (global + MK), the Bibi license, locations, voice, colors, logo → produce `brand.md`. |
+| 1.02 | Scaffold + bilingual shell | Code | `[x]` | Next.js/TS/Tailwind/shadcn project, next-intl (MK default, `/en/`), repo init, reserved folders, state files, `CLAUDE.md` + `AGENTS.md` placed in repo. |
+| 1.03 | Design: foundation | Design | `[x]` | Tokens (brand colors/type), landing + test-screen look, core components → handover. Chat proposes the direction in chat first. |
+| 1.04 | Test content + scoring | Chat | `[x]` | Question banks for all 3 bands (MK/EN), scoring rules, strengths-profile templates → content spec for Code. |
+| 1.05 | Supabase + schema | Code + Cowork | `[x]` | Create the Supabase project (EU region), the leads table, dev keys. |
+| 1.06 | Landing page | Code | `[x]` | Hook headline, how-it-works, age input → band, start CTA, mobile-first, basic SEO/OG. Uses 1.03. |
+| 1.07 | Test engine | Code | `[x]` | Question runner for all 3 bands: render, progress, answers, rule-based scoring. Uses 1.03 + 1.04. |
+| 1.08 | Email gate + capture | Code | `[x]` | Pre-results form (email, child name, age, consent) → save to Supabase, then reveal results. Uses 1.05. |
+| 1.09 | Design: results + certificate | Design | `[x]` | Visual for the results screen + shareable certificate (Bibi art) → handover. Chat proposes the direction in chat first. |
+| 1.10 | Results + certificate | Code | `[x]` | On-screen strengths profile; downloadable/shareable certificate; trial CTA (3–5/6–9), plain end (10–13). Uses 1.04 + 1.09. |
+| 1.11 | Parity + a11y + performance | Code | `[x]` | Full MK/EN parity, language switch, WCAG 2.2 AA, Lighthouse 95+, device QA. |
 
 ---
 
@@ -28,10 +28,10 @@
 
 | # | Phase | Type | Status | Scope |
 |---|---|---|---|---|
-| 2.01 | Email service + results email | Code | `[ ]` | Pick/wire the email tool (Brevo rec), send results + certificate to the inbox on submit. |
-| 2.02 | CRM / lead routing + notify | Code | `[ ]` | Route leads to IqUp's tool/lists; alert IqUp on each new lead. |
-| 2.03 | Follow-up sequence | Cowork + Code | `[ ]` | Welcome + trial-invite emails (3–5/6–9); newsletter handling. |
-| 2.04 | Analytics + Pixel + consent | Code | `[ ]` | GA4, Clarity, Meta Pixel with consent mode; cookie banner + privacy policy; IqUp legal review. |
+| 2.01 | Email service + results email | Code | `[x]` | Pick/wire the email tool (Brevo rec), send results + certificate to the inbox on submit. |
+| 2.02 | CRM / lead routing + notify | Code | `[x]` | Route leads to IqUp's tool/lists; alert IqUp on each new lead. |
+| 2.03 | Follow-up sequence | Cowork + Code | `[x]` | Welcome + trial-invite emails (3–5/6–9); newsletter handling. |
+| 2.04 | Analytics + Pixel + consent | Code | `[x]` | Code half done — deny-by-default consent banner + Manage dialog, consent-gated GA4/Clarity/Meta Pixel (env-gated no-op), PII-free `track()` in 4 funnel seams, bilingual `/privacy` (provisional GDPR baseline). Live verification + legal review deferred to Cowork. |
 | 2.05 | Trial-booking mechanic | Code | `[ ]` | How the trial CTA works (link/form to IqUp). |
 | 2.06 | Vercel Pro + domain + DNS | Cowork + Code | `[ ]` | Upgrade to Pro, connect the iqup.mk subdomain, SSL, production env vars. |
 | 2.07 | Pre-launch QA + go live | Code + Chat | `[ ]` | Full bilingual/device QA, verify leads/Pixel/consent, end-to-end test, launch. |

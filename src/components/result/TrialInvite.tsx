@@ -6,6 +6,7 @@ import type {Locale} from '@/content/locale';
 import {CENTERS, getCenter, IQUP_CONTACT_URL} from '@/content/centers';
 import {fillSlots} from '@/content/results';
 import {Button} from '@/components/ui/button';
+import {track} from '@/lib/analytics/track';
 
 export interface TrialCopy {
   heading: string;
@@ -28,10 +29,13 @@ export interface TrialCopy {
  */
 export function TrialInvite({
   locale,
+  band,
   intro,
   copy
 }: {
   locale: Locale;
+  /** Band of the completed test — carried into the PII-free CTA analytics event. */
+  band: string;
   /** §6B trial CTA with `{child}` filled; `{center}` filled here from the pick. */
   intro: string;
   copy: TrialCopy;
@@ -39,6 +43,10 @@ export function TrialInvite({
   const selectId = useId();
   const [selectedId, setSelectedId] = useState('');
   const center = getCenter(selectedId);
+
+  // Analytics: trial CTA activated (tel / mailto / contact form). PII-free
+  // (band + locale only); no-op until Analytics consent + GA id are present.
+  const trackTrialClick = () => track('trial_cta_click', {band, locale});
 
   const centerLabel = center ? center.city[locale] : copy.nearestCenter;
   const introText = fillSlots(intro, {center: centerLabel});
@@ -98,7 +106,7 @@ export function TrialInvite({
           className="h-13 min-h-[3.25rem] gap-2.5 rounded-full bg-hero px-6 text-base font-bold text-hero-ink shadow-[var(--shadow-hero)] hover:bg-hero-strong"
         >
           {telHref ? (
-            <a href={telHref}>
+            <a href={telHref} onClick={trackTrialClick}>
               <Phone className="size-5" aria-hidden="true" />
               {copy.callCta}
               <ArrowRight className="size-5" aria-hidden="true" />
@@ -117,7 +125,7 @@ export function TrialInvite({
             variant="secondary"
             className="h-13 min-h-[3.25rem] gap-2.5 rounded-full px-6 text-base font-bold"
           >
-            <a href={mailHref}>
+            <a href={mailHref} onClick={trackTrialClick}>
               <Mail className="size-5" aria-hidden="true" />
               {copy.emailCta}
             </a>
@@ -130,6 +138,7 @@ export function TrialInvite({
           href={IQUP_CONTACT_URL}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={trackTrialClick}
           className="text-sm font-semibold text-secondary-ink underline-offset-4 hover:underline"
         >
           {copy.contactLink}

@@ -1,5 +1,7 @@
 import {useTranslations} from 'next-intl';
+import {Link} from '@/i18n/navigation';
 import {LanguageToggle} from '@/components/LanguageToggle';
+import {CookieSettingsButton} from '@/components/consent/CookieSettingsButton';
 import {Wordmark} from './Wordmark';
 
 /** Minimal funnel footer: wordmark + one honest line + language toggle. */
@@ -19,10 +21,20 @@ export function SiteFooter() {
               {t('tagline')}
             </p>
           </div>
-          {/* About / Privacy links are intentionally omitted — those pages don't
-              exist yet (built in later phases). A later phase wires them in here
-              to avoid dead links. */}
-          <LanguageToggle label={tToggle('footerLabel')} />
+          <div className="flex flex-col items-start gap-4 sm:items-end">
+            {/* Privacy policy (Phase 2.04) + Cookie settings (re-opens the
+                consent Manage dialog). About/locations land in a later phase. */}
+            <nav aria-label={t('legalNavLabel')} className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+              <Link
+                href="/privacy"
+                className="font-semibold text-secondary-ink underline-offset-4 hover:underline"
+              >
+                {t('privacy')}
+              </Link>
+              <CookieSettingsButton label={t('cookieSettings')} className="text-sm" />
+            </nav>
+            <LanguageToggle label={tToggle('footerLabel')} />
+          </div>
         </div>
 
         <div className="border-t border-border pt-6 text-sm text-ink-soft">

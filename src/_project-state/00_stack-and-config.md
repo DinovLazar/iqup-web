@@ -452,3 +452,42 @@ list routing use Brevo attributes/lists already documented in 2.01/2.02 (`CHILD_
 `CHILD_AGE`, `LOCALE`, `BREVO_MARKETING_LIST_ID`); **no new env var, no schema change, nothing stored.**
 
 **No new app route** — the route table is unchanged (verified in `next build`).
+
+---
+
+## Phase 2.04 — analytics, consent layer + `/privacy` (Code half)
+
+**No new dependencies.** GA4 (`gtag.js`), Microsoft Clarity, and Meta Pixel are loaded by first-party,
+consent-gated, env-gated injection modules (`src/lib/analytics/loaders/*`) — **no SDK / npm package**.
+The Manage dialog reuses **Radix Dialog from the already-installed unified `radix-ui` package** (the
+same package the RadioGroup primitives use — `import {Dialog} from 'radix-ui'`), not a new
+`@radix-ui/react-dialog`. Cookie I/O is a small in-repo `document.cookie` helper. Vitest unchanged
+(`npm test` stays Vitest-only; **289 tests**, up from 258 — consent state machine, `track()`, sync,
+`/privacy` parity/vocab, the `Consent`/`Privacy` namespace checks). Playwright e2e gained
+`tests/e2e/consent.spec.ts` (28 cases incl. the headline deny-by-default network assertion).
+
+**New env vars (PUBLIC — they ship in the client bundle; NOT secrets):** documented in
+`.env.local.example`. Each tracker loads ONLY after its consent category is granted AND its id is set;
+unset → that tracker never loads (graceful, logged no-op) and the banner/cookie still work.
+- `NEXT_PUBLIC_GA4_ID` — GA4 measurement id (`G-…`) — Analytics category.
+- `NEXT_PUBLIC_CLARITY_ID` — Microsoft Clarity project id — Analytics category (Cowork must also
+  switch OFF Clarity auto-cookies so it obeys the `consentv2` signal).
+- `NEXT_PUBLIC_META_PIXEL_ID` — Meta Pixel / dataset id — Marketing category.
+
+**Consent constants:** `COOKIE_CONSENT_VERSION = 'cookies-v1-2026-06'` + cookie `iqup_consent`
+(`Path=/; SameSite=Lax; Secure` in prod; ~6-month max-age) in `src/lib/consent/constants.ts` —
+**distinct from** the lead's `CONSENT_VERSION` (`src/lib/leads/lead-mapping.ts`); the two never couple.
+
+**New app route:** `/privacy` (+ `/en/privacy`) — **SSG**. The static/dynamic split is otherwise
+unchanged (verified in `next build`: `/test` stays the only dynamic funnel route; the consent island
+does not opt any static page into dynamic rendering — no `useSearchParams`, page views via
+`usePathname()`). The banner + Manage dialog are `next/dynamic` (ssr:false) code-split off every page's
+initial bundle.
+
+**QA tooling:** `scripts/lh-median.mjs` gained opt-in env knobs (`LH_OUT_DIR`, `LH_INCLUDE_PRIVACY`,
+`LH_ONLY`) — its default 1.11 sweep + output path are unchanged. `playwright.config.ts` `webServer`
+now sets dummy `NEXT_PUBLIC_*` tracker ids so the consent e2e can exercise the post-Accept injection
+path (deny-by-default still holds with them set — that is the headline guarantee proven).
+
+**i18n:** new `Consent` + `Privacy` namespaces (+ `Gate.consent.privacy*` and
+`Landing.footer.{privacy,cookieSettings,legalNavLabel}` keys), parity-clean in both locales.

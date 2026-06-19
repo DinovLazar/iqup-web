@@ -2,7 +2,7 @@
 
 > Live snapshot of the repo. **Code updates this at the end of every phase.** If this and the live code ever disagree, the live code wins.
 
-**Last updated:** 2026-06-16 — after Phase 2.03 (follow-up nurture emails — Code half). The lead lifecycle's final content piece now exists as version-controlled, bilingual **nurture email templates** — a warm welcome (trial + general) and two gentle trial nudges (trial band) — authored as React Email components that **reuse the 2.01 brand/layout**, personalised purely by **Brevo merge tags** (child first name with a graceful fallback; age/locale are branch conditions only — nothing new collected or stored) and rendered to **8 static HTML files** (`docs/email-templates/Part-2-Phase-03-nurture/`) the Cowork half loads into Brevo. No certificate attached; no new route/dependency/schema; **258 tests** green; route table unchanged. The app funnel is unchanged. Previously, after Phase 2.02 (CRM contact routing + new-lead notification): the instant a lead saves, the same isolated `after()` work now fans out **three** side-effects: the 2.01 results email, **a Brevo Contacts upsert** (the parent becomes a CRM contact by email, on an operational "all leads" list always + a marketing/nurture list **only on `marketing_opt_in`**), and **an internal new-lead notification** to IqUp's team — each fully isolated (any one failing/slow/unconfigured can never break the save, the redirect, or the others), and each a logged no-op until its Brevo env lands. Nothing stored changed (no schema/column, no Brevo id persisted — Supabase stays the system of record). Live delivery is **deferred-pending-config** (build/typecheck/lint/test all verified; 190 tests). _(Previously: after Phase 2.01 — the funnel reached the parent's inbox with a warm bilingual results email + attached certificate via Brevo, deferred-pending-key. After Phase 1.11 — Part 1 complete: the whole funnel land → test → gate → lead saved → strengths profile + certificate, with a WCAG 2.2 AA pass, a median-of-5 Lighthouse sweep, and a cross-device matrix.)_
+**Last updated:** 2026-06-19 — **Phase 2.04 (Code half): analytics, tracking & a GDPR-grade consent layer + the bilingual `/privacy` page.** The funnel is now measurable **with consent**, the honest way: a custom, first-party, **deny-by-default cookie-consent system** (accessible bottom banner — equal-weight **Accept all / Reject / Manage** — + a Radix Manage dialog with per-category toggles **un-pre-ticked by default**, backed by the first-party `iqup_consent` cookie `COOKIE_CONSENT_VERSION='cookies-v1-2026-06'`, ~6-month Lax/Secure, re-openable from the footer **and** `/privacy`), three **consent-gated trackers** (GA4 + Microsoft Clarity behind the **Analytics** category; Meta Pixel behind **Marketing**) that **load nothing and set no cookie until their category is granted** and are a clean **no-op when their `NEXT_PUBLIC_*` id is unset**, a PII-free **`track()`** helper (sanitised to `{band, locale, path}`) wired into four funnel seams (`test_start`/`test_complete`/`generate_lead`+Pixel `Lead`/`trial_cta_click`) + `page_view` on client navigation (via `usePathname()`, never `useSearchParams()`), and the site's first **`/privacy` (+ `/en/privacy`)** page (SSG, bilingual structured content + a real cookie table, a provisional GDPR baseline flagged for IqUp legal). The cookie/tracking consent is **entirely separate** from the lead's parental consent — no coupling, rename, or re-version. The **lead pipeline, emails, CRM, notification, and Supabase schema are untouched.** Quality bars: `build`/`lint`/`typecheck` clean; **289 vitest** (28 files); **28 Playwright consent e2e** (the headline network-assertion proof: zero tracker requests before consent on landing/`/test`/`/privacy` both locales, all three load on Accept, nothing on Reject); mobile Lighthouse A11y/BP/SEO **100** on every surface incl. `/privacy` (mobile Perf 91/93/92 landing/en/privacy; `/test` 86–88 — the documented noise-dominated mobile-Perf metric, re-measure on Vercel in 2.06); desktop **100** across the board; fresh-context review **PASS** (its one should-fix — Accept/Reject equal salience — fixed). Live tracker verification is **deferred-pending-Cowork** (the three account ids). Live delivery is **deferred-pending-config**. _Previous entry:_ **new-machine checkpoint** (verification + doc reconciliation only, no product code changed): the build was re-verified green on macOS after the project moved from Windows (`C:\Users\user\Desktop\iqup-web`) to macOS (`~/Projects/iqup-web`), and the project-state docs (`phase-plan.md`, this file, `file-map.md`) were reconciled to the live repo. Verbatim results: **258/258 vitest tests pass** (24 files), typecheck clean, lint clean, production `next build` green (13/13 pages); MK/EN i18n parity perfect (139 keys each). The `@axe-core/playwright` WCAG 2.2 AA suite needs Playwright's Chromium binary installed first (`npx playwright install chromium` — a one-time per-machine step); with that done, 16/26 scans pass and **10 are timing-flaky on this faster machine** — axe scans mid-`animate-in` entrance fade and reads the strength chips' settled-fine tokens composited at ~36% opacity (a transient false-positive `color-contrast`, NOT a shipped defect: a 700 ms settle-wait makes all 26 pass). Logged as a **finding** for Lazar (Decisions.md #107) with a recommended `scan()` settle-wait fix — left unfixed here because altering tests is out of scope this pass. See `Part-2-Checkpoint-Verify-Reconcile-Completion.md`. _The last feature phase remains Phase 2.03 (follow-up nurture emails — Code half)._ The lead lifecycle's final content piece now exists as version-controlled, bilingual **nurture email templates** — a warm welcome (trial + general) and two gentle trial nudges (trial band) — authored as React Email components that **reuse the 2.01 brand/layout**, personalised purely by **Brevo merge tags** (child first name with a graceful fallback; age/locale are branch conditions only — nothing new collected or stored) and rendered to **8 static HTML files** (`docs/email-templates/Part-2-Phase-03-nurture/`) the Cowork half loads into Brevo. No certificate attached; no new route/dependency/schema; **258 tests** green; route table unchanged. The app funnel is unchanged. Previously, after Phase 2.02 (CRM contact routing + new-lead notification): the instant a lead saves, the same isolated `after()` work now fans out **three** side-effects: the 2.01 results email, **a Brevo Contacts upsert** (the parent becomes a CRM contact by email, on an operational "all leads" list always + a marketing/nurture list **only on `marketing_opt_in`**), and **an internal new-lead notification** to IqUp's team — each fully isolated (any one failing/slow/unconfigured can never break the save, the redirect, or the others), and each a logged no-op until its Brevo env lands. Nothing stored changed (no schema/column, no Brevo id persisted — Supabase stays the system of record). Live delivery is **deferred-pending-config** (build/typecheck/lint/test all verified; 190 tests). _(Previously: after Phase 2.01 — the funnel reached the parent's inbox with a warm bilingual results email + attached certificate via Brevo, deferred-pending-key. After Phase 1.11 — Part 1 complete: the whole funnel land → test → gate → lead saved → strengths profile + certificate, with a WCAG 2.2 AA pass, a median-of-5 Lighthouse sweep, and a cross-device matrix.)_
 
 ---
 
@@ -23,7 +23,7 @@ Other scripts: `npm run build`, `npm run start`, `npm run lint`, `npm run typech
 
 Installed and wired: **Next.js 16.2.7** (App Router, Turbopack) · **React 19.2.4** · **TypeScript 5.9.3** · **Tailwind CSS v4** (brand tokens from the 1.03 handover) · **shadcn/ui** (radix-nova style) · **next-intl 4.13.0** · **Framer Motion 12.40.0** (via LazyMotion) · **@fontsource/rubik 5.2.8** + **@fontsource/nunito-sans 5.2.7** (OG-image + email-certificate fonts) · **html-to-image 1.11.13** (client-side certificate → PNG, phase 1.10) · **@react-email/components 1.0.12** + **@react-email/render 2.0.8** (results email, phase 2.01) · **@supabase/supabase-js 2.107.0** · **zod 4.4.3** · **server-only 0.0.1** · dev: **Vitest 4.1.8**, **supabase CLI 2.105.0**, **tsx 4.22.4**, and (phase 1.11, QA-only, not in the app bundle) **@lhci/cli 0.15.1**, **@playwright/test 1.61.0** (Chromium only), **@axe-core/playwright 4.11.3**. Fonts: **Rubik** (display) + **Nunito Sans** (body) via `next/font/google` (Latin + Cyrillic). Exact pinned versions in `00_stack-and-config.md`.
 
-Not installed yet (deferred to the phase that needs them): analytics / Microsoft Clarity / Meta Pixel.
+Analytics is now **wired (phase 2.04)** with **no new dependency** — GA4 (`gtag.js`), Microsoft Clarity, and Meta Pixel are injected on demand by first-party, consent-gated, env-gated loader modules (no SDK/npm package); they stay dormant until both the consent category is granted and the `NEXT_PUBLIC_*` id is set.
 
 ## Routes / pages built
 
@@ -45,6 +45,11 @@ Not installed yet (deferred to the phase that needs them): analytics / Microsoft
   direct access (redirects home if either key is missing). Per-locale `generateMetadata` + header/footer.
 - `src/app/[locale]/result/opengraph-image.tsx` — **generic, name-free** per-locale `/result` OG image
   (1200×630, `next/og`, Cyrillic Rubik) — a shared result link previews on-brand without any child PII.
+- `src/app/[locale]/privacy/page.tsx` — the **bilingual privacy/cookie policy** (phase 2.04): a
+  **Static (SSG)** Server-Component in the locale layout (skip-link + header/footer, per-locale
+  `<html lang>`), per-locale `generateMetadata` (title/description/canonical/hreflang). Renders the
+  structured policy + a real cookie table from `src/content/privacy/{mk,en}.ts` + the `Privacy`
+  chrome namespace + the footer **Cookie settings** re-open button. MK at `/privacy`, EN at `/en/privacy`.
 - Locale routing works: `/` serves MK, `/en` serves EN, and `/mk` 307-redirects to the canonical `/` (next-intl `as-needed`).
 - `/_not-found` is handled by Next.js's default.
 
@@ -250,6 +255,16 @@ Not installed yet (deferred to the phase that needs them): analytics / Microsoft
   ops "all leads" list; trial split = `CHILD_AGE` at most 9; language split = `LOCALE` mk/en), the
   workflow shape, and the link/sender 2.05/2.06 notes. **The automation stays paused until launch.**
 
+## Analytics, consent layer + `/privacy` (phase 2.04 — Code half)
+
+- **Consent system** (`src/lib/consent/`): `iqup_consent` first-party cookie (`COOKIE_CONSENT_VERSION='cookies-v1-2026-06'`, ~6-month, `Path=/; SameSite=Lax; Secure` in prod), three categories — **Necessary** (always on: the consent cookie + `NEXT_LOCALE`), **Analytics** (GA4 + Clarity), **Marketing** (Meta Pixel). `ConsentProvider` is **cookie-backed via `useSyncExternalStore`** (the repo idiom, not a setState-in-effect — Decision #110); the cookie is the single source of truth; the banner renders **post-hydration** (stable `NOT_READY` server snapshot → no mismatch/CLS). `useConsent()` exposes `ready/decided/consent/manageOpen` + `acceptAll/rejectAll/savePreferences/openManage/closeManage`. Pure helpers (`state.ts`, `cookie.ts`) are unit-tested (round-trip + **version-bump invalidation**).
+- **Banner + Manage dialog** (`src/components/consent/`): a **non-modal** bottom banner — **Accept all / Reject** (IDENTICAL styling/salience — Decision #113) **/ Manage**, ≥44px targets, transform-only motion-safe entrance — and a **Radix Dialog** (existing unified `radix-ui`) Manage panel: Necessary (always-on, informational) + Analytics + Marketing toggles **un-pre-ticked by default** + Save. Both are **`next/dynamic` (ssr:false)** so they're code-split off every page's initial bundle (perf — Decision #112). `CookieSettingsButton` re-opens the dialog from the footer + `/privacy`. `ConsentRoot` (in the locale layout) wires provider + banner + dialog + page-view tracker + the `syncTrackers` effect.
+- **Consent-gated loaders** (`src/lib/analytics/`): `loaders/{ga,clarity,pixel}.ts` inject **only** on a granted category **and** a set `NEXT_PUBLIC_*` id (logged no-op otherwise; SSR-safe; never throw; idempotent). GA Consent Mode defaults-denied→update; Clarity `consentv2`; Pixel `consent grant`→init→PageView; `// FUTURE(CAPI 2.x)` note by the Pixel loader. `syncTrackers(consent)` (called by `ConsentRoot`) loads on grant + re-signals denied/`revoke` on withdrawal (no force-unload mid-session — clean state lands on next navigation). A shared `runtime.ts` holds the live consent snapshot + idempotency flags + the `window` global types.
+- **`track(event, params?)`** (`src/lib/analytics/track.ts`): sanitises params to **exactly** `{band, locale, path}` (PII-free, unit-asserted), routes GA iff Analytics granted + GA id + `gtag`, Pixel iff Marketing granted + Pixel id + `fbq`, independently. Seams: `test_start`/`test_complete` (`TestRunner`), `generate_lead`+Pixel `Lead` (`EmailGate`, **client-side after `submitLead` returns success**), `trial_cta_click` (`TrialInvite`), `page_view`+Pixel `PageView` (client navigation via `usePathname()`, first path skipped — the SDKs send the initial view).
+- **`/privacy` (+ `/en/privacy`)** — **SSG**, in the locale layout (per-locale `<html lang>`, skip-link, header/footer), per-locale `generateMetadata` (canonical + hreflang). Body = bilingual structured content (`src/content/privacy/{mk,en}.ts`, typed shape: ordered sections + a real cookie table) + the `Privacy` chrome namespace. **Provisional GDPR baseline** (`privacy-v1-draft-2026-06`), controller **IKUP d.o.o.**, all-MK-provisional, **exempt from the no-number rule** (dates/durations/address) but introduces **no score/IQ vocabulary** (forbidden-vocab test). The gate's `// TODO(privacy-page)` seam + the footer **Privacy policy** + **Cookie settings** links resolve here.
+- **i18n:** new **`Consent`** + **`Privacy`** namespaces + `Gate.consent.privacy*` + `Landing.footer.{privacy,cookieSettings,legalNavLabel}` keys, parity-clean in both locales (`messages.test.ts` extended). All new MK provisional.
+- **Env (public, not secrets):** `NEXT_PUBLIC_GA4_ID`, `NEXT_PUBLIC_CLARITY_ID`, `NEXT_PUBLIC_META_PIXEL_ID` documented in `.env.local.example`. **No new runtime dependency.**
+
 ## Bilingual shell
 
 - next-intl wired: `routing.ts` (locales `mk`/`en`, default `mk`, `localePrefix: 'as-needed'`), `request.ts` (loads `src/messages/<locale>.json`), `navigation.ts`, and `src/proxy.ts` (Next 16 middleware convention).
@@ -407,6 +422,25 @@ baseline: both locales prerender, language toggle works.)_
 
 ## Open carryover items
 
+- **Tracker live-verification — DEFERRED PENDING COWORK (phase 2.04 second half).** Everything is
+  built + tested; each tracker is a logged no-op until its id lands. Cowork must: create the **GA4**
+  property → `NEXT_PUBLIC_GA4_ID`; create the **Microsoft Clarity** project → `NEXT_PUBLIC_CLARITY_ID`
+  **and switch OFF Clarity auto-cookies** (Advanced settings) so it obeys the `consentv2` signal;
+  create the **Meta Pixel** → `NEXT_PUBLIC_META_PIXEL_ID`. Then the live matrix (both locales):
+  nothing fires before consent → **Accept all** loads all three (GA4 real-time, Clarity records, Pixel
+  Helper shows `PageView` + `Lead` on submit) → **Reject** keeps everything off → Manage changes work.
+  Full checklist in the 2.04 completion report.
+- **Legal/native-MK review additions (phase 2.04, continuing #88 / #96):** the `/privacy` policy text
+  (provisional GDPR baseline, version `privacy-v1-draft-2026-06`), the cookie/tracking-consent wording,
+  and **GA4 / Microsoft Clarity / Meta Pixel as data processors** — all for IqUp legal/privacy sign-off;
+  all MK provisional. The provisional privacy contact (`info@iqup.mk` / DPO) needs confirming; the MK
+  `/privacy` slug can be localised later (`// TODO(mk-slug)`).
+- **`/test` mobile Lighthouse Perf 86–88 (phase 2.04) — re-measure on Vercel in 2.06.** A11y/BP/SEO held
+  100 everywhere (incl. the new `/privacy` at mobile Perf 92); landing held its 91 baseline. `/test`'s
+  throttled LCP rose ~3.4→4.0 s — `/test`-specific hydration contention on the heaviest route under the
+  slow-4G + 4×-CPU throttle (its StartScreen heading is SSR'd, so the post-hydration, code-split,
+  below-fold banner can't delay paint). The same noise-dominated framework-JS metric 1.11 flagged;
+  expected to clear on clean infra. Evidence: `docs/qa/Part-2-Phase-04/lighthouse-medians.json`.
 - **Results email live delivery — DEFERRED PENDING `BREVO_API_KEY` (phase 2.01).** Everything is
   built, tested, and the render path is verified in the real Next runtime; the no-key path no-ops
   cleanly. When Cowork adds `BREVO_API_KEY` + `EMAIL_FROM_ADDRESS` (+ optional `EMAIL_FROM_NAME` /
@@ -502,24 +536,29 @@ baseline: both locales prerender, language toggle works.)_
 - None blocking. (`db:push` / `db:types` need a one-time `supabase login` + `link`;
   this machine's sandbox can't reach the Postgres port, so the migration was applied
   via the dashboard SQL editor.)
-- **LHCI on this Windows machine:** `npm run lhci:mobile`/`lhci:desktop` fail because every Lighthouse
-  child dies on a temp-dir `EPERM` *after* the audit (chrome-launcher cleanup), which makes LHCI discard
-  the run. Use **`npm run lh:median`** here (build + `npm run start`, then `npm run lh:median`) — it reads
-  each report despite the cleanup error. The LHCI configs remain valid for clean infra / CI.
+- **LHCI / Lighthouse:** on the **old Windows machine** `npm run lhci:mobile`/`lhci:desktop` failed because
+  every Lighthouse child died on a temp-dir `EPERM` *after* the audit (chrome-launcher cleanup), which made
+  LHCI discard the run; **`npm run lh:median`** (build + `npm run start`, then `npm run lh:median`) was the
+  portable workaround. That `EPERM` was Windows-specific and likely does not recur on macOS, but LHCI was
+  **not re-run during the 2026-06-19 macOS checkpoint** (a full Lighthouse sweep was out of scope) — re-verify
+  before relying on it. The LHCI configs remain valid for clean infra / CI. Note: Playwright's Chromium
+  binary must be installed once per machine (`npx playwright install chromium`) for the a11y/QA e2e suites.
 
 ## Suggested next phase
 
-**2.03 (follow-up nurture emails) — Code half is done; next is the 2.03 Cowork half.** The four
-nurture emails are authored + rendered to 8 bilingual HTML files with the README hand-off
-(`docs/email-templates/Part-2-Phase-03-nurture/`). **The Cowork half builds + stages the automation in
-Brevo from that README** — the marketing-list trigger, the `CHILD_AGE ≤ 9` trial split + `LOCALE`
-language split, the ~Day 1/3/7 cadence, the staging sender — and keeps it **paused until launch**. Then
-2.04 analytics/Pixel/consent + `/privacy` page, **2.05 the real trial booking**
-(`// TODO(booking 2.05)` seam — and the email's trial CTA link target should point at the booking flow
-then), 2.06 Vercel Pro + domain + production `NEXT_PUBLIC_SITE_URL` + the branded `@iqup.mk` sender with
-SPF/DKIM/DMARC (and re-measure mobile Lighthouse on clean infra). **Run the deferred 2.01 + 2.02 live
-checks together once Cowork finishes the one Brevo setup** (`npm run test:email` for the results email;
-the §7 contact/notification checklist for 2.02).
+**2.05 — the real trial booking** (the `// TODO(booking 2.05)` seam in `TrialInvite` + the email's
+`src/lib/email/site-url.ts` / `src/emails/nurture/links.ts`): the result-screen + email/nurture trial
+CTAs then point at the real booking flow, and the `trial_cta_click` analytics event (wired in 2.04)
+measures it. Then **2.06** Vercel Pro + the iqup.mk subdomain + production `NEXT_PUBLIC_SITE_URL` + the
+branded `@iqup.mk` sender (SPF/DKIM/DMARC) + **re-measure mobile Lighthouse on clean infra** (closes the
+`/test` 86–88 watch-item), **2.07** pre-launch QA + go-live, **2.08** post-launch check.
+
+**Cowork/deferred work to light up the built integrations:** (a) **2.04 second half** — create the GA4 /
+Clarity / Meta Pixel accounts, set the three `NEXT_PUBLIC_*` ids, switch off Clarity auto-cookies, run the
+live consent matrix (2.04 report §"For Cowork"). (b) **2.03 Cowork half** — build + stage the Brevo nurture
+automation from `docs/email-templates/Part-2-Phase-03-nurture/README.md`, paused until launch. (c) Run the
+deferred **2.01 + 2.02 live checks** once Cowork finishes the one Brevo setup (`npm run test:email`; the 2.02
+§7 contact/notification checklist).
 
 **Still-open pre-launch items (not Code tasks):** native-Macedonian copy review + IqUp sign-off of ALL
 draft copy (landing, test, gate, result/certificate, consent/marketing wording); IqUp verification of
