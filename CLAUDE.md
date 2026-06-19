@@ -17,7 +17,7 @@ This is the entry point for **Claude Code** working in this repo.
 
 ## Where things are
 - Spec: `plan.md` · Phases: `phase-plan.md` · Brand: `brand.md` · Decisions: `Decisions.md` · Live state: `src/_project-state/current-state.md` · Rules of the road: `project-instructions.md`.
-- Project root on the operator's machine: `C:\Users\user\Desktop\iqup-web`.
+- Project root on the operator's machine: `~/Projects/iqup-web` (macOS; was `C:\Users\user\Desktop\iqup-web` on the old Windows machine).
 
 ## Working style for Claude Code
 - **Use subagents to parallelize.** When a phase has independent, non-conflicting tasks (e.g. building several unrelated components, writing tests while a page is scaffolded, producing both the `mk` and `en` content sets), dispatch subagents to work them in parallel, then integrate. Don't parallelize tasks that share state or depend on each other's output.

@@ -22,7 +22,7 @@ This site is built **for a client**. Lazar is the operator running the build; Iq
 | What it is | Free age-banded children's "brain games" test → parent lead capture + brand awareness |
 | Audience | Parents of children 3–13 in North Macedonia (the lead); children 3–13 (the test-takers) |
 | Languages | Macedonian (default, `/`) + English (`/en/`) |
-| Local folder | `C:\Users\user\Desktop\iqup-web` |
+| Local folder | `~/Projects/iqup-web` |
 | GitHub repo | `DinovLazar/iqup-web` (private) |
 | Hosting | Vercel (free to build; Pro before launch) |
 | Database | Supabase (EU region) |
@@ -35,7 +35,7 @@ This site is built **for a client**. Lazar is the operator running the build; Iq
 | Claude | Role | Where it runs |
 |---|---|---|
 | **Claude Chat** (this session) | Orchestrator. Plans phases, asks questions, decides, writes prompt files, brainstorms. Explains *what* and *why* in plain language before producing anything. Never writes production code or does manual setup. | This project's chat. |
-| **Claude Code** | Writes, edits, and runs the code in `C:\Users\user\Desktop\iqup-web`. Reads its phase prompt (plus any Design handover) and ships. Writes a completion report at the end of every phase. | Desktop Claude app with filesystem access to the project folder. |
+| **Claude Code** | Writes, edits, and runs the code in `~/Projects/iqup-web`. Reads its phase prompt (plus any Design handover) and ships. Writes a completion report at the end of every phase. | Desktop Claude app with filesystem access to the project folder. |
 | **Claude Design** | Produces visual direction, design tokens, component specs, and mockups. Outputs a handover `.md` that Code reads before building the matching screens. Never touches the production repo. | A separate Claude session. |
 | **Claude Cowork** | Anything manual that would otherwise fall on Lazar: gathering brand assets, account/project setup, uploads, DNS clicks, screenshots, posting, form-filling. **Default: if Cowork can do it, Cowork does it — not Lazar.** | A separate Cowork session. |
 
@@ -57,7 +57,7 @@ This site is built **for a client**. Lazar is the operator running the build; Iq
 Visual direction is a creative decision and Lazar's input comes *first*. Before writing any Design prompt file: (1) Chat proposes a rough visual direction in chat — palette feel, layout, mood, references — as plain text, not a final prompt; (2) Lazar reacts and edits; (3) Chat iterates until he approves; (4) only then does Chat write the `Part-X-Phase-YY-Design.md` file with the approved direction baked in. Code phases keep the normal flow.
 
 ### Folder conventions (binding on every phase)
-The project lives in `C:\Users\user\Desktop\iqup-web`. Reserved paths:
+The project lives in `~/Projects/iqup-web`. Reserved paths:
 - `docs/design-handovers/` — every Design phase saves its handover here as `Part-X-Phase-YY-Handover.md`. Code reads it before building the matching screens.
 - `src/_project-state/` — the live project-state docs (see Canonical documents).
 
