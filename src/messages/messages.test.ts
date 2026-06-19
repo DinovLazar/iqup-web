@@ -61,7 +61,7 @@ describe('i18n message parity (mk ↔ en)', () => {
       'Result.certificate.share',
       'Result.certificate.alt',
       'Result.trial.heading',
-      'Result.trial.pickLabel',
+      'Result.trial.nearestCenter',
       'Result.ending.heading'
     ];
     for (const key of required) {
@@ -121,6 +121,31 @@ describe('i18n message parity (mk ↔ en)', () => {
       'Privacy.tableHeaders.category',
       'Privacy.tableHeaders.duration',
       'Gate.consent.privacyLink'
+    ];
+    for (const key of required) {
+      expect(mkPaths.has(key), `mk missing ${key}`).toBe(true);
+      expect(enPaths.has(key), `en missing ${key}`).toBe(true);
+    }
+  });
+
+  it('includes the new Trial namespace (phase 2.05 booking) in both locales', () => {
+    const required = [
+      'Trial.meta.title',
+      'Trial.meta.description',
+      'Trial.og.headline',
+      'Trial.og.tagline',
+      'Trial.heading',
+      'Trial.intro',
+      'Trial.pickLabel',
+      'Trial.pickPlaceholder',
+      'Trial.contactLabel',
+      'Trial.callCta',
+      'Trial.emailCta',
+      'Trial.directionsCta',
+      'Trial.messageCta',
+      'Trial.mailSubject',
+      'Trial.mailBody',
+      'Trial.reassure'
     ];
     for (const key of required) {
       expect(mkPaths.has(key), `mk missing ${key}`).toBe(true);

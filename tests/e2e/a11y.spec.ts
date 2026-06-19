@@ -91,6 +91,17 @@ test.describe('WCAG 2.2 AA — axe automated scans', () => {
       await scan(page, `test-start-${locale}`);
     });
 
+    test(`trial booking page (${locale})`, async ({page}) => {
+      await page.goto(localePath(locale, '/trial'));
+      await page.getByRole('heading', {level: 1}).first().waitFor();
+      // Scan the empty state first, then the city-selected state (the chosen-
+      // centre card + the Call / Email / Get directions action row).
+      await scan(page, `trial-empty-${locale}`);
+      await page.getByRole('combobox').selectOption('aerodrom');
+      await page.locator('a[href^="tel:"]').first().waitFor();
+      await scan(page, `trial-selected-${locale}`);
+    });
+
     test(`test first question (${locale})`, async ({page}) => {
       await page.goto(localePath(locale, '/test?age=8'));
       // Start screen → first question (the only button on the start screen).

@@ -159,7 +159,7 @@ const footerStyle: React.CSSProperties = {
 };
 
 export function ResultsEmail(props: ResultsEmailProps): React.JSX.Element {
-  const {bandKey, copy, chrome, siteUrl} = props;
+  const {bandKey, copy, chrome, trialUrl} = props;
   const showTrial = bandKey === '3-5' || bandKey === '6-9';
 
   return (
@@ -200,7 +200,7 @@ export function ResultsEmail(props: ResultsEmailProps): React.JSX.Element {
                 {chrome.trial.heading}
               </Heading>
               <Text style={trialBodyStyle}>{chrome.trial.body}</Text>
-              <Button href={siteUrl} style={buttonStyle}>
+              <Button href={trialUrl} style={buttonStyle}>
                 {chrome.trial.cta}
               </Button>
             </Section>

@@ -137,7 +137,7 @@
 | `src/content/results/templates.ts` | §6B/§6C wrapper templates per locale (kid celebration, headline, also/growing lines, trial CTA, closing, certificate). |
 | `src/content/results/index.ts` | `getResultCopy(result, name, locale)` accessor + `joinNames`/`fillSlots`; assembles celebrated/also/growing copy from the ranked `TestResult`. |
 | `src/content/results/results.test.ts` | Vitest: §6 coverage (strength×tier×locale), MK/EN parity, no-forbidden-token (no digits/%/score/rank/deficit), `getResultCopy` assembly. |
-| `src/content/centers.ts` | The 10 IqUp centres (single source, from brand.md §4) — `Center`, `CENTERS`, `getCenter`, `IQUP_CONTACT_URL`. PROVISIONAL (verify phones/addresses). |
+| `src/content/centers.ts` | The 10 IqUp centres (single source, from brand.md §4) — `Center` (now + optional `viber?`/`whatsapp?`, unset), `CENTERS`, `getCenter`, `mapsUrlFor` (verified-or-derived Maps search link), `viberHref`/`whatsappHref`. PROVISIONAL (verify phones/addresses). |
 | `src/content/centers.test.ts` | Vitest centers integrity (10 centres, required fields, unique ids/emails, https contact URL). |
 | `src/components/result/ResultView.tsx` | The real results client island (replaces `ResultPlaceholder` at the `// PLUGS INTO 1.10` seam): reads the hand-off, guards direct access, renders profile + certificate + band handoff. |
 | `src/components/result/ResultHero.tsx` | Reveal hero (playful): kid-celebration eyebrow, name-highlighted title, no-scores lede. |
@@ -148,12 +148,16 @@
 | `src/components/result/certificate-model.ts` | Pure certificate logic: deterministic tint rule, name sizing, date format, strength list (Vitest-friendly). |
 | `src/components/result/certificate-model.test.ts` | Vitest: tint determinism + AA contrast (every tint the rule can produce) + sizing/date/list. |
 | `src/components/result/StrengthGlyph.tsx` | Per-strength inline-SVG glyph (shared by constellation + certificate; capture-safe). |
-| `src/components/result/TrialInvite.tsx` | Trial invite (bands 3–5 / 6–9): city picker + chosen-centre card + working contact CTAs (`// TODO(booking 2.05)`). |
+| `src/components/result/TrialInvite.tsx` | Trial invite (bands 3–5 / 6–9): §6 heading/intro (`{center}` slot) + the shared `TrialBooking` mechanism inline (phase 2.05; old picker/seam removed). |
+| `src/components/trial/TrialBooking.tsx` | **Shared** trial-booking mechanism (client island, phase 2.05): native city `<select>` (no geolocation) → chosen-centre card + Call / Email (name-free mailto) / Get directions / optional Viber-WhatsApp + PII-free `trial_cta_click`. Reused by `/trial` + `TrialInvite`. |
+| `src/components/trial/resolve-copy.ts` | Server resolver for the `Trial` namespace → `TrialBookingCopy` (shared by the `/trial` page + the result page, so picker/action labels are single-sourced). |
 | `src/components/result/CuriousMindEnding.tsx` | Band 10–13 close (no trial) — §6 closing + signoff. |
 | `src/components/result/bibi.ts` | Bibi art drop-in swap point (`BIBI_CERT_ART = null` → placeholder until licensed art lands). |
 | `src/components/result/copy.ts` | `ResultChrome` type — the server-resolved on-screen chrome handed to `ResultView`. |
 | `src/lib/a11y/contrast.ts` | WCAG relative-luminance + contrast-ratio helpers (used by the certificate AA test). |
 | `src/app/[locale]/result/opengraph-image.tsx` | Generic, name-free per-locale `/result` OG image (`next/og`, 1200×630, Cyrillic Rubik). |
+| `src/app/[locale]/trial/page.tsx` | The public `/trial` (+ `/en/trial`) SSG booking page (phase 2.05): per-locale metadata + hreflang, name-free heading/intro + the shared `TrialBooking` (no band). Slug provisional (`// TODO(mk-slug)`). |
+| `src/app/[locale]/trial/opengraph-image.tsx` | Generic, name-free per-locale `/trial` OG image (`next/og`, 1200×630, Cyrillic Rubik — mirrors `/result`). |
 
 ## Supabase leads pipeline (phase 1.05)
 
@@ -226,9 +230,9 @@
 
 | Path | Description |
 |---|---|
-| `src/lib/email/site-url.ts` | Pure shared seam: `siteUrlFor(locale)` (locale-prefixed site base for email CTAs) — extracted from `send-results-email.ts` so the 2.01 email + the 2.03 nurture emails resolve the trial-CTA target from one place (decision #97). |
+| `src/lib/email/site-url.ts` | Pure shared seam: `siteUrlFor(locale)` (locale-prefixed site base) + `trialBookingUrl(locale, utmCampaign?)` — **the single trial target** (`/trial` + optional UTM) for the results email, the three trial nurture emails, and the on-screen surface (phase 2.05, decision #119). |
 | `src/emails/nurture/copy.ts` | Bilingual (MK+EN) copy for all four nurture emails (subject/preview/heading/greeting/intro/body/cta/footer) + the `MERGE` tags + the legal/postal line; reuses the 2.01 `Email.footer` identity/signoff. No numbers; child-name merge tag with a graceful fallback. MK provisional. |
-| `src/emails/nurture/links.ts` | The single link source: per-email `UTM_CAMPAIGN`, `withUtm`, and `ctaHref` (trial-CTA target via `siteUrlFor`, behind a `// TODO(booking 2.05)` seam). |
+| `src/emails/nurture/links.ts` | The single link source: per-email `UTM_CAMPAIGN`, `withUtm`, and `ctaHref` — trial emails via `trialBookingUrl` (`/trial`); `welcome-general` keeps its general site-root link (phase 2.05). |
 | `src/emails/nurture/styles.ts` | Shared style objects — a faithful reuse of the 2.01 `ResultsEmail` presentation (literal-hex brand, web-safe fonts, same container/button/footer). Not a parallel design system. |
 | `src/emails/nurture/NurtureLayout.tsx` | Shared shell (Html/Head/Preview/Body/Container) — wordmark stand-in header + the legally-required marketing footer (identity, transparency line, legal+postal, `{{ unsubscribe }}`, signoff). |
 | `src/emails/nurture/NurtureBody.tsx` | Renders one email's data (intro → body → CTA) inside `NurtureLayout`; `ctaKind:'trial'` → the pill CTA button, `ctaKind:'general'` → a quiet link (welcome-general, no trial CTA). |

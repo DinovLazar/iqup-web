@@ -32,7 +32,7 @@ import type {EmailChrome} from '@/emails/types';
 import {renderResultsEmail} from '@/emails/render';
 import {renderCertificatePng} from './certificate-image';
 import {sendTransactionalEmail} from './brevo';
-import {siteUrlFor} from './site-url';
+import {trialBookingUrl} from './site-url';
 import enMessages from '@/messages/en.json';
 import mkMessages from '@/messages/mk.json';
 
@@ -130,7 +130,9 @@ export async function sendResultsEmail(
       locale,
       copy,
       chrome,
-      siteUrl: siteUrlFor(locale)
+      // Phase 2.05: the trial CTA now targets the shared public booking page.
+      // Transactional email keeps no UTM (it had none in 2.01) — campaign omitted.
+      trialUrl: trialBookingUrl(locale)
     });
 
     // 5. Send one transactional email. Tags help 2.02 segment later.

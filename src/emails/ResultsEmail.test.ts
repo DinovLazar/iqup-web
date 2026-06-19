@@ -31,7 +31,8 @@ const MESSAGES: Record<Locale, {Email: Record<string, unknown>}> = {
 /** A web/Cyrillic name per locale so we can assert the child's name renders. */
 const NAME: Record<Locale, string> = {en: 'Maya', mk: 'Марко'};
 
-const SITE_URL = 'https://iqup.example/mk';
+// Phase 2.05: the trial CTA now targets the public booking page (`/trial`).
+const TRIAL_URL = 'https://iqup.example/mk/trial';
 
 /**
  * Distinct per-strength ratio map → a deterministic ranking (pattern, spatial,
@@ -111,7 +112,7 @@ function propsFor(bandKey: BandKey, locale: Locale): ResultsEmailProps {
     locale,
     copy,
     chrome: chromeFor(locale, name),
-    siteUrl: SITE_URL
+    trialUrl: TRIAL_URL
   };
 }
 
@@ -162,11 +163,11 @@ describe('ResultsEmail', () => {
             visible,
             `${label}: should not show trial CTA`
           ).not.toContain(props.chrome.trial.cta);
-          // and certainly no trial button href to the site
-          expect(html).not.toContain(`href="${SITE_URL}"`);
+          // and certainly no trial button href to the booking page
+          expect(html).not.toContain(`href="${TRIAL_URL}"`);
         });
       } else {
-        it(`shows the trial CTA + absolute site button (${label})`, async () => {
+        it(`shows the trial CTA + absolute booking-page button (${label})`, async () => {
           const props = propsFor(bandKey, locale);
           const {html, text} = await renderResultsEmail(props);
           const visible = visibleText(text);
@@ -174,15 +175,15 @@ describe('ResultsEmail', () => {
           expect(visible, `${label}: missing trial CTA`).toContain(
             props.chrome.trial.cta
           );
-          // an absolute href starting with http, pointing at the site URL
+          // an absolute href starting with http, pointing at the booking page
           const hrefMatch = html.match(/href="(https?:\/\/[^"]+)"/);
           expect(hrefMatch, `${label}: no absolute href`).not.toBeNull();
           const hrefs = [...html.matchAll(/href="(https?:\/\/[^"]+)"/g)].map(
             (m) => m[1]
           );
           expect(
-            hrefs.some((h) => h === SITE_URL || h.startsWith(SITE_URL)),
-            `${label}: no href equal/startsWith siteUrl; got ${JSON.stringify(hrefs)}`
+            hrefs.some((h) => h === TRIAL_URL || h.startsWith(TRIAL_URL)),
+            `${label}: no href equal/startsWith trialUrl; got ${JSON.stringify(hrefs)}`
           ).toBe(true);
         });
       }

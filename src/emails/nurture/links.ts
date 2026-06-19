@@ -10,7 +10,7 @@
  *      the two stay identical and 2.05 updates both in one place.
  */
 import type {Locale} from '@/content/locale';
-import {siteUrlFor} from '@/lib/email/site-url';
+import {siteUrlFor, trialBookingUrl} from '@/lib/email/site-url';
 import type {NurtureKey} from './copy';
 
 const UTM_SOURCE = 'brevo';
@@ -34,13 +34,20 @@ export function withUtm(url: string, campaign: string): string {
 }
 
 /**
- * The CTA href for a nurture email: the locale-correct site base + UTM.
+ * The CTA href for a nurture email (UTM-tagged, locale-correct).
  *
- * TODO(booking 2.05): the trial CTA currently points at the honest fallback (the
- * site, via `siteUrlFor`) — exactly like the 2.01 results email. When the real
- * booking flow lands in 2.05, update `siteUrlFor`/this seam and BOTH emails follow.
- * The production domain behind `siteUrlFor` is finalised in 2.06.
+ * The three TRIAL emails (`welcome-trial`, `trial-invite`, `nudge`) point at the
+ * shared public booking page via the single `trialBookingUrl` helper (Phase 2.05),
+ * so they share one trial target with the 2.01 results email and the result screen.
+ *
+ * `welcome-general` is NOT a trial email — it keeps its general "explore IqUp" link
+ * (the locale site root), never a trial CTA (per spec / Decision #100).
+ *
+ * The production domain behind both is finalised in 2.06.
  */
 export function ctaHref(locale: Locale, key: NurtureKey): string {
-  return withUtm(siteUrlFor(locale), UTM_CAMPAIGN[key]);
+  const campaign = UTM_CAMPAIGN[key];
+  return key === 'welcome-general'
+    ? withUtm(siteUrlFor(locale), campaign)
+    : trialBookingUrl(locale, campaign);
 }
