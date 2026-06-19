@@ -7,9 +7,11 @@
  * **verified by IqUp before launch** — see the per-entry `verify` notes. These
  * details power conversions, so correct them the moment IqUp confirms them.
  *
- * Reused by Phase 1.10 (results trial invite) and Phase 2.05 (real trial booking).
- * Addresses are kept in Macedonian exactly as published. `mapsUrl` is a reserved
- * field, empty until IqUp supplies per-centre map links.
+ * Reused by Phase 1.10 (results trial invite) and Phase 2.05 (the shared trial
+ * booking mechanic — `TrialBooking`). Addresses are kept in Macedonian exactly as
+ * published. `mapsUrl` is used when present and otherwise derived into an honest
+ * Google Maps *search* link (`mapsUrlFor`); `viber`/`whatsapp` are optional and
+ * **left unset** until IqUp/Cowork confirms which centres use them.
  */
 import type {Localized} from '@/content/locale';
 
@@ -28,8 +30,15 @@ export interface Center {
   readonly email: string;
   /** Named local contact. */
   readonly contact: string;
-  /** Reserved per-centre map link — empty until IqUp supplies it. */
+  /** Per-centre Google Maps place link — empty until IqUp supplies it; when
+   *  empty, `mapsUrlFor` derives an honest Maps *search* link from city+address. */
   readonly mapsUrl: string;
+  /** Optional Viber number (E.164, e.g. `+38970...`). **Unset** until confirmed —
+   *  do not fabricate. When present, `viberHref` builds the chat deep link. */
+  readonly viber?: string;
+  /** Optional WhatsApp number (E.164, e.g. `+38970...`). **Unset** until confirmed
+   *  — do not fabricate. When present, `whatsappHref` builds the wa.me link. */
+  readonly whatsapp?: string;
   /** Optional verification note carried over from brand.md §4. */
   readonly verify?: string;
 }
@@ -139,10 +148,34 @@ export const CENTERS: readonly Center[] = [
   }
 ];
 
-/** The central IqUp contact form (used as the trial fallback until 2.05 booking). */
-export const IQUP_CONTACT_URL = 'https://www.iqup.mk/kontakt';
-
 /** Look up a centre by id. */
 export function getCenter(id: string): Center | undefined {
   return CENTERS.find((c) => c.id === id);
+}
+
+/**
+ * The "Get directions" target for a centre. Uses the verified `mapsUrl` when one
+ * has been supplied; otherwise derives a deterministic Google Maps **search** link
+ * from the published city + address. This is an honest search (not a claimed exact
+ * pin) and inherits the PROVISIONAL caveat above — replace with a real place link
+ * by setting `mapsUrl`.
+ */
+export function mapsUrlFor(center: Center): string {
+  if (center.mapsUrl.trim()) return center.mapsUrl;
+  const query = `IQ UP! ${center.city.mk}, ${center.address}`;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+}
+
+/** Viber chat deep link for a centre, or `undefined` when no Viber number is set. */
+export function viberHref(center: Center): string | undefined {
+  if (!center.viber) return undefined;
+  return `viber://chat?number=${encodeURIComponent(center.viber)}`;
+}
+
+/** WhatsApp wa.me link for a centre, or `undefined` when no WhatsApp number is set. */
+export function whatsappHref(center: Center): string | undefined {
+  if (!center.whatsapp) return undefined;
+  // wa.me expects digits only (no `+`, spaces, or punctuation).
+  const digits = center.whatsapp.replace(/\D/g, '');
+  return digits ? `https://wa.me/${digits}` : undefined;
 }

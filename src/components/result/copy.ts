@@ -8,6 +8,7 @@ import type {ConstellationCopy} from './StrengthsConstellation';
 import type {CertificateFace} from './Certificate';
 import type {CertificateCardCopy} from './CertificateCard';
 import type {TrialCopy} from './TrialInvite';
+import type {TrialBookingCopy} from '@/components/trial/TrialBooking';
 
 export interface ResultChrome {
   hero: {
@@ -23,7 +24,10 @@ export interface ResultChrome {
     alt: string;
   };
   parentsEyebrow: string;
+  /** §6 trial heading + `{center}` default (bands 3–5 / 6–9). */
   trial: TrialCopy;
+  /** Shared picker + action labels for the inline `TrialBooking` mechanism. */
+  trialBooking: TrialBookingCopy;
   ending: {
     heading: string;
     signoff: string;

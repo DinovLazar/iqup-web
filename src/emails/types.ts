@@ -45,7 +45,8 @@ export interface EmailChrome {
 /**
  * Everything the `ResultsEmail` component renders. `copy` is the assembled §6
  * strengths profile (`getResultCopy`); `bandKey` drives the trial-CTA-vs-ending
- * branch; `siteUrl` is the absolute base for the trial CTA link.
+ * branch; `trialUrl` is the absolute trial-booking-page URL the CTA links to
+ * (Phase 2.05 — was the locale site root in 2.01).
  */
 export interface ResultsEmailProps {
   readonly childFirstName: string;
@@ -53,5 +54,5 @@ export interface ResultsEmailProps {
   readonly locale: Locale;
   readonly copy: ResolvedResultCopy;
   readonly chrome: EmailChrome;
-  readonly siteUrl: string;
+  readonly trialUrl: string;
 }

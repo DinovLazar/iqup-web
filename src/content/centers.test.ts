@@ -1,6 +1,6 @@
 import {describe, it, expect} from 'vitest';
 
-import {CENTERS, getCenter, IQUP_CONTACT_URL} from './centers';
+import {CENTERS, getCenter, mapsUrlFor, viberHref, whatsappHref} from './centers';
 
 describe('IqUp centers data (brand.md §4)', () => {
   it('has all 10 centers', () => {
@@ -37,7 +37,33 @@ describe('IqUp centers data (brand.md §4)', () => {
     expect(getCenter('does-not-exist')).toBeUndefined();
   });
 
-  it('exposes an https IqUp contact URL fallback', () => {
-    expect(IQUP_CONTACT_URL).toMatch(/^https:\/\//);
+  it('derives a Google Maps search link when mapsUrl is empty', () => {
+    for (const c of CENTERS) {
+      // All centres are PROVISIONAL with empty mapsUrl for now → derived search.
+      const url = mapsUrlFor(c);
+      expect(url, `${c.id} maps link`).toMatch(
+        /^https:\/\/www\.google\.com\/maps\/search\/\?api=1&query=/
+      );
+      // The encoded query carries the centre's city + address (honest search).
+      expect(decodeURIComponent(url), `${c.id} maps query`).toContain(c.address);
+    }
+  });
+
+  it('uses a supplied mapsUrl verbatim when present', () => {
+    const withPin = {...CENTERS[0], mapsUrl: 'https://maps.app.goo.gl/example'};
+    expect(mapsUrlFor(withPin)).toBe('https://maps.app.goo.gl/example');
+  });
+
+  it('builds Viber/WhatsApp links only when the centre carries the number', () => {
+    // None of the seeded centres carry Viber/WhatsApp yet → no link.
+    for (const c of CENTERS) {
+      expect(viberHref(c), `${c.id} viber`).toBeUndefined();
+      expect(whatsappHref(c), `${c.id} whatsapp`).toBeUndefined();
+    }
+    const withChannels = {...CENTERS[0], viber: '+38970382269', whatsapp: '+38970382269'};
+    expect(viberHref(withChannels)).toBe(
+      'viber://chat?number=%2B38970382269'
+    );
+    expect(whatsappHref(withChannels)).toBe('https://wa.me/38970382269');
   });
 });

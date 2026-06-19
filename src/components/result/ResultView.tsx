@@ -159,6 +159,7 @@ export function ResultView({locale, chrome}: {locale: Locale; chrome: ResultChro
               band={result.band}
               intro={copy.trialIntro}
               copy={chrome.trial}
+              bookingCopy={chrome.trialBooking}
             />
           )}
         </div>

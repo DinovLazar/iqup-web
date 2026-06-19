@@ -200,14 +200,7 @@
     },
     "trial": {
       "heading": "Next step: a free trial class",
-      "pickLabel": "Choose your city",
-      "pickPlaceholder": "Select a city",
-      "nearestCenter": "your nearest center",
-      "callCta": "Call the center",
-      "emailCta": "Email the center",
-      "contactLink": "Or use the IqUp contact form",
-      "reassure": "No commitment · cancel anytime",
-      "contactLabel": "Contact"
+      "nearestCenter": "your nearest center"
     },
     "ending": {
       "heading": "What's next for a curious mind?",
@@ -281,5 +274,27 @@
       "category": "Category",
       "duration": "Duration"
     }
+  },
+  "Trial": {
+    "meta": {
+      "title": "Book a free trial class · IqUp",
+      "description": "Book a free trial class directly with your nearest IqUp center. Pick your city and reach them in one tap."
+    },
+    "og": {
+      "headline": "Book a free trial class",
+      "tagline": "Directly with your nearest IqUp center"
+    },
+    "heading": "Book a free trial class",
+    "intro": "Trial classes are booked directly with your nearest IqUp center. Choose your city below and call, email, or get directions — no commitment.",
+    "pickLabel": "Choose your city",
+    "pickPlaceholder": "Select a city",
+    "contactLabel": "Contact",
+    "callCta": "Call the center",
+    "emailCta": "Email the center",
+    "directionsCta": "Get directions",
+    "messageCta": "Message on {channel}",
+    "mailSubject": "Free trial class request — IqUp",
+    "mailBody": "Hello, I'd like to book a free trial class. Please let me know which times are available. (You're welcome to share your child's age and a preferred time.) Thank you!",
+    "reassure": "No commitment · cancel anytime"
   }
 }

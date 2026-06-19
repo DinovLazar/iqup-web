@@ -140,8 +140,9 @@ describe('sendResultsEmail — the send', () => {
       expected.top1,
       expected.top2
     ]);
-    // an absolute, locale-correct site URL for the trial CTA
-    expect(props.siteUrl).toBe('https://iqup.example/en');
+    // Phase 2.05 (DELIBERATE change): the trial CTA now targets the shared public
+    // booking page (`/trial`), not the locale root — one trial target everywhere.
+    expect(props.trialUrl).toBe('https://iqup.example/en/trial');
   });
 
   it('omits replyTo when EMAIL_REPLY_TO is unset', async () => {
@@ -151,10 +152,10 @@ describe('sendResultsEmail — the send', () => {
     expect(payload.replyTo).toBeUndefined();
   });
 
-  it('uses the unprefixed site URL for the mk locale', async () => {
+  it('uses the unprefixed booking URL for the mk locale', async () => {
     await sendResultsEmail(params({locale: 'mk', band: 'band-a'}));
     const props = renderResultsEmailMock.mock.calls[0][0];
-    expect(props.siteUrl).toBe('https://iqup.example');
+    expect(props.trialUrl).toBe('https://iqup.example/trial');
     expect(props.bandKey).toBe('3-5');
   });
 });

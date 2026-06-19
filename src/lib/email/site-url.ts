@@ -23,3 +23,28 @@ export function siteUrlFor(locale: Locale): string {
   ).replace(/\/+$/, '');
   return locale === 'en' ? `${base}/en` : base;
 }
+
+/**
+ * THE single source for the trial-booking URL (Phase 2.05) — the public booking
+ * page (`/trial`, EN at `/en/trial`). After 2.05 the result screen, the results
+ * email, and the three trial nurture emails all resolve their trial target from
+ * here, so it updates in exactly one place.
+ *
+ * Built on `siteUrlFor` (so the `NEXT_PUBLIC_SITE_URL`-unset → `http://localhost:3000`
+ * fallback is preserved) + the `/trial` slug. When a `utmCampaign` is given, the
+ * shared Brevo UTM tags are appended (`utm_source=brevo`, `utm_medium=email`, the
+ * per-email campaign) — the nurture + results emails use this; the on-screen
+ * surface omits the campaign (no UTM).
+ *
+ * NOTE: `trial` is a PROVISIONAL slug — see `// TODO(mk-slug)` on the route. The
+ * production host behind `siteUrlFor` is finalised in 2.06.
+ */
+export function trialBookingUrl(locale: Locale, utmCampaign?: string): string {
+  const base = `${siteUrlFor(locale)}/trial`;
+  if (!utmCampaign) return base;
+  const u = new URL(base);
+  u.searchParams.set('utm_source', 'brevo');
+  u.searchParams.set('utm_medium', 'email');
+  u.searchParams.set('utm_campaign', utmCampaign);
+  return u.toString();
+}

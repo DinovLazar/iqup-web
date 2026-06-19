@@ -5,6 +5,7 @@ import {SiteHeader} from '@/components/landing/SiteHeader';
 import {SiteFooter} from '@/components/landing/SiteFooter';
 import {ResultView} from '@/components/result/ResultView';
 import type {ResultChrome} from '@/components/result/copy';
+import {resolveTrialBookingCopy} from '@/components/trial/resolve-copy';
 
 type Props = {
   params: Promise<{locale: string}>;
@@ -100,15 +101,11 @@ async function resolveChrome(locale: string): Promise<ResultChrome> {
     parentsEyebrow: t.raw('parents.eyebrow'),
     trial: {
       heading: t.raw('trial.heading'),
-      pickLabel: t.raw('trial.pickLabel'),
-      pickPlaceholder: t.raw('trial.pickPlaceholder'),
-      nearestCenter: t.raw('trial.nearestCenter'),
-      callCta: t.raw('trial.callCta'),
-      emailCta: t.raw('trial.emailCta'),
-      contactLink: t.raw('trial.contactLink'),
-      reassure: t.raw('trial.reassure'),
-      contactLabel: t.raw('trial.contactLabel')
+      nearestCenter: t.raw('trial.nearestCenter')
     },
+    // The picker + action labels for the inline booking mechanic — single-sourced
+    // from the `Trial` namespace (shared with the public `/trial` page).
+    trialBooking: await resolveTrialBookingCopy(locale as Locale),
     ending: {heading: t.raw('ending.heading'), signoff: t.raw('ending.signoff')}
   };
 }
