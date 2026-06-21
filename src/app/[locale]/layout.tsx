@@ -1,6 +1,6 @@
 import type {Metadata} from 'next';
 import type {ReactNode} from 'react';
-import {Rubik, Nunito_Sans} from 'next/font/google';
+import {Rubik, Nunito_Sans, Montserrat} from 'next/font/google';
 import {NextIntlClientProvider, hasLocale} from 'next-intl';
 import {getTranslations, setRequestLocale} from 'next-intl/server';
 import {notFound} from 'next/navigation';
@@ -23,6 +23,21 @@ const rubik = Rubik({
 // in via a metric-matched fallback (no layout shift).
 const nunitoSans = Nunito_Sans({
   variable: '--font-nunito-sans',
+  subsets: ['latin', 'cyrillic'],
+  display: 'swap',
+  preload: false
+});
+
+// v2 brand typeface (Phase 3.01). Montserrat — Cyrillic + Latin, the official
+// IqUp font (brand.md §6 / spec Прилог G: ExtraBold 800 headings, Bold 700 /
+// SemiBold 600 labels, Regular/Medium 400/500 text). Variable font, so every
+// weight in that range is available from one load. Exposed as the `--font-montserrat`
+// CSS var → the `font-brand` Tailwind token; the v1 Rubik/Nunito UI is unchanged
+// and is migrated onto Montserrat component-by-component in later v2 phases.
+// Not preloaded: no v2 surface is built yet, so it must not compete with the
+// live Rubik heading for critical bytes.
+const montserrat = Montserrat({
+  variable: '--font-montserrat',
   subsets: ['latin', 'cyrillic'],
   display: 'swap',
   preload: false
@@ -79,7 +94,10 @@ export default async function LocaleLayout({children, params}: Props) {
   const consentCopy = await resolveConsentCopy(locale);
 
   return (
-    <html lang={locale} className={`${rubik.variable} ${nunitoSans.variable}`}>
+    <html
+      lang={locale}
+      className={`${rubik.variable} ${nunitoSans.variable} ${montserrat.variable}`}
+    >
       <body className="antialiased">
         <NextIntlClientProvider>
           {/* Consent provider + banner + Manage dialog + page-view tracker —

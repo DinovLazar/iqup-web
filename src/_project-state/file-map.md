@@ -9,12 +9,12 @@
 | Path | Description |
 |---|---|
 | `project-instructions.md` | The project rulebook (four-Claudes model, phase workflow, quality bar). |
-| `plan.md` | Full build spec for the finished site (§9 is the authoritative folder structure). |
-| `phase-plan.md` | Living index of every phase and its status. |
-| `brand.md` | IqUp brand source-of-truth (from phase 1.01). |
+| `plan.md` | **v2 master spec** (Phase 3.01): the adaptive cognitive + STEM assessment, derived from `IQ UP Specifikacija v1.2`; §10 is the authoritative v2 folder structure. |
+| `phase-plan.md` | Living index of every phase and its status. **Still v1 — pending the v2 phase plan** (Chat writes it). |
+| `brand.md` | IqUp brand source-of-truth (from phase 1.01); **§6 visual identity confirmed in Phase 3.01** (official palette, Montserrat, puzzle-brain motif, tokens). |
 | `Decisions.md` | Append-only log of project decisions. |
-| `AGENTS.md` | Canonical, tool-neutral rules for any coding agent. |
-| `CLAUDE.md` | Claude Code entry point; defers to `AGENTS.md`. |
+| `AGENTS.md` | Canonical, tool-neutral rules for any coding agent. **Updated to v2 (Phase 3.01)** — product/architecture specifics; process rules unchanged. |
+| `CLAUDE.md` | Claude Code entry point; defers to `AGENTS.md`. **Updated to v2 (Phase 3.01).** |
 | `README.md` | Project overview, how to run, where things live, guardrails. |
 | `.gitignore` | Ignores `node_modules/`, `.next/`, `.env*`, build artifacts. |
 | `package.json` | Dependencies and scripts (`dev`, `build`, `start`, `lint`, `typecheck`). |
@@ -43,13 +43,13 @@
 
 | Path | Description |
 |---|---|
-| `src/app/[locale]/layout.tsx` | Root layout per locale: `<html lang>`, Rubik + Nunito Sans (`next/font`), `metadataBase`, hreflang, NextIntlClientProvider, **+ `ConsentRoot`** (consent provider + banner + Manage dialog + page-view tracker — phase 2.04) wrapping all pages. |
+| `src/app/[locale]/layout.tsx` | Root layout per locale: `<html lang>`, Rubik + Nunito Sans **+ Montserrat (v2 brand font, Phase 3.01)** via `next/font`, `metadataBase`, hreflang, NextIntlClientProvider, **+ `ConsentRoot`** (consent provider + banner + Manage dialog + page-view tracker — phase 2.04) wrapping all pages. |
 | `src/app/[locale]/page.tsx` | The landing page (Server Component) — composes the landing sections; per-locale `generateMetadata` (title/description/canonical/hreflang/OG/Twitter). |
 | `src/app/[locale]/opengraph-image.tsx` | Dynamic per-locale OG image (1200×630, `next/og` + Cyrillic Rubik woff from `@fontsource/rubik`). |
 | `src/app/[locale]/not-found.tsx` | Localized 404 (1.11) — skip-link + header/footer + AA copy, rendered inside the locale layout (correct `<html lang>`). |
 | `src/app/[locale]/[...rest]/page.tsx` | Catch-all (1.11): routes unmatched locale paths through `notFound()` → the localized 404 (avoids the global-not-found hydration mismatch). |
 | `src/app/not-found.tsx` | Global 404 fallback (1.11) for Next's internal `/_not-found` — self-contained `<html>`, bilingual, skip-link, AA contrast. |
-| `src/app/globals.css` | Tailwind v4 + the 1.03 brand tokens (palette, status, strengths, radii, shadows, motion) via `@theme inline`; reduced-motion reset; light-only (no `.dark`). |
+| `src/app/globals.css` | Tailwind v4 + the 1.03 brand tokens (palette, status, strengths, radii, shadows, motion) via `@theme inline`; reduced-motion reset; light-only (no `.dark`). **+ v2 brand primitives (Phase 3.01):** official palette (`--iq-*`, `--index-*`), `--font-brand` Montserrat, `rounded-card/-lg/-badge`, spacing + `--tap-min` (additive; v1 tokens kept). |
 | `src/app/favicon.ico` | Default favicon (placeholder until brand asset lands). |
 | `src/components/LanguageToggle.tsx` | Accessible MK/EN pill switcher; preserves the current path **and query string** (so a mid-test `?age` survives the switch — 1.11); label via prop. |
 | `src/components/ui/button.tsx` | shadcn/ui Button primitive. |
@@ -279,6 +279,20 @@
 | `tests/e2e/consent.spec.ts` | Playwright: the headline deny-by-default network assertion (both locales), Accept-loads/Reject-off, banner a11y + equal-style + ESC, `/privacy` axe + lang + skip-link + footer re-open. |
 | `docs/qa/Part-2-Phase-04/lighthouse-medians.json` | 2.04 Lighthouse medians (landing/en/test/privacy mobile + desktop). |
 
+## v2 footing — scaffold (phase 3.01)
+
+> New folders, READMEs only — implementation lands in later v2 phases. (`src/lib/scoring/` already existed and is unchanged.)
+
+| Path | Description |
+|---|---|
+| `src/lib/engine/README.md` | Adaptive basal/ceiling engine (deterministic, no AI) — spec Дел 5. |
+| `src/lib/validity/README.md` | Validity flags, timing, the derived attention signal, per-domain confidence — spec Дел 7–8. |
+| `src/lib/report/README.md` | Deterministic report-assembly engine (no AI) — spec Дел 9. |
+| `src/lib/pdf/README.md` | Server-side PDF report via `@react-pdf/renderer`; pentagon = custom SVG — spec Дел 10. |
+| `src/content/tasks/README.md` | The task bank (procedural generators + items, 8 domains) — spec Дел 4 / Прилог A. |
+| `src/content/norms/README.md` | Age norms + scoring weights (seed) — spec Дел 6 / Прилог B. |
+| `src/content/report/README.md` | Report module library (copy: strengths/growth/style/STEM modules) — spec Дел 9.2 / Прилог C. |
+
 ## Project-state docs
 
 | Path | Description |
@@ -302,6 +316,8 @@
 | `src/_project-state/Part-2-Phase-03-Code-Completion.md` | Phase 2.03 completion report (follow-up nurture emails — Code half). |
 | `src/_project-state/Part-2-Phase-04-Code-Completion.md` | Phase 2.04 completion report (analytics, consent layer + `/privacy`). |
 | `src/_project-state/Part-2-Checkpoint-Verify-Reconcile-Completion.md` | New-machine checkpoint report (2026-06-19): verify build green on macOS + reconcile project-state docs. |
+| `src/_project-state/Part-3-Phase-00-Completion.md` | Part 3 Phase 00 audit: v1→v2 build inventory + verdicts (read-only). |
+| `src/_project-state/Part-3-Phase-01-Completion.md` | Part 3 Phase 01: repo onto v2 footing (docs + brand tokens + react-pdf + scaffold). |
 | `src/_project-state/Mac-Setup-Completion.md` | Windows→macOS machine-setup work log (operator setup; repo move + toolchain install). |
 
 ## Design handovers

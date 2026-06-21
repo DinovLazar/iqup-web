@@ -25,6 +25,7 @@
     "@fontsource/rubik": "^5.2.8",
     "@react-email/components": "1.0.12",
     "@react-email/render": "2.0.8",
+    "@react-pdf/renderer": "4.5.1",
     "@supabase/supabase-js": "^2.107.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

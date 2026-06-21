@@ -1,6 +1,6 @@
 # brand.md — IqUp (North Macedonia) Brand Source-of-Truth
 
-> Working brand reference for the IqUp marketing-campaign website (bilingual: Macedonian default / English). Factual claims are anchored to iqup.mk, iqupglobal.com, the official IqUp Macedonia Facebook page, and the confirmed partner Svetot na Bibi (svetotnabibi.mk). **All VISUAL identity items are DRAFT, pending confirmation against official brand files.**
+> Working brand reference for the IqUp marketing-campaign website (bilingual: Macedonian default / English). Factual claims are anchored to iqup.mk, iqupglobal.com, the official IqUp Macedonia Facebook page, and the confirmed partner Svetot na Bibi (svetotnabibi.mk). **Visual identity (§6) is CONFIRMED** from the official IqUp brand files via the v1.2 assessment spec (Phase 3.01): the official palette, Montserrat, the puzzle-brain motif, and the design-token scales.
 
 ## TL;DR
 - IqUp ("IQ UP!") is the first Macedonian educational franchise for children — an after-school STEAM-plus-coding-plus-literature program built on a neuroscience-informed, story-driven methodology, operating **10 centers across North Macedonia** and targeting parents of children aged **3–13**.
@@ -99,15 +99,32 @@ Several centers run their own Facebook pages (e.g., IQ UP – Veles, IQ UP – S
 
 **Language use.** Macedonian (Cyrillic) is the default and primary language for the local parent audience on iqup.mk and the Macedonia Facebook page; English is the global brand language (iqupglobal.com, LinkedIn). The two domains are linked via flag toggles. **Important:** some iqup.mk pages contain leftover English template/placeholder text from the "childit" WordPress theme (e.g., "Vision & Mission," generic teacher bios "Ashley/Jamey," "Parent Handbook," ASHA/APTA references) — these are NOT real IqUp copy and should be ignored/not reused.
 
-### 6. Visual identity — DRAFT (must be confirmed with official brand files)
-**This entire section is a starting draft. Exact hex codes and font names could not be programmatically extracted from the sites (SVG served as binary; CSS/font `<head>` links stripped by the fetch tooling) and require confirmation via official brand assets or a manual browser/DevTools pass.**
+### 6. Visual identity — CONFIRMED (official, from the IQ UP! v1.2 spec)
+**Confirmed in Phase 3.01 from the official IqUp brand files via the assessment spec (`IQ UP Specifikacija v1.2`, Дел 18 + Прилог G).** The palette, font, and scales below are the authoritative brand constants and are wired into code (`src/app/globals.css`, `next/font`). The earlier DRAFT notes (unextractable hexes, "childit" theme guesses) are superseded. The logo file/structure is still as published; logo colours align with the palette below.
 
-- **Logo.** Wordmark **"IQ UP!"** — the exclamation mark is an integral part of the mark (used consistently as "IQ Up!" / "IQ UP!" in copy). Master SVG in use at: `https://www.iqup.mk/wp-content/uploads/2022/05/logo-iq-up-logo-glavno.svg` (same file on iqupglobal.com). A white version is used on dark footers. Favicon: `https://www.iqup.mk/wp-content/uploads/2022/03/cropped-iq-up-favi-270x270.png`. *(Exact logo colors/structure NOT yet confirmed — open the SVG in a text editor to read `fill` values.)*
-- **Colors (DRAFT — unconfirmed).** Exact brand hex codes were not extractable. The site visual impression is bright, cheerful and multi-color (typical of the "childit" kindergarten theme), using playful primary/secondary colors with a flat, colorful icon set per subject. **Action: extract real values via DevTools color picker on the header, primary buttons ("Дознај повеќе" / "Стани франшизер") and headings, and from the Elementor/theme CSS (`…/uploads/elementor/css/` and `…/themes/childit/style.css`).** For the related Bibi web property, the site declares a teal theme color (`rgb(37,162,171)` ≈ `#25A2AB`) — relevant only as a Bibi-universe reference, **not** confirmed as IqUp's palette.
-- **Typography (DRAFT — unconfirmed).** Font families were not extractable from the page head. The site is built on WordPress with the **"childit" theme (by SmartDataSoft) + Elementor + Slider Revolution 6.6.20**, which typically loads rounded, friendly Google Fonts. **Action: confirm exact fonts via View Source (search `fonts.googleapis.com`) or DevTools computed `font-family` on headings vs. body.**
+- **Logo.** Wordmark **"IQ UP!"** — the exclamation mark is an integral part of the mark (used consistently as "IQ Up!" / "IQ UP!" in copy). Master SVG in use at: `https://www.iqup.mk/wp-content/uploads/2022/05/logo-iq-up-logo-glavno.svg` (same file on iqupglobal.com). A white version is used on dark footers. Favicon: `https://www.iqup.mk/wp-content/uploads/2022/03/cropped-iq-up-favi-270x270.png`. The official **vector logo** is delivered by IqUp; the palette below is the logo palette.
+- **Palette (official, from the logo).** Eight hues, each with a role:
+
+  | Colour | Hex | Role |
+  |---|---|---|
+  | Magenta | `#EC008C` | accent · **Logical thinking** index |
+  | Violet | `#762D90` | **primary action** |
+  | Blue | `#00B6F1` | **Spatial thinking** index |
+  | Light blue | `#6FD0F6` | secondary blue |
+  | Teal | `#00B9AD` | **Memory & focus** index |
+  | Orange | `#F7941D` | **Planning & speed** index |
+  | Yellow | `#FFC20E` | **Learning & STEM** index |
+  | Grey | `#999999` | neutral |
+
+  The five parent-facing assessment indices are colour-coded by brand hue (Logical = magenta, Spatial = blue, Memory & focus = teal, Planning & speed = orange, Learning & STEM = yellow; primary action = violet). *(The old teal `#25A2AB` "Bibi web property" reference is **not** the IqUp palette — disregard it.)*
+- **Typography — Montserrat** (Cyrillic + Latin, free). **ExtraBold 800** headings (28–34px), **Bold 700** subheads (18–22px), **SemiBold 600** labels/buttons (14–16px), **Regular/Medium 400/500** body (15–16px). Loaded via `next/font` (Phase 3.01). *(Supersedes the v1 Rubik/Nunito Sans, which are removed component-by-component as v2 screens are rebuilt.)*
+- **Signature motif — the puzzle-brain** (from the logo). The assessment assembles a profile piece by piece: progress = the brain filling in; the result **pentagon** = the assembled, colour-coded brain. The 5 indices are the brain's coloured pieces.
+- **Design tokens (Прилог G).** Spacing scale 4/8/12/16/24/32px; radius 12–18px on cards, 30px on badges; **≥44px tap targets** for children. Wired in `src/app/globals.css` (Phase 3.01).
 - **Imagery style.** Bright photography of children doing hands-on experiments in colorful "lab" classrooms; cheerful illustrated cloud/sky motifs; the Bibi/Bobi/Oliver cartoon characters used as program mascots and in program thumbnails. Iconography: flat, colorful subject icons (engineering, programming, book/literature, intellectual development, brain skills, socio-emotional development, teamwork, etc.).
 - **Use of Bibi characters visually.** Characters appear in program cards and hero imagery and are central to the child-facing visual language. They are the strongest, most distinctive visual asset and should feature prominently in the campaign site (licensing is in-group via the Svetot na Bibi group — confirm the official asset pack/licensing scope with Cowork/IqUp).
-- **Overall design feel.** Friendly, optimistic, "edutainment," trustworthy-yet-fun; balances parent credibility with child delight.
+- **Overall design feel.** Friendly, optimistic, "edutainment," trustworthy-yet-fun; balances parent credibility with child delight. For the **assessment** specifically (spec Дел 18): bright, playful and child-appropriate, but crafted to feel **expert, not AI-generated** — signature puzzle-brain motif, strong typographic hierarchy, bespoke SVG visuals, light backgrounds + gradient accents, real photos of IqUp children on landing/report. Avoid generic identical cards, shadows-on-everything, emoji-decor, template blandness.
+- **Bibi inside the product — certificate only.** The licensed Bibi characters appear on the **shareable certificate** (the awareness keepsake) but **never inside the assessment** — the test stays a thin, character-free "explorer adventure" skin so the cognitive measurement keeps its validity (spec 18.3). (Existing licensed art only — never generated or redrawn.)
+- **Accessibility (WCAG 2.2 AA — spec 18.5).** Keyboard + visible focus; contrast ≥ 4.5:1; never colour-only meaning; large (≥44px) tap targets; `prefers-reduced-motion`; no anxious timers (except the one speed game).
 
 ### 7. Positioning & messaging
 **Core value propositions:**
@@ -145,7 +162,7 @@ North Macedonia has a small but active children's STEM/robotics market. Notable 
 6. **Use credibility stacking:** certified teachers + neuroscience method + the award-winning Bibi universe + multi-city/international footprint. Treat the "85% demo-to-enrollment," €6,000 franchise fee and €25,000 master-franchise figures as marketing/third-party claims; do not present as independently verified consumer facts.
 
 ## Caveats
-- **Visual identity (colors, fonts, exact logo construction) is unconfirmed** and must be validated against official brand files; §6 is a draft. The fetch tooling could not read the SVG fills or CSS/font declarations.
+- **Visual identity (§6) is now CONFIRMED** from the official IqUp brand files via the `IQ UP Specifikacija v1.2` spec (Дел 18 + Прилог G): the official palette (`#EC008C` magenta … `#999999` grey), **Montserrat**, the puzzle-brain motif, and the spacing/radius/tap scales — wired into code in Phase 3.01. The exact logo *construction* (internal SVG fills) is still best read from the delivered vector file, but the brand palette and font are settled.
 - **Age range and program counts have minor on-site inconsistencies** (3–13 vs 5–13; per-age stat variations). 3–13 is treated as current.
 - **Location contact details vary across sources** (locations page vs. center Facebook pages vs. press); verify each before launch.
 - **Some figures are third-party or marketing claims** (franchise fees €6,000 / master €25,000, "85% enroll after demo," international expansion list, projected revenues) and are labeled as such; they should not be presented as independently verified.

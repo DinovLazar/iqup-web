@@ -491,3 +491,32 @@ path (deny-by-default still holds with them set — that is the headline guarant
 
 **i18n:** new `Consent` + `Privacy` namespaces (+ `Gate.consent.privacy*` and
 `Landing.footer.{privacy,cookieSettings,legalNavLabel}` keys), parity-clean in both locales.
+
+---
+
+## 2026-06-21 — Phase 3.01 repo onto v2 footing (Code)
+
+> First phase of **Part 3 (the v2 rebuild)**. Foundation only — docs + brand tokens + the PDF library + the engine/report folder skeleton. **No feature logic.** Additive and non-breaking: the v1 UI, tokens, and tests are untouched and still green (typecheck/lint clean, **292 vitest** unchanged, `next build` green).
+
+**Package added (exact resolved version, pinned without a caret):**
+
+| Package | Version | Scope |
+|---|---|---|
+| @react-pdf/renderer | 4.5.1 | dependency (server-side PDF report — spec Дел 10) |
+
+Installed with `npm install @react-pdf/renderer --save-exact`. **Smoke-tested** against the live **React 19.2.4** stack (a throwaway `scripts/_pdf-smoke.mjs` rendered a one-page PDF → valid `%PDF` buffer; deleted after). Decision #125. **No charting library added** — the 5-index pentagon is a **custom SVG** (decision #124). `npm audit fix` (non-breaking) cleared a transitive `hono` **high** advisory react-pdf introduced (in serve-static/Lambda/CORS paths we never invoke); the remaining **2 production advisories** (`postcss`/`next`, pre-existing) are only fixable by a breaking Next downgrade — not applied (decision #129).
+
+**Fonts — Montserrat added via `next/font/google`** (decision #126): variable font, subsets `['latin','cyrillic']`, `display:'swap'`, `preload:false`, exposed as `--font-montserrat`. Covers ExtraBold 800 / Bold 700 / SemiBold 600 / Regular-Medium 400–500 (spec Прилог G). The v1 **Rubik + Nunito Sans remain** the live UI fonts and are migrated onto Montserrat component-by-component in later v2 phases.
+
+**Design tokens (`src/app/globals.css`) — additive v2 brand primitives** (the official IqUp palette + scales, spec §18 / Прилог G), placed in a clearly-marked block; **every v1 token left intact**:
+- **Palette** (`:root` raw vars + `@theme inline` `--color-*` utilities): `--iq-magenta #EC008C`, `--iq-violet #762D90`, `--iq-blue #00B6F1`, `--iq-blue-2 #6FD0F6`, `--iq-teal #00B9AD`, `--iq-orange #F7941D`, `--iq-yellow #FFC20E`, `--iq-grey #999999`; plus the 5 index aliases (`--index-logical/spatial/memory/planning/learning`).
+- **Type:** `--font-brand` → Montserrat.
+- **Radius** (`@theme inline`): `--radius-card` 14px, `--radius-card-lg` 18px, `--radius-badge` 30px (→ `rounded-card`/`rounded-card-lg`/`rounded-badge`). **Spacing** 4/8/12/16/24/32 (`--space-1..8`; Tailwind v4's default scale already yields these). **Tap target** `--tap-min`/`--spacing-tap` = 44px (→ `min-h-tap`, `p-tap`, …).
+- **Not built here:** the higher-level semantic / "two-mood" token system (comes out of Design phase 3.02). Primitives only.
+- *(Build gotcha fixed in-phase: a comment containing the literal `*/` token (`--strength-*/--chart-*`) prematurely closed the CSS comment and broke the Turbopack build; reworded.)*
+
+**New folders scaffolded** (READMEs only — implementation in later phases): `src/lib/engine/`, `src/lib/validity/`, `src/lib/report/`, `src/lib/pdf/`, `src/content/tasks/`, `src/content/norms/`, `src/content/report/`. (`src/lib/scoring/` already existed — left untouched.)
+
+**Net-new env var documented for v2 (not yet wired):** `META_CAPI_ACCESS_TOKEN` (server-only secret) — for the server-side Meta Conversions API (spec Дел 13). To be added to `.env.local.example` + Vercel when CAPI is implemented. Also note `NEXT_PUBLIC_META_PIXEL_ID` becomes server-scoped once the Pixel moves to CAPI.
+
+**No app route changed** (route table identical in `next build`). **No new app dependency beyond `@react-pdf/renderer`.**

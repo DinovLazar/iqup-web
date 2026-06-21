@@ -6,9 +6,13 @@ Canonical rules for any coding agent working in this repository (Claude Code or 
 
 ## What this project is
 
-IqUp-Web is a **marketing-campaign website** for IqUp, an in-person after-school STEM program for children 3–9 in North Macedonia. The centerpiece is a free, age-banded children's "brain games" test (3–13), framed with an IQ-test hook but delivering **strengths-based results, never a clinical score**. Its job: **collect parent leads + build brand awareness**. It's built for a client — hold a professional, client-ready bar.
+IqUp-Web is a **free web application (lead magnet)** for IqUp, an in-person after-school STEM program in North Macedonia. The centerpiece is an **adaptive cognitive + STEM assessment for children aged 5–13** that produces a **professional, plain-language cognitive profile** — built on recognised paradigms (WISC-V, Raven's, KABC, computational thinking) with original tasks. Its job: **collect parent leads + build brand awareness**, and position IqUp as serious education for developing the intellect. It's built for a client — hold a professional, client-ready bar.
 
-Full spec: `plan.md`. Phase index: `phase-plan.md`.
+**Core mechanics:** the engine measures **8 internal signals → 5 parent-facing indices** (Logical · Spatial · Memory & focus · Planning & speed · Learning & STEM) via an **adaptive, basal/ceiling engine** that is **fully deterministic — no AI at runtime**. **Two deliverables:** a professional **PDF report** (emailed, not stored) and a **shareable Bibi certificate**.
+
+**Hard positioning rule (non-negotiable):** never a score, percentage, percentile, or IQ number — results are **bands + a pentagon + confidence labels** only. We say "cognitive profile / indicative range", never "clinical IQ" or a diagnosis.
+
+> **v2.** This is the v2 product (the adaptive assessment). It supersedes the v1 strengths-based "brain games" test; parts of the v1 build are being rebuilt — see `src/_project-state/Part-3-Phase-00-Completion.md`. Full spec: `plan.md` (English) + the canonical `IQ UP Specifikacija v1.2` (MK). Phase index: `phase-plan.md`.
 
 ## How this project is built
 
@@ -19,7 +23,7 @@ Other roles referenced in this repo: **Chat** (orchestrator/planner), **Design**
 ## Read before you build
 
 1. `project-instructions.md` — how the project runs.
-2. `plan.md` — the full spec (the "why" and the target).
+2. `plan.md` — the full v2 spec (the "why" and the target; the canonical source is `IQ UP Specifikacija v1.2`).
 3. `phase-plan.md` — where this phase sits and what it depends on.
 4. `brand.md` — brand source of truth: colors, type, voice, Bibi usage. *(Exists from phase 1.01 onward.)*
 5. `Decisions.md` — decisions already made; don't contradict them.
@@ -38,10 +42,11 @@ If a doc and the live code disagree, the live code wins — note the mismatch in
 
 ## Product & content guardrails (non-negotiable)
 
-- **Honest framing.** The marketing headline may use the "IQ test" hook, but the experience and results are **strengths-based — never output a clinical IQ number, a total score, a percentile, or pass/fail.** Weaker areas are framed as "growing," never as failing or below average.
-- **Bibi characters: existing licensed images only.** Never generate, redraw, or AI-create the "Svetot na Bibi" characters. Use only the official files in `public/bibi/` (gathered by Cowork). If an asset you need isn't there, flag it — never invent one.
-- **Test questions: original only.** Items may be inspired by general task *types* (patterns, matrices, odd-one-out, sequences, memory) but must be written original. Never copy items from any proprietary or copyrighted test.
-- **Children's data + GDPR.** Collect only what the funnel needs: parent email, child's first name, child's age, locale, strengths summary, consent, timestamp. **No surnames, birth dates, addresses, or any extra PII.** Supabase is EU-region. Consent is required before capture. Final legal sign-off on privacy/consent wording is IqUp's — not ours.
+- **Honest framing (positioning rule).** Results are an **indicative cognitive profile — never a score, percentage, percentile, IQ number, rank, or diagnosis.** The hybrid presentation is **pentagon + per-index band + word label (Developing/Solid/Strong/Exceptional) + confidence label**, no hard number. Growth areas are "room to grow", never "weakness/problem/behind". The "informative, not diagnostic" line must appear in the 7 required places (spec Дел 16). This is a credibility *and* legal rule — breaking it is unacceptable.
+- **No AI at runtime.** The adaptive engine, scoring, and report assembly are **deterministic** — same answers → same path and result. Personalisation comes from rich signals × a large module library × assembly logic, **not** generation. No AI-written copy for children.
+- **Bibi characters: existing licensed images only, and only on the certificate.** Never generate, redraw, or AI-create the "Svetot na Bibi" characters; use only the official files in `public/bibi/`. **Bibi appears on the shareable certificate only — never inside the assessment** (validity). If an asset isn't there, flag it — never invent one.
+- **Test tasks: original only, within recognised paradigms.** Tasks are procedurally generated and original, inspired by general task *types* (matrices, mental rotation, Corsi span, Tower of London, paired-associate, Bebras-style CT). **Never copy items** from WISC / Raven's / KABC or any proprietary test.
+- **Children's data + GDPR (two unlinkable stores).** **Store A — anonymous scores** (age, gender, city, language, 8 signals + 5 indices, **date only**): no name/email/phone, in Supabase (EU). **Store B — leads** (parent first name, email, phone, city, gender, consents) in Brevo. The two **must never be joinable** (no shared key; store A has only a date). **No child name, no surname.** The **PDF is not stored.** Separate, none-pre-ticked consents are required before capture. Final legal sign-off on privacy/consent wording is IqUp's — not ours.
 
 ## Quality bar
 
@@ -53,27 +58,35 @@ If a doc and the live code disagree, the live code wins — note the mismatch in
 
 ## Stack (locked)
 
-Next.js (App Router) · TypeScript · Tailwind CSS · shadcn/ui (Radix) · Framer Motion · Lucide · next-intl (MK default at `/`, EN at `/en/`) · content as structured files in-repo (no CMS) · Supabase (EU) for leads · GA4 + Microsoft Clarity + Meta Pixel (Part 2) · Vercel (Pro before launch) · iubenda/Termly for privacy + cookie consent. Email/CRM/booking decided in Part 2; domain/DNS at launch. **No AI features at launch.** Pinned versions live in `00_stack-and-config.md`.
+Next.js (App Router) · TypeScript · Tailwind CSS v4 (**Montserrat + the official IqUp palette** — brand tokens in `globals.css`) · shadcn/ui (Radix) · Framer Motion · Lucide · next-intl (MK default at `/`, EN at `/en/`; SR/HR in phase 2) · content as structured files in-repo (no CMS) · **Supabase (EU) for anonymous scores** · **Brevo (EU) for leads + the transactional PDF email + campaigns** · **`@react-pdf/renderer`** for the server-side PDF report · **a custom SVG pentagon (no charting library)** · **Meta CAPI (server-side)** + GA4 + Microsoft Clarity, consent-gated · Vercel (Pro before launch). Domain/DNS at launch (subdomain of iqup.mk). **The assessment compute, scoring, and report assembly are client/server-side deterministic — no AI at runtime.** Pinned versions live in `00_stack-and-config.md`.
 
 ## Project structure
 
 ```
 src/app/[locale]/        routes: page (landing), test/, result/, about/, privacy/, layout
 src/components/          UI components
-src/content/test/        question banks per band (MK/EN)
-src/content/results/     strengths-profile templates (MK/EN)
-src/lib/supabase/        Supabase client + lead insert
-src/lib/scoring/         rule-based scoring + strengths mapping
-src/messages/            next-intl strings: mk.json, en.json
-public/bibi/             licensed Bibi image assets (from IqUp)
+src/content/tasks/       the task bank (procedural generators + items)
+src/content/norms/       age norms + scoring weights (seed)
+src/content/report/      report module library (copy: strengths/growth/style/STEM modules)
+src/lib/engine/          adaptive basal/ceiling engine (deterministic, no AI)
+src/lib/scoring/         raw→index scoring + the 5 composite indices
+src/lib/validity/        validity flags, timing, derived attention signal, confidence labels
+src/lib/report/          deterministic report assembly (no AI)
+src/lib/pdf/             server-side PDF report (@react-pdf/renderer)
+src/lib/supabase/        anonymous-scores client (no PII)
+src/lib/email/           Brevo transport (transactional PDF email + campaigns)
+src/messages/            next-intl strings: mk.json, en.json (+ sr/hr phase 2)
+public/bibi/             licensed Bibi image assets (certificate only)
 public/og/               Open Graph share images
 docs/design-handovers/   Design handover files
 src/_project-state/      current-state.md, file-map.md, 00_stack-and-config.md, completion reports
 ```
+*(Some v1 folders — `src/content/test/`, `src/content/results/` — still exist and are rebuilt/retired as v2 phases land; see `Part-3-Phase-00-Completion.md`.)*
 
 ### Conventions
-- **i18n:** every user-facing string lives in `src/messages/` (UI) or `src/content/` (questions, results), in both `mk` and `en`. Never hard-code user-facing text. MK is the default locale; EN is served at `/en/`. Every page emits hreflang.
-- **Scoring:** rule-based only, in `src/lib/scoring/`. Each question maps to one or more strength areas; correct answers add to those strengths; compute top strengths at the end. No total or IQ value anywhere.
+- **i18n:** every user-facing string lives in `src/messages/` (UI) or `src/content/` (tasks, report modules), in both `mk` and `en` (SR/HR phase 2). Never hard-code user-facing text. MK is the default locale; EN is served at `/en/`. Every page emits hreflang. Visual tasks are language-neutral (only instructions/UI localise).
+- **Engine & scoring:** **deterministic, no AI**, in `src/lib/engine/` + `src/lib/scoring/`. The adaptive engine selects items by basal/ceiling; scoring normalises raw → a 0–100 index per exact age and composes the 5 indices. Same answers → same path and result, always. **No total, no IQ number, no rank anywhere** — output is bands + pentagon + confidence labels.
+- **Report:** assembled deterministically in `src/lib/report/` from `src/content/report/` modules — no AI generation. To the parent: plain language, no jargon; growth areas never framed as deficits.
 - **Components:** prefer shadcn/ui primitives for anything interactive (forms, dialog, progress, radio) so accessibility comes for free.
 
 ## Commands
@@ -94,11 +107,12 @@ Run the build, lint, and type-check before marking any phase done.
 
 ## What NOT to do
 
-- Don't generate or redraw Bibi characters; don't copy proprietary test items.
-- Don't output an IQ number, score, percentile, or pass/fail.
-- Don't collect PII beyond the minimal fields listed above.
-- Don't commit `.env*` or any secret.
-- Don't add dark mode or heavy/janky animations (they hurt the trust feel and Lighthouse).
+- Don't generate or redraw Bibi characters; don't copy proprietary test items; don't put Bibi inside the assessment (certificate only).
+- Don't output an IQ number, score, percentage, percentile, or rank — and don't call it a diagnosis or "clinical IQ".
+- Don't introduce AI at runtime — the engine, scoring, and report must stay deterministic.
+- Don't make the two data stores joinable (no shared key); don't store the PDF; don't collect a child name/surname or any PII beyond the listed fields.
+- Don't commit `.env*` or any secret; keep API keys (Brevo/Meta) server-side only.
+- Don't add dark mode or heavy/janky animations (they hurt the trust feel and Lighthouse); no anxious timers except the one speed game.
 - Don't build screens that have a Design handover without reading the handover first.
 - Don't open or work on more than one phase at a time.
 - Don't do manual account/DNS setup that belongs to Cowork or the human — flag it instead.

@@ -69,6 +69,48 @@
   --toy-red: #e5484d;     --toy-blue: #1e88c7;   --toy-yellow: #f5b50a;
   --toy-green: #1e9e5a;   --toy-purple: #7a5af0; --toy-orange: #ef7d28;
   --toy-pink: #e05a8a;    --toy-teal: #109b8e;   --toy-neutral: #6b6680;
+
+  /* =======================================================================
+     v2 BRAND PRIMITIVES — Phase 3.01 (the repo onto v2 footing).
+     The OFFICIAL IqUp palette + scales, taken verbatim from brand.md §6 /
+     the v1.2 spec (Прилог G — Design tokens). These are the confirmed brand
+     constants only; the higher-level semantic / "two-mood" token system comes
+     out of the Design phase (3.02), not here.
+
+     ADDITIVE & NON-BREAKING: every v1 token above (--primary yellow, the
+     --strength- and --chart- sets, Rubik/Nunito) is intentionally left in place —
+     the v1 UI still references it and is rebuilt component-by-component in later
+     v2 phases. Nothing here changes how an existing screen renders.
+     ======================================================================= */
+  /* the 8 official hues, named by role */
+  --iq-magenta: #ec008c;   /* accent · Logical */
+  --iq-violet:  #762d90;   /* primary action */
+  --iq-blue:    #00b6f1;   /* Spatial */
+  --iq-blue-2:  #6fd0f6;   /* secondary blue */
+  --iq-teal:    #00b9ad;   /* Memory & focus */
+  --iq-orange:  #f7941d;   /* Planning & speed */
+  --iq-yellow:  #ffc20e;   /* Learning & STEM */
+  --iq-grey:    #999999;   /* neutral */
+
+  /* the 5 parent-facing indices → brand hue (spec §10.2 / Прилог G) */
+  --index-logical:  var(--iq-magenta);
+  --index-spatial:  var(--iq-blue);
+  --index-memory:   var(--iq-teal);
+  --index-planning: var(--iq-orange);
+  --index-learning: var(--iq-yellow);
+
+  /* spacing scale 4/8/12/16/24/32 (spec Прилог G). Tailwind v4's default
+     spacing base (0.25rem step) already yields these as space-1/2/3/4/6/8;
+     mirrored here as named tokens so non-utility CSS can reference the scale. */
+  --space-1: 0.25rem;  /* 4  */  --space-2: 0.5rem;   /* 8  */
+  --space-3: 0.75rem;  /* 12 */  --space-4: 1rem;     /* 16 */
+  --space-6: 1.5rem;   /* 24 */  --space-8: 2rem;     /* 32 */
+
+  /* (radius card/badge tokens are defined in @theme inline below, so the
+     rounded-card / rounded-badge utilities resolve — see spec Прилог G) */
+
+  /* minimum tap target for children — ≥44px (spec Прилог G / §18.5) */
+  --tap-min: 2.75rem;         /* 44px */
 }
 
 @theme inline {
@@ -134,6 +176,32 @@
   --font-sans: var(--font-nunito-sans), system-ui, sans-serif;
   --font-display: var(--font-rubik), system-ui, sans-serif;
   --font-heading: var(--font-rubik), system-ui, sans-serif;
+
+  /* v2 brand font (Phase 3.01) — `font-brand` utility → Montserrat. Available
+     for v2 components; the v1 UI keeps --font-sans/display until rebuilt. */
+  --font-brand: var(--font-montserrat), system-ui, sans-serif;
+
+  /* v2 brand palette exposed as utilities (bg-iq-magenta, text-index-logical, …) */
+  --color-iq-magenta: var(--iq-magenta);
+  --color-iq-violet: var(--iq-violet);
+  --color-iq-blue: var(--iq-blue);
+  --color-iq-blue-2: var(--iq-blue-2);
+  --color-iq-teal: var(--iq-teal);
+  --color-iq-orange: var(--iq-orange);
+  --color-iq-yellow: var(--iq-yellow);
+  --color-iq-grey: var(--iq-grey);
+  --color-index-logical: var(--index-logical);
+  --color-index-spatial: var(--index-spatial);
+  --color-index-memory: var(--index-memory);
+  --color-index-planning: var(--index-planning);
+  --color-index-learning: var(--index-learning);
+
+  /* v2 radius (rounded-card / rounded-card-lg / rounded-badge — spec Прилог G:
+     cards 12–18px, badges 30px) + tap-target spacing token (min-h-tap, p-tap, …) */
+  --radius-card: 0.875rem;    /* 14px (within 12–18) */
+  --radius-card-lg: 1.125rem; /* 18px */
+  --radius-badge: 1.875rem;   /* 30px */
+  --spacing-tap: var(--tap-min);
 
   /* motion (handover A.7) */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
