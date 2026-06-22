@@ -293,6 +293,44 @@
 | `src/content/norms/README.md` | Age norms + scoring weights (seed) — spec Дел 6 / Прилог B. |
 | `src/content/report/README.md` | Report module library (copy: strengths/growth/style/STEM modules) — spec Дел 9.2 / Прилог C. |
 
+## v2 engine + scoring + validity (phase 3.03)
+
+> The deterministic, no-AI logic layer — pure code, no UI/content/persistence. v1 scoring (rows above) is untouched; v2 imports nothing from it.
+
+| Path | Description |
+|---|---|
+| `src/lib/engine/prng.ts` | Seedable PRNG: mulberry32 + xmur3 string hash + `deriveSeed` (per-domain streams) + `nextInt`/`pick`/`shuffle`. The utility 3.04 reuses. |
+| `src/lib/engine/prng.test.ts` | Vitest: PRNG determinism, seed independence, helper bounds. |
+| `src/lib/engine/types.ts` | INPUT seam: `Item`/`ItemProvider`/`Response`/`ItemScoringMeta` + `Domain`/`AgeCluster`/`ItemFormat`/levels (spec Дел 3/5). |
+| `src/lib/engine/engine.ts` | Adaptive basal/ceiling motor: start level by age, ±level, discontinue/cap, format selection; `createDomainController` (step API) + `runDomain`/`runSession`; emits `SessionRun`. |
+| `src/lib/engine/engine.test.ts` | Vitest: start levels, stepping, ceiling/cap, format, extended battery, controller, determinism (byte-identical path; seed changes path; domain independence). |
+| `src/lib/engine/fixtures.ts` | Deterministic stub `ItemProvider` + responders (`alwaysCorrect`/`alwaysWrong`/`correctUpToLevel`/`scripted`) for engine/scoring tests; reused by 3.04. |
+| `src/lib/engine/index.ts` | Engine public surface (types + PRNG + engine API). |
+| `src/lib/engine/README.md` | Both seams (input/output) documented for 3.04 / 3.07 / 3.09 (updated 3.03). |
+| `src/lib/scoring/v2/types.ts` | OUTPUT seam: `Signal`/`IndexId`/`Band`/`Confidence`/`DerivedFeatures`/`CognitiveProfile` (consumed by 3.05/3.06/3.07/3.09). |
+| `src/lib/scoring/v2/weights.ts` | The 5 composite-index weights (spec 6.3) — the single named home. |
+| `src/lib/scoring/v2/normalize.ts` | Прилог B.2 raw→index formulas (accuracy/span/speed) + `clampIndex` [8,99]. |
+| `src/lib/scoring/v2/raw.ts` | Per-domain raw scores from a `DomainRun` (weighted accuracy, max span, Gs net/time, learning slope, mean RT) + the credit/calibration seam. |
+| `src/lib/scoring/v2/collect.ts` | Flatten a `SessionRun` into validity/attention input shapes. |
+| `src/lib/scoring/v2/signals.ts` | The 8 signals: raw → per-age index, incl. derived attention + calibration-relative timing. |
+| `src/lib/scoring/v2/bands.ts` | `bandFor(value)` — the spec 6.4 cutoffs as a stable enum (no display words). |
+| `src/lib/scoring/v2/confidence.ts` | Per-signal confidence (item count + consistency + validity) + weakest-link index confidence (spec 6.5; PROVISIONAL thresholds). |
+| `src/lib/scoring/v2/indices.ts` | `compositeValue` — weighted-sum index value from the signal indices. |
+| `src/lib/scoring/v2/features.ts` | Derived structural features (profile shape, pairs, solving style, memory asymmetry, learning slope, ceiling/floor) — spec 9.1. |
+| `src/lib/scoring/v2/profile.ts` | `buildProfile(SessionRun)` → `CognitiveProfile` (assembles signals→indices→bands→confidence→features→validity + versions). |
+| `src/lib/scoring/v2/index.ts` | v2 scoring public surface. |
+| `src/lib/scoring/v2/README.md` | Pipeline, the no-user-facing-numbers rule, per-age normalization, v1 separation. |
+| `src/lib/scoring/v2/{normalize,bands,composite,confidence,features,profile}.test.ts` | Vitest: B.2 math, band edges, the 5 composites, confidence reachability, features, golden sessions + invariants + no-numbers-leak + determinism. |
+| `src/lib/validity/types.ts` | Validity types: flag kinds/severity, `ValidityOutcome`/`ValiditySummary`, `AttentionDerivation`. |
+| `src/lib/validity/attention.ts` | Derived attention `raw = clamp(1 − normVariability − impulsiveRate, 0, 1)`, calibration-relative (spec 6.1). |
+| `src/lib/validity/flags.ts` | The 5 validity flags as pure detectors (too-fast/same-position/idle/chance-level/speed-gaming) — spec 7.1. |
+| `src/lib/validity/policy.ts` | Graduated-outcome policy (mild→gentle_note, strong→not_representative) + `evaluateValidity`. |
+| `src/lib/validity/index.ts` | Validity public surface. |
+| `src/lib/validity/{attention,flags,policy}.test.ts` | Vitest: attention edge inputs, each flag fires/silent, the graduated policy. |
+| `src/lib/validity/README.md` | Validity layer overview (updated 3.03). |
+| `src/content/norms/index.ts` | Seed norms (PROVISIONAL): start levels, span (B.1), B.2 coefficients, band cutoffs, caps+ceiling, validity/confidence/feature thresholds, speed table + calibration ref; `NORMS_VERSION`. |
+| `src/content/norms/norms.test.ts` | Vitest: norm-table coverage, span/speed monotonicity, caps, extended battery. |
+
 ## Project-state docs
 
 | Path | Description |
