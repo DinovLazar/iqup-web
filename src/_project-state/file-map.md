@@ -289,7 +289,7 @@
 | `src/lib/validity/README.md` | Validity flags, timing, the derived attention signal, per-domain confidence — spec Дел 7–8. |
 | `src/lib/report/README.md` | Deterministic report-assembly engine (no AI) — spec Дел 9. |
 | `src/lib/pdf/README.md` | Server-side PDF report via `@react-pdf/renderer`; pentagon = custom SVG — spec Дел 10. |
-| `src/content/tasks/README.md` | The task bank (procedural generators + items, 8 domains) — spec Дел 4 / Прилог A. |
+| `src/content/tasks/README.md` | The item bank seam doc (3.04 generators → 3.05 renderer) — spec Дел 4 / Прилог A. _(See the `src/content/tasks/*` file rows below for the shipped generators.)_ |
 | `src/content/norms/README.md` | Age norms + scoring weights (seed) — spec Дел 6 / Прилог B. |
 | `src/content/report/README.md` | Report module library (copy: strengths/growth/style/STEM modules) — spec Дел 9.2 / Прилог C. |
 
@@ -330,6 +330,22 @@
 | `src/lib/validity/README.md` | Validity layer overview (updated 3.03). |
 | `src/content/norms/index.ts` | Seed norms (PROVISIONAL): start levels, span (B.1), B.2 coefficients, band cutoffs, caps+ceiling, validity/confidence/feature thresholds, speed table + calibration ref; `NORMS_VERSION`. |
 | `src/content/norms/norms.test.ts` | Vitest: norm-table coverage, span/speed monotonicity, caps, extended battery. |
+| `src/content/tasks/provider.ts` | `createTaskItemProvider()` → the engine's `ItemProvider` + `getPracticeItem(domain)`; the production item source (3.04). |
+| `src/content/tasks/types.ts` | `TaskSpec` discriminated union (the 3.05 rendering contract): per-task `payload` + `interaction` (input model as data) + separated `solution`. |
+| `src/content/tasks/glyphs.ts` | Language-neutral token catalogs (`Glyph`/`ColorToken`/`Direction`) + polyomino geometry (`rotate`/`mirrorH`/`randomAsymmetricShape`). |
+| `src/content/tasks/shared.ts` | Item id builder, equality helpers, the generic `correctAnswerFor`/`wrongAnswerFor` oracle (keyed off `interaction.mode`). |
+| `src/content/tasks/gf.ts` | Gf generator: 3×3 matrices + number/shape series (Прилог A.1). Reference template. |
+| `src/content/tasks/gv.ts` | Gv generator: mental rotation over polyomino shapes (A.2; 90/180/270°). |
+| `src/content/tasks/gsm.ts` | Gsm generator: Corsi span, forward/backward by `ItemFormat` (A.3); `meta.spanLength`. |
+| `src/content/tasks/gs.ts` | Gs generator: timed symbol search (A.4); `meta.cellCount`+`targetCount`, credit net of penalty. |
+| `src/content/tasks/ef.ts` | EF generator: Tower of London + exhaustive BFS solver (A.5); `meta.minMoves`. |
+| `src/content/tasks/glr.ts` | Glr generator: paired-associate, WeakMap-memoized multi-attempt learning block (A.6); `meta.attempt`. |
+| `src/content/tasks/ct.ts` | CT generator: 5 sub-types (sequence/debug/loop/conditional/maze) + shared grid simulator (A.8 + Дел 4). |
+| `src/content/tasks/index.ts` | Item-bank public surface (`@/content/tasks`): provider, types, generators, oracle. |
+| `src/content/tasks/{gf,gv,gsm,gs,ef,glr,ct}.test.ts` | Vitest per generator: determinism, format, answer correctness, difficulty sanity, scoring-meta, practice, no-forbidden-token. |
+| `src/content/tasks/provider.test.ts` | Vitest: provider contract over all domains, no-`Math.random` source scan, whole-bank no-forbidden-token. |
+| `src/content/tasks/integration.test.ts` | Vitest (headline): full session through engine + real provider + v2 scoring → byte-identical `SessionRun` + `CognitiveProfile`; variety; Gsm format by age; Glr slope. |
+| `src/content/tasks/README.md` | The 3.04→3.05 seam doc: provider, content-spec contract, determinism guarantee, PROVISIONAL parameters. |
 
 ## Project-state docs
 
