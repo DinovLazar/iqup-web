@@ -296,5 +296,107 @@
     "mailSubject": "Free trial class request — IqUp",
     "mailBody": "Hello, I'd like to book a free trial class. Please let me know which times are available. (You're welcome to share your child's age and a preferred time.) Thank you!",
     "reassure": "No commitment · cancel anytime"
+  },
+  "Assessment": {
+    "setup": {
+      "title": "Let's explore!",
+      "lead": "A short adventure of puzzles and games. There are no wrong answers — just do your best and have fun.",
+      "ageQuestion": "How old are you?",
+      "ageHint": "Pick your age so we can choose the right puzzles.",
+      "start": "Start the adventure",
+      "ariaAge": "Age {age}"
+    },
+    "assist": {
+      "forParent": "For the grown-up",
+      "title": "A quick note before you start",
+      "body": "Your child is 5–7, so you're welcome to help with the technical parts — but the thinking should be all theirs.",
+      "rules": [
+        "Read the instructions out loud if needed.",
+        "Hold or steady the device for them.",
+        "Let your child choose every answer themselves."
+      ],
+      "checkbox": "I understand — I'll help with technical things only and let my child choose the answers.",
+      "confirm": "We're ready"
+    },
+    "practice": {
+      "label": "Practice",
+      "title": "Let's try one together",
+      "intro": "This one doesn't count — it just shows how it works. Give it a try, then continue when you're ready.",
+      "ready": "I'm ready",
+      "calibrationTitle": "First, a quick warm-up",
+      "calibrationIntro": "Tap the big circle a few times at your normal speed. This helps the puzzles feel just right on your device.",
+      "tapHere": "Tap",
+      "calibrating": "Warming up…"
+    },
+    "brain": {
+      "title": "Your puzzle is coming together",
+      "doneWord": "ready",
+      "regions": {
+        "logical": "Logical thinking",
+        "spatial": "Spatial thinking",
+        "memory": "Memory & focus",
+        "planning": "Planning & speed",
+        "learning": "Learning & STEM"
+      }
+    },
+    "complete": {
+      "title": "All done — great exploring!",
+      "body": "You finished every part of the adventure and your puzzle is complete.",
+      "badgeName": "IQ UP! Explorer",
+      "badgeTagline": "You explored every kind of puzzle today.",
+      "continue": "Continue to your report",
+      "gentleNote": "Tip: for the clearest picture, the puzzles work best in a calm, unhurried moment."
+    },
+    "retry": {
+      "title": "Let's try that again",
+      "body": "This run looked a little rushed, so the results wouldn't be a fair picture. Take a breath and give it another go when you're ready — you'll get a fresh set of puzzles.",
+      "button": "Try again"
+    },
+    "task": {
+      "confirm": "Confirm",
+      "clear": "Start over",
+      "reveal": {
+        "watch": "Watch carefully…",
+        "showButton": "Show me",
+        "ready": "I'm ready",
+        "yourTurn": "Your turn!"
+      },
+      "timer": {
+        "label": "Time left",
+        "timeUp": "Time's up!"
+      },
+      "tower": {
+        "movesLabel": "Moves",
+        "goalLabel": "Goal"
+      }
+    },
+    "instructions": {
+      "gf": {
+        "matrix": "Which piece completes the pattern?",
+        "series": "Which one comes next in the row?"
+      },
+      "gv": {
+        "rotation": "Which shape is the same one, just turned around?"
+      },
+      "gsm": {
+        "corsi": "Watch the tiles light up, then tap them in the same order."
+      },
+      "gs": {
+        "symbolSearch": "Tap every matching shape — as fast as you can before time runs out!"
+      },
+      "ef": {
+        "towerOfLondon": "Move the balls so they match the goal."
+      },
+      "glr": {
+        "pairedAssociate": "Remember which shapes go together, then find each match."
+      },
+      "ct": {
+        "sequence": "Put the steps in order to get the robot to the flag.",
+        "debug": "One step is wrong. Tap the step that breaks the path.",
+        "loop": "Which loop does the same thing as the steps?",
+        "conditional": "Use the rules to work out what the robot does.",
+        "maze": "Order the steps to guide the robot through the maze to the flag."
+      }
+    }
   }
 }

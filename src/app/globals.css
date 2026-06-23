@@ -70,18 +70,15 @@
   --toy-green: #1e9e5a;   --toy-purple: #7a5af0; --toy-orange: #ef7d28;
   --toy-pink: #e05a8a;    --toy-teal: #109b8e;   --toy-neutral: #6b6680;
 
-  /* =======================================================================
-     v2 BRAND PRIMITIVES — Phase 3.01 (the repo onto v2 footing).
-     The OFFICIAL IqUp palette + scales, taken verbatim from brand.md §6 /
-     the v1.2 spec (Прилог G — Design tokens). These are the confirmed brand
-     constants only; the higher-level semantic / "two-mood" token system comes
-     out of the Design phase (3.02), not here.
-
-     ADDITIVE & NON-BREAKING: every v1 token above (--primary yellow, the
-     --strength- and --chart- sets, Rubik/Nunito) is intentionally left in place —
-     the v1 UI still references it and is rebuilt component-by-component in later
-     v2 phases. Nothing here changes how an existing screen renders.
-     ======================================================================= */
+  /* v2 BRAND PRIMITIVES — Phase 3.01 (the repo onto v2 footing).
+     The OFFICIAL IqUp palette + scales (brand.md section 6 / v1.2 spec Prilog G).
+     Additive & non-breaking: every v1 token above is left in place; the v1 UI
+     still references it and is rebuilt component-by-component in later v2 phases.
+     NOTE (Phase 3.05): the previous banner comment here used a long run of '='
+     characters which Turbopack's dev CSS parser truncated on, silently dropping
+     every :root token below it in dev (the v2 brand utilities resolved to nothing
+     in `next dev`, though the production build was fine). Kept concise so the
+     brand tokens emit in both dev and prod. */
   /* the 8 official hues, named by role */
   --iq-magenta: #ec008c;   /* accent · Logical */
   --iq-violet:  #762d90;   /* primary action */
