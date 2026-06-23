@@ -305,11 +305,11 @@
 |---|---|
 | `src/lib/engine/README.md` | Adaptive basal/ceiling engine (deterministic, no AI) — spec Дел 5. |
 | `src/lib/validity/README.md` | Validity flags, timing, the derived attention signal, per-domain confidence — spec Дел 7–8. |
-| `src/lib/report/README.md` | Deterministic report-assembly engine (no AI) — spec Дел 9. |
+| `src/lib/report/README.md` | Deterministic report-assembly engine (no AI) — spec Дел 9. _(Implemented 3.07 — see the `src/lib/report/*` rows below.)_ |
 | `src/lib/pdf/README.md` | Server-side PDF report via `@react-pdf/renderer`; pentagon = custom SVG — spec Дел 10. |
 | `src/content/tasks/README.md` | The item bank seam doc (3.04 generators → 3.05 renderer) — spec Дел 4 / Прилог A. _(See the `src/content/tasks/*` file rows below for the shipped generators.)_ |
 | `src/content/norms/README.md` | Age norms + scoring weights (seed) — spec Дел 6 / Прилог B. |
-| `src/content/report/README.md` | Report module library (copy: strengths/growth/style/STEM modules) — spec Дел 9.2 / Прилог C. |
+| `src/content/report/README.md` | Report module library (copy: strengths/growth/style/STEM modules) — spec Дел 9.2 / Прилог C. _(Implemented 3.07 — see the `src/content/report/*` rows below.)_ |
 
 ## v2 engine + scoring + validity (phase 3.03)
 
@@ -389,6 +389,28 @@
 | `src/messages/{mk,en}.json` | **Modified** — new `Form` namespace (exact MK/EN parity, MK provisional). |
 | `src/messages/messages.test.ts` | **Modified** — Form key parity + forbidden-token + no-child-name invariants. |
 
+## Report engine — deterministic report assembly (phase 3.07)
+
+| Path | Description |
+|---|---|
+| `src/lib/report/types.ts` | The **`ReportContent`** output contract (the seam 3.08 designs against / 3.09 + 3.10 render) + **`ReportContext`** (`{locale, city, gender?, generatedAt?}`); validity treatment, per-index/strength/growth/activity/overview/stem/iqup/extremes/disclaimer shapes. |
+| `src/lib/report/select.ts` | Pure presentational selection over `CognitiveProfile.features` (recomputes nothing): `growthVariant`, `learningBucket` (PROVISIONAL Glr-slope buckets), `stemBridgeVariant`, `indexPairVariant`, `pairVariantsToNarrate`, `activityIndices` + `selectActivities` (seed-rotated draw), `dayLevel` (ISO→`YYYY-MM-DD`, no `Date`). |
+| `src/lib/report/assemble.ts` | **`buildReport(profile, context)`** — features → fired modules → assembled `ReportContent`; band→word, confidence→word+note, age→program; validity + edge cases; fills `{program}`/`{index}`; booking URL left a `// SEAM`. Pure + deterministic. |
+| `src/lib/report/index.ts` | Report-engine public surface (`@/lib/report`): `buildReport`, the selection helpers, `programForAge`, `ReportContent` types. |
+| `src/lib/report/report.test.ts` | Vitest: byte-for-byte determinism, no-clock, forbidden-token over assembled prose (MK+EN), approved-words-only, no-placeholder-leak, all-strong/all-floor/ceiling/floor, validity, age→program coverage, personalization diversity. |
+| `src/lib/report/README.md` | **Rewritten** — the engine overview, the purity/determinism + no-recompute contract, the booking + generatedAt seams. |
+| `src/content/report/types.ts` | The module-library content types (`BandWords`, `ConfidenceCopy`, `IndexCopy`, `ActivityBank`, `StemCopy`, `ProgramCopy`, `IqupCopy`, `DisclaimerCopy`, validity notes, …). |
+| `src/content/report/bands.ts` | `BAND_WORDS` (band → display word) + `CONFIDENCE_WORDS` (word + plain-language note), bilingual — spec 6.4 / 6.5. |
+| `src/content/report/indices.ts` | `INDEX_COPY` (per-index name/strength/growth/activity) + `NEXT_FRONTIER_GROWTH` (all-strong) + `GENTLE_FLOOR_GROWTH` (all-floor). |
+| `src/content/report/narrative.ts` | Profile-shape · index-pair · solving-style · learning-slope · ceiling/floor extremes copy (the narrative modules). |
+| `src/content/report/stem.ts` | `STEM_COPY` — STEM-readiness intro + the coding/robotics **bridge** by variant (narrative only, never an index formula). |
+| `src/content/report/activities.ts` | `ACTIVITY_BANK` — the home-activity bank keyed by **(index, age-cluster)**, ≥2 per cell (the largest content block). |
+| `src/content/report/iqup.ts` | The 4 in-scope programs + `AGE_TO_PROGRAM` (PROVISIONAL partition, flagged for IqUp) + `programForAge` + `IQUP_COPY` (positioning/program-fit/CTA). |
+| `src/content/report/disclaimer.ts` | `DISCLAIMER_COPY` (indicative-not-diagnostic + provisional-norms honesty) + `VALIDITY_NOTES` (gentle / not-representative). PROVISIONAL — flagged for IqUp legal. |
+| `src/content/report/index.ts` | Module-library public surface (`@/content/report`). |
+| `src/content/report/report-content.test.ts` | Vitest: MK/EN parity + slot parity, non-vacuous forbidden-token scan (clinical-negation exception scoped to the disclaimer), index/band/confidence/activity coverage, age→program mapping. |
+| `src/content/report/README.md` | **Rewritten** — the module families + the MK+EN-scope correction + the honest-framing rule. |
+
 ## Project-state docs
 
 | Path | Description |
@@ -431,6 +453,6 @@
 | `public/bibi/.gitkeep` | Licensed Bibi image assets (gathered by Cowork) — still awaiting; `HeroArt` + the certificate placeholder stand in until then. |
 | `public/og/.gitkeep` | Static OG images (not needed — the OG image is generated dynamically per locale). |
 
-*(`src/lib/supabase/.gitkeep` was removed in phase 1.05, `src/content/test/.gitkeep` + `src/lib/scoring/.gitkeep` in phase 1.07, and `src/content/results/.gitkeep` in phase 1.10, now that those folders hold real files.)*
+*(`src/lib/supabase/.gitkeep` was removed in phase 1.05, `src/content/test/.gitkeep` + `src/lib/scoring/.gitkeep` in phase 1.07, and `src/content/results/.gitkeep` in phase 1.10, now that those folders hold real files. `src/lib/report/` + `src/content/report/` were filled in phase 3.07; only `src/lib/pdf/` (README-only) remains reserved.)*
 
 *(Phase 1.11 deleted the two non-canonical duplicate copies of the 1.04 content spec — `Part-1-Phase-04-Content-Spec.md` (repo root) and `docs/Part-1-Phase-04-Content-Spec.md`. The canonical `docs/content/Part-1-Phase-04-Content-Spec.md` is unchanged. No code referenced the deleted paths; the only live doc references already point at the canonical copy.)*
