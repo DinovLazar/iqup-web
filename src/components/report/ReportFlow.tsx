@@ -9,7 +9,7 @@ import {
   useSyncExternalStore,
   type FormEvent
 } from 'react';
-import {Loader2, Lock, Sparkles} from 'lucide-react';
+import {Loader2, Lock} from 'lucide-react';
 import type {Locale} from '@/content/locale';
 import {Link, useRouter} from '@/i18n/navigation';
 import {Button} from '@/components/ui/button';
@@ -18,14 +18,22 @@ import {Checkbox} from '@/components/ui/checkbox';
 import {Label} from '@/components/ui/label';
 import {CENTERS} from '@/content/centers';
 import {buildProfile} from '@/lib/scoring/v2';
+import {buildReport} from '@/lib/report';
+import {bookingUrlFor} from '@/lib/email/site-url';
 import {
   ASSESSMENT_RESULT_STORAGE_KEY,
   type AssessmentHandoff
 } from '@/components/assessment/session';
 import {buildAnonymousScore, type ScoreGender} from '@/lib/scores/anonymous-score';
 import {submitAssessment} from '@/lib/leads/submit-assessment';
-import {writeLeadContextV2} from '@/lib/leads/lead-context-v2';
+import {
+  LEAD_CONTEXT_V2_STORAGE_KEY,
+  isLeadContextV2,
+  writeLeadContextV2
+} from '@/lib/leads/lead-context-v2';
+import {ResultsScreen} from './ResultsScreen';
 import type {FormCopy} from './copy';
+import type {ResultsCopy} from './results-copy';
 
 /** No-op subscribe: the persisted run is read once after mount, never mutated. */
 const subscribe = () => () => {};
@@ -38,6 +46,20 @@ const subscribe = () => () => {};
 function readRawHandoff(): string {
   try {
     return window.sessionStorage.getItem(ASSESSMENT_RESULT_STORAGE_KEY) ?? '';
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * Stable raw snapshot of the persisted lead context (same SSR-safe idiom). Returning
+ * the raw STRING (not a parsed object) keeps `getSnapshot` referentially stable; the
+ * parse happens in a `useMemo`. Its presence after a refresh is how the results
+ * re-reveal without forcing a re-submit (Phase 3.09).
+ */
+function readRawLeadContext(): string {
+  try {
+    return window.sessionStorage.getItem(LEAD_CONTEXT_V2_STORAGE_KEY) ?? '';
   } catch {
     return '';
   }
@@ -69,7 +91,15 @@ type FieldErrors = {
  * interstitial. Results ALWAYS reveal — the form never traps the parent on a write
  * failure. No child name is collected anywhere; nothing PII touches the URL.
  */
-export function ReportFlow({locale, copy}: {locale: Locale; copy: FormCopy}) {
+export function ReportFlow({
+  locale,
+  copy,
+  results
+}: {
+  locale: Locale;
+  copy: FormCopy;
+  results: ResultsCopy;
+}) {
   const router = useRouter();
   const uid = useId();
 
@@ -92,7 +122,34 @@ export function ReportFlow({locale, copy}: {locale: Locale; copy: FormCopy}) {
     }
   }, [raw]);
 
-  const [step, setStep] = useState<'form' | 'done'>('form');
+  // — Persisted lead context (chosen centre + submit time). Present on a REFRESH
+  // after a completed submit, so the results re-reveal from the persisted run +
+  // this context without ever forcing the parent through the form again. Same
+  // SSR-safe idiom; the raw string is parsed in a memo. —
+  const leadRaw = useSyncExternalStore<string | null>(
+    subscribe,
+    readRawLeadContext,
+    () => null
+  );
+  const persistedLead = useMemo(() => {
+    if (!leadRaw) return null;
+    try {
+      const parsed: unknown = JSON.parse(leadRaw);
+      return isLeadContextV2(parsed) ? parsed : null;
+    } catch {
+      return null;
+    }
+  }, [leadRaw]);
+
+  // The just-submitted context — set synchronously on submit (before the store is
+  // re-read) so the very first reveal builds the report without a storage round-trip.
+  const [submittedCtx, setSubmittedCtx] = useState<{
+    city: string;
+    submittedAt: string;
+  } | null>(null);
+  // Either source means "form completed → reveal results". `submittedCtx` wins on
+  // the fresh path; `persistedLead` carries the refresh path.
+  const reportCtx = submittedCtx ?? persistedLead;
 
   const [parentName, setParentName] = useState('');
   const [email, setEmail] = useState('');
@@ -125,20 +182,30 @@ export function ReportFlow({locale, copy}: {locale: Locale; copy: FormCopy}) {
   if (!profile) return <div className="min-h-[60vh]" aria-hidden />;
   const safeProfile = profile;
 
-  if (step === 'done') {
-    // HANDOFF (3.09): the results reveal replaces this interstitial. It will read
-    // the persisted run (`iqup.assessmentRun.v1`) + `iqup.leadContext.v2` and
-    // recompute the profile CLIENT-SIDE — no server round-trip, no score in the URL.
+  // RESULTS (3.09 — replaces the former interstitial): once the form is completed
+  // (a fresh submit OR a refresh that finds the persisted `iqup.leadContext.v2`),
+  // reveal the real on-screen results. The profile is the client-recomputed source
+  // of truth (`iqup.assessmentRun.v1`); `buildReport` is pure + deterministic — the
+  // generation date comes from the persisted submit time, never the clock. No score
+  // ever touches the URL.
+  if (reportCtx) {
+    const report = buildReport(safeProfile, {
+      locale,
+      city: reportCtx.city,
+      generatedAt: reportCtx.submittedAt
+    });
+    // SEAM (3.10): the PDF report generation + email send is wired here in 3.10.
+    //   The "report emailed" strip is presentational for now — nothing is sent yet.
+    // SEAM (3.11): the shareable Bibi certificate (route + artwork) lands in 3.11 —
+    //   ResultsScreen renders only the entry affordance.
+    // SEAM (3.12): CAPI/GA4 results events are added in 3.12 — no tracking here.
     return (
-      <div className="mx-auto flex w-full max-w-md flex-col items-center gap-5 py-10 text-center">
-        <span className="inline-flex size-16 items-center justify-center rounded-full bg-secondary-tint">
-          <Sparkles className="size-8 text-secondary-ink" aria-hidden />
-        </span>
-        <h1 className="font-brand text-2xl font-extrabold text-balance text-ink">
-          {copy.interstitial.title}
-        </h1>
-        <p className="text-pretty text-ink-soft">{copy.interstitial.body}</p>
-      </div>
+      <ResultsScreen
+        report={report}
+        copy={results}
+        locale={locale}
+        bookingUrl={bookingUrlFor(locale, reportCtx.city)}
+      />
     );
   }
 
@@ -193,6 +260,9 @@ export function ReportFlow({locale, copy}: {locale: Locale; copy: FormCopy}) {
     setStatus('submitting');
 
     const genderValue: ScoreGender | null = gender === '' ? null : gender;
+    // One submit timestamp, shared by the persisted context AND the report's
+    // generation date (so `buildReport` stays clock-free and deterministic).
+    const submittedAt = new Date().toISOString();
 
     // Both payloads are built here, independently, sharing NO key. The anonymous
     // score carries only the derived numbers + coarse demographics (NO PII); the
@@ -223,29 +293,21 @@ export function ReportFlow({locale, copy}: {locale: Locale; copy: FormCopy}) {
       });
 
       // Reveal results regardless of the write outcome — the parent is never
-      // trapped. Persist the minimal 3.09 context, then land on the interstitial.
-      writeLeadContextV2({
-        parentFirstName: nextName,
-        city,
-        submittedAt: new Date().toISOString()
-      });
+      // trapped. Persist the minimal 3.09 context, then reveal the results.
+      writeLeadContextV2({parentFirstName: nextName, city, submittedAt});
 
       if (!res.ok) {
         // A hard server failure (rare — the action is non-trapping). The lead is
         // logged recoverably server-side; still reveal results to the parent.
         console.error('[ReportFlow] submitAssessment returned not-ok');
       }
-      setStep('done');
+      setSubmittedCtx({city, submittedAt});
     } catch {
       // Network / unexpected error. Results compute client-side, so still reveal —
       // never trap the parent. (Lead durability on this path: TODO(durability 3.16).)
       console.error('[ReportFlow] submitAssessment threw');
-      writeLeadContextV2({
-        parentFirstName: nextName,
-        city,
-        submittedAt: new Date().toISOString()
-      });
-      setStep('done');
+      writeLeadContextV2({parentFirstName: nextName, city, submittedAt});
+      setSubmittedCtx({city, submittedAt});
     }
   }
 

@@ -534,3 +534,19 @@ Installed with `npm install @react-pdf/renderer --save-exact`. **Smoke-tested** 
 **New Brevo contact attributes (Store B, v2):** `PARENT_FIRST_NAME`, `PHONE`, `CITY`, `CHILD_AGE`, `CHILD_GENDER` (omitted when null), `LOCALE`, `CONSENT_PROCESS`, `CONSENT_GUARDIAN`, `MARKETING_OPT_IN`, `CONSENT_VERSION` (`v2-draft-2026-06`), `TOP_INDEX` (coarse English label), `SOURCE` (`website-assessment`). Cowork must create these attributes in Brevo (parallel to the 2.02 set).
 
 **New app route:** `/[locale]/report` (SSG shell + `ReportFlow` island), `robots: noindex`. New i18n namespace **`Form`** (MK + EN, exact parity, MK provisional).
+
+---
+
+## 2026-06-23 — Phase 3.09 on-screen results screen (Code)
+
+**No new runtime dependency.** The results screen renders via React + inline SVG; the rendered-screen test uses `react-dom/server` (already present) under Vitest's Node env — no jsdom/RTL added.
+
+**New env var (PUBLIC — ships in the client bundle, NOT a secret):** `NEXT_PUBLIC_BOOKING_URL` — the real IqUp demo-class booking URL for the results-screen CTA. The CTA appends the chosen centre as `?grad=<centre-id>`. **When UNSET, the CTA falls back to the localized `/trial` page** (via `trialBookingUrl`), so it is never a dead link. Documented in `.env.local.example` (next to `NEXT_PUBLIC_SITE_URL`). Pending the real IqUp booking flow.
+
+**globals.css (additive):** lifted the 3.02 v2 SEMANTIC token layer (`--ix-*` `-soft/-tint/-ink` ramps, `--action*`, `--band-*`, `--surface-2`, `--ink-head/-muted`, `--neutral`, `--line*`, `--r-sm/-md/-lg/-xl/-badge/-pill`, `--tap-comfort`, `--elev-raise/-cta`, `--focus/-ring`, `--dur-fast`) from `docs/design-handovers/assessment/tokens-v2.css` — `--ix-*`→`var(--iq-*)` keeps the official hues single-sourced; only new ramp/ink/surface values carry literals. Plus the `.iq-results`-scoped results-screen CSS. All additive; every v1 + 3.01 token untouched.
+
+**New i18n namespace `Results`** (MK + EN, exact parity, MK provisional) — results-screen CHROME only (report content stays in `buildReport`).
+
+**Config edits:** `eslint.config.mjs` ignores `docs/**` (vendored design-handover reference surfaces incl. `report-kit.js` are browser JS to PORT, not app source); `vitest.config.ts` include widened to `src/**/*.test.{ts,tsx}` for the results-screen render test.
+
+**3.08 design deliverables landed on `main`** (separate commit, before the 3.09 branch): the `Part-3-Phase-08-Handover.md` + `surfaces/{Results,Report,Certificate,OG}.html` + `report-kit.js` + `assessment/tokens-v2.css` + `Phase-08-Mockups.html` (under `docs/design-handovers/`) + `Part-3-Phase-08-Completion.md`. Reference only (HTML/JS to PORT, not imported/built).
