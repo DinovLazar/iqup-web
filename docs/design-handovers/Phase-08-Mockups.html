@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>IqUp · Phase 3.08 — Results · PDF report · Bibi certificate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap&subset=cyrillic,cyrillic-ext,latin" rel="stylesheet" />
+<link rel="stylesheet" href="assessment/tokens-v2.css" />
+<style>
+  body{ background:var(--surface-2); }
+  .wrap{ max-width:1200px; margin:0 auto; padding:0 var(--space-6); }
+  code,.mono{ font-family:"JetBrains Mono", ui-monospace, monospace; font-size:.85em; }
+
+  .topbar{ background:var(--action); color:#fff; text-align:center; padding:9px 16px; font-size:13px; font-weight:600; position:sticky; top:0; z-index:60; }
+  .topbar b{ color:var(--ix-learning-soft); }
+
+  header.hero{ padding:var(--space-16) 0 var(--space-10); }
+  .logo{ display:inline-flex; align-items:center; gap:.04em; font-weight:800; font-size:30px; }
+  .logo .iq{ color:var(--action); } .logo .up{ color:var(--ink-head); }
+  .logo .b{ background:var(--ix-learning); color:var(--ix-learning-ink); width:1.1em; height:1.35em; display:inline-grid; place-items:center; border-radius:8px; margin-left:.1em; }
+  .kick{ font-weight:800; letter-spacing:.16em; text-transform:uppercase; font-size:12px; color:var(--action-ink); margin-top:var(--space-8); }
+  header.hero h1{ font-size:clamp(2rem,5vw,3rem); letter-spacing:-.02em; color:var(--ink-head); margin:var(--space-3) 0 var(--space-4); }
+  header.hero p{ font-size:18px; color:var(--ink-muted); max-width:72ch; line-height:1.6; }
+  .moods{ display:flex; gap:10px; flex-wrap:wrap; margin-top:var(--space-6); }
+  .tonechip{ display:inline-flex; flex-direction:column; gap:2px; padding:12px 18px; border-radius:var(--r-md); border:1px solid var(--line); background:var(--surface); min-width:150px; }
+  .tonechip b{ font-size:14px; color:var(--ink-head); } .tonechip span{ font-size:12px; color:var(--ink-muted); }
+  .tonechip.a{ border-color:var(--ix-spatial-soft); } .tonechip.b{ border-color:var(--action-soft); } .tonechip.c{ border-color:var(--ix-learning-soft); }
+
+  section.block{ padding:var(--space-12) 0; border-top:1px solid var(--line); }
+  .sec-head{ display:flex; align-items:baseline; gap:var(--space-3); margin-bottom:var(--space-8); flex-wrap:wrap; }
+  .sec-head .n{ font-weight:800; font-size:13px; color:#fff; background:var(--ink-head); width:30px; height:30px; border-radius:9px; display:grid; place-items:center; flex:0 0 auto; }
+  .sec-head h2{ font-size:28px; color:var(--ink-head); }
+  .sec-head p{ color:var(--ink-muted); width:100%; max-width:78ch; margin:6px 0 0; line-height:1.6; }
+  .lead{ font-size:16px; color:var(--ink-muted); max-width:78ch; line-height:1.6; margin:0 0 var(--space-6); }
+
+  .pill{ display:inline-block; white-space:nowrap; font-size:11px; font-weight:800; letter-spacing:.04em; padding:3px 10px; border-radius:999px; }
+  .pill.cred{ background:var(--ix-spatial-tint); color:var(--ix-spatial-ink); }
+  .pill.formal{ background:var(--action-tint); color:var(--action-ink); }
+  .pill.joy{ background:var(--ix-learning-tint); color:var(--ix-learning-ink); }
+
+  .card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:var(--space-6); }
+  .grid{ display:grid; gap:var(--space-5); }
+  @media(min-width:820px){ .grid.c2{ grid-template-columns:1fr 1fr; } .grid.c3{ grid-template-columns:repeat(3,1fr); } }
+
+  /* device + frame chrome */
+  .frames{ display:flex; flex-wrap:wrap; gap:var(--space-8); align-items:flex-start; }
+  .frame{ display:flex; flex-direction:column; gap:10px; }
+  .frame .flabel{ font-size:13px; font-weight:700; color:var(--ink-head); display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .frame .fnote{ font-size:13px; color:var(--ink-muted); max-width:360px; line-height:1.5; }
+
+  .phone{ width:360px; border:9px solid #1b1f2a; border-radius:34px; overflow:hidden; box-shadow:var(--elev-pop); background:#1b1f2a; }
+  .phone iframe{ width:360px; height:680px; border:0; display:block; background:var(--bg); }
+
+  /* scaled embeds */
+  .embed{ position:relative; overflow:hidden; border-radius:14px; border:1px solid var(--line); box-shadow:var(--elev-pop); background:#fff; }
+  .embed iframe{ border:0; display:block; transform-origin:top left; }
+
+  /* a4 report thumbs */
+  .a4{ width:340px; height:481px; } /* 794x1123 * .4283 */
+  .a4 iframe{ width:794px; height:1123px; transform:scale(.4283); background:#fff; }
+
+  /* social cert card */
+  .cardframe{ width:288px; height:360px; } /* 1080x1350 * .26667 */
+  .cardframe iframe{ width:1080px; height:1350px; transform:scale(.26667); }
+
+  .ogframe{ width:480px; height:252px; } /* 1200x630 * .4 */
+  .ogframe iframe{ width:1200px; height:630px; transform:scale(.4); }
+
+  .states{ display:flex; gap:8px; flex-wrap:wrap; margin-top:4px; }
+  .states em{ font-style:normal; font-size:11px; font-weight:700; padding:2px 9px; border-radius:999px; background:var(--field); color:var(--ink-muted); }
+
+  .speclist{ list-style:none; margin:0; padding:0; }
+  .speclist li{ display:flex; gap:12px; padding:11px 0; border-bottom:1px solid var(--line); font-size:14px; color:var(--ink); line-height:1.55; }
+  .speclist li:last-child{ border-bottom:0; }
+  .speclist .k{ flex:0 0 150px; font-weight:700; color:var(--ink-head); }
+  .check{ color:var(--success); flex:0 0 auto; } .x{ color:var(--error); }
+
+  .tok{ width:100%; border-collapse:collapse; font-size:13px; }
+  .tok th,.tok td{ text-align:left; padding:9px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  .tok th{ font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); }
+  .tok code{ background:var(--field); padding:2px 6px; border-radius:5px; }
+  .tok .sw{ width:30px; height:18px; border-radius:5px; display:inline-block; vertical-align:middle; border:1px solid rgba(0,0,0,.08); margin-right:6px; }
+
+  .guard{ border-left:3px solid var(--error); padding:4px 0 4px 16px; }
+  .guard b{ color:var(--error-ink); }
+  .rule{ background:var(--action-tint); border:1px solid var(--action-soft); border-radius:var(--r-lg); padding:var(--space-5); }
+  .rule b{ color:var(--action-ink); }
+
+  .idp-demo{ display:flex; flex-wrap:wrap; gap:var(--space-8); align-items:center; }
+  .idp-demo .pent{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:var(--space-5); }
+
+  footer.end{ padding:var(--space-12) 0 var(--space-20); color:var(--ink-muted); font-size:14px; border-top:1px solid var(--line); line-height:1.8; }
+  footer.end code{ background:var(--field); padding:2px 6px; border-radius:5px; }
+  footer.end b{ color:var(--ink-head); }
+</style>
+</head>
+<body>
+  <div class="topbar">Part 3 · Phase 3.08 · Design — three payoff surfaces on the <b>locked v2 system</b>. No number / score / % / gauge anywhere · Bibi only on the certificate · WCAG 2.2 AA.</div>
+
+  <div class="wrap">
+    <header class="hero">
+      <div class="logo"><span class="iq">IQ</span><span class="up">UP</span><span class="b">!</span></div>
+      <div class="kick">Part 3 · Phase 3.08 · Design</div>
+      <h1>The payoff: results, report &amp; certificate</h1>
+      <p>One family, three tones. Every surface is built on the locked v2 tokens, Montserrat, the five index hues and the puzzle-brain — the same spine the <code>/test</code> assessment already uses. The results screen is <b>credible</b>, the PDF is <b>formal</b>, the certificate is <b>joyful</b>. Each is the live mockup, embedded below.</p>
+      <div class="moods">
+        <span class="tonechip a"><b>A · Results screen</b><span>Credible · Insight mood</span></span>
+        <span class="tonechip b"><b>B · PDF report</b><span>Formal · the credibility doc</span></span>
+        <span class="tonechip c"><b>C · Bibi certificate</b><span>Joyful · the awareness engine</span></span>
+      </div>
+    </header>
+
+    <!-- 1 · THE IDENTITY PENTAGON -->
+    <section class="block">
+      <div class="sec-head"><span class="n">1</span><h2>The identity pentagon — not a gauge</h2>
+        <p>The hero motif shared by the results screen and the PDF. The puzzle-brain the child fills during the test resolves into this: a <b>whole, assembled, five-coloured shape</b>. It is the deliberate replacement for the assessment kit's <code>pentagon()</code> radar chart, which encodes magnitude and is <b>forbidden</b> on these surfaces.</p>
+      </div>
+      <div class="idp-demo">
+        <div class="pent" id="idpDemo"></div>
+        <div style="flex:1; min-width:300px;">
+          <div class="rule">
+            <b>The hard rule.</b> The pentagon is an <b>identity graphic</b>, not a measurement chart. <b>Same shape, same size for every child.</b> Only the five fixed index hues and the labels appear — it never grows, shrinks, fills part-way, or carries spokes/rings/axes. Two children with different results get the same shape; their <em>words</em> (on the cards) differ, never the geometry.
+          </div>
+          <ul class="speclist" style="margin-top:var(--space-5)">
+            <li><span class="k">Geometry</span><span>Regular pentagon, one vertex per index at its fixed axis angle; five kites, each centred on one vertex, filled with that index's <code>--ix-*</code> hue. White seams, ink outline.</span></li>
+            <li><span class="k">Filter-free</span><span>Flat polygons + lines only — expresses 1:1 in <code>@react-pdf/renderer</code> (<code>Svg/Polygon/Line</code>). No gradients, no filters.</span></li>
+            <li><span class="k">A11y</span><span>Graphical object ≥3:1; carries an honest <code>aria-label</code> ("five areas, one whole shape"); meaning is never colour-only — every area is also a word on the cards.</span></li>
+            <li><span class="k">Source</span><span><code>surfaces/report-kit.js</code> → <code>IqReport.identityPentagon(opts)</code></span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2 · SURFACE A — RESULTS -->
+    <section class="block">
+      <div class="sec-head"><span class="n">2</span><h2>Surface A — the results screen <span class="pill cred">credible</span></h2>
+        <p>Mobile-first, Insight mood (calm white, violet + ink dominant). The parent's first look at the payoff. Header → hero pentagon → five colour-coded index cards → "where your child shines" → "what we noticed" → "report emailed" → violet trial CTA → certificate entry → disclaimer footnote. The <code>not_representative</code> case shows a gentle, non-alarming banner.</p>
+      </div>
+      <div class="frames">
+        <div class="frame">
+          <div class="flabel">МК (Cyrillic) · default <span class="pill cred">valid</span></div>
+          <div class="phone"><iframe src="surfaces/Results.html?lang=mk" title="Results MK" loading="lazy"></iframe></div>
+        </div>
+        <div class="frame">
+          <div class="flabel">EN · absorbs the text-length difference</div>
+          <div class="phone"><iframe src="surfaces/Results.html?lang=en" title="Results EN" loading="lazy"></iframe></div>
+        </div>
+        <div class="frame">
+          <div class="flabel">Gentle <code>not_representative</code> state</div>
+          <div class="phone"><iframe src="surfaces/Results.html?lang=mk&validity=not_representative" title="Results not representative" loading="lazy"></iframe></div>
+          <p class="fnote">A soft amber banner: "this may not be the calmest attempt — try again." Never alarming, never a failure. The profile still shows.</p>
+        </div>
+      </div>
+      <div class="grid c2" style="margin-top:var(--space-8)">
+        <div class="card">
+          <h3 style="margin:0 0 12px;color:var(--ink-head);font-size:18px;">Index card anatomy</h3>
+          <ul class="speclist">
+            <li><span class="k">Name</span><span>Full index name in <code>--ink-head</code> bold.</span></li>
+            <li><span class="k">Band</span><span>The level as a <b>WORD</b> in a hue-tinted pill ("Strongly developed") — never a number.</span></li>
+            <li><span class="k">Description</span><span>One plain-language line in <code>--ink-muted</code>.</span></li>
+            <li><span class="k">Confidence</span><span>Clearly <b>secondary</b>: a neutral meta-label (high/medium/low) + a one-sentence note, below a divider. Reads as how sure the <em>reading</em> is — never a grade of the child.</span></li>
+            <li><span class="k">Colour</span><span>Hue on the left rail + icon chip only. The word + label carry the meaning (colour-blind safe).</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 style="margin:0 0 12px;color:var(--ink-head);font-size:18px;">States &amp; responsive</h3>
+          <div class="states"><em>validity: valid</em><em>gentle_note</em><em>not_representative</em><em>MK</em><em>EN</em></div>
+          <ul class="speclist" style="margin-top:12px">
+            <li><span class="k">Mobile</span><span>Single column, hero pentagon then cards (designed to 390px).</span></li>
+            <li><span class="k">Desktop</span><span>Two columns ≥880px: sticky pentagon + intro left, the scrolling card stack right.</span></li>
+            <li><span class="k">A11y</span><span>Text ≥4.5:1; <code>focus-visible</code> violet ring; tap targets ≥44px (CTA 56px); reduced-motion safe; no timers.</span></li>
+            <li><span class="k">CTA</span><span>Violet "Book a free trial class", carries the city; routes to the booking page.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 · SURFACE B — PDF -->
+    <section class="block">
+      <div class="sec-head"><span class="n">3</span><h2>Surface B — the PDF report <span class="pill formal">formal</span></h2>
+        <p>Three A4 pages, the credibility document. <b>No Bibi, no characters.</b> Generous whitespace, strong Montserrat hierarchy, flat fills. Page 1 cover + pentagon + top strength; Page 2 the five indices in detail; Page 3 the narrative + next steps + the full disclaimer. Two optional photo slots that look intentional <b>empty</b>.</p>
+      </div>
+      <div class="frames">
+        <div class="frame">
+          <div class="flabel">Cover (page 1) · <span class="pill formal">photo slot empty</span></div>
+          <div class="embed a4"><iframe src="surfaces/Report.html?lang=mk&photo=empty" title="Report empty" loading="lazy" scrolling="no"></iframe></div>
+          <p class="fnote">The empty slot is a clearly-marked dashed box — the page reads complete without it, so the 3.10 build isn't blocked on photography.</p>
+        </div>
+        <div class="frame">
+          <div class="flabel">Cover (page 1) · <span class="pill formal">photo slot filled</span></div>
+          <div class="embed a4"><iframe src="surfaces/Report.html?lang=mk&photo=filled" title="Report filled" loading="lazy" scrolling="no"></iframe></div>
+          <p class="fnote">When real IqUp photography drops in via Cowork, the same footprint holds.</p>
+        </div>
+        <div class="frame">
+          <div class="flabel">Full 3-page report (EN) — scroll inside</div>
+          <div class="embed" style="width:340px;height:481px;"><iframe src="surfaces/Report.html?lang=en&photo=empty" style="width:794px;height:1123px;transform:scale(.4283);" title="Report EN full" loading="lazy"></iframe></div>
+          <p class="fnote">Open <code>surfaces/Report.html</code> directly to see pages 2 &amp; 3 and toggle MK/EN + photo slots.</p>
+        </div>
+      </div>
+      <div class="grid c2" style="margin-top:var(--space-8)">
+        <div class="card">
+          <h3 style="margin:0 0 12px;color:var(--ink-head);font-size:18px;">@react-pdf/renderer constraints honoured</h3>
+          <ul class="speclist">
+            <li><span class="k">Layout</span><span>Flexbox columns/rows only — no CSS grid, floats, or positioned overlays for content.</span></li>
+            <li><span class="k">Fills</span><span>Solid flat colour only. <b>No gradients, no shadows, no filters.</b></span></li>
+            <li><span class="k">Pentagon</span><span>The filter-free vector (polygons + lines) — drops straight into react-pdf <code>&lt;Svg&gt;</code>.</span></li>
+            <li><span class="k">Fonts</span><span><b>Montserrat must be embedded</b> (Cyrillic + Latin) so the MK report renders; weights 400/600/700/800.</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 style="margin:0 0 12px;color:var(--ink-head);font-size:18px;">Page &amp; type spec (print units)</h3>
+          <ul class="speclist">
+            <li><span class="k">Page</span><span>A4 210×297mm, margins 15mm (10–12mm bottom).</span></li>
+            <li><span class="k">Cover H1</span><span>30pt ExtraBold · section H2 15pt · block heads 11pt.</span></li>
+            <li><span class="k">Body</span><span>10.5pt / 1.6 · small &amp; confidence note 8.5–9pt · footer 8pt.</span></li>
+            <li><span class="k">Colour-code</span><span>Each index = 7mm hue rail + tinted icon + band-word pill in <code>--ix-*-ink</code>.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 · SURFACE C — CERTIFICATE -->
+    <section class="block">
+      <div class="sec-head"><span class="n">4</span><h2>Surface C — the Bibi certificate <span class="pill joy">joyful</span></h2>
+        <p>1080×1350 (4:5), built for a Facebook/Instagram feed. The <b>one</b> place the licensed Bibi appears (as a marked placeholder until Cowork delivers the art). Pure celebration — the "IQ UP! Explorer" framing. <b>No bands, no scores, no indices, no pentagon-as-data.</b> An optional, <b>browser-only</b> child-name field; the layout holds named and unnamed.</p>
+      </div>
+      <div class="frames">
+        <div class="frame">
+          <div class="flabel">Named (МК)</div>
+          <div class="embed cardframe"><iframe src="surfaces/Certificate.html?embed=1&lang=mk&state=named&name=%D0%98%D0%B2%D0%B0" title="Certificate named MK" loading="lazy" scrolling="no"></iframe></div>
+        </div>
+        <div class="frame">
+          <div class="flabel">Unnamed (МК)</div>
+          <div class="embed cardframe"><iframe src="surfaces/Certificate.html?embed=1&lang=mk&state=unnamed" title="Certificate unnamed MK" loading="lazy" scrolling="no"></iframe></div>
+        </div>
+        <div class="frame">
+          <div class="flabel">Named (EN)</div>
+          <div class="embed cardframe"><iframe src="surfaces/Certificate.html?embed=1&lang=en&state=named&name=Maya" title="Certificate named EN" loading="lazy" scrolling="no"></iframe></div>
+        </div>
+      </div>
+      <div class="grid c2" style="margin-top:var(--space-8)">
+        <div class="card">
+          <h3 style="margin:0 0 12px;color:var(--ink-head);font-size:18px;">The Bibi placeholder &amp; name field</h3>
+          <ul class="speclist">
+            <li><span class="k">Bibi box</span><span>A 420×420 marked placeholder, centred. <b>Licensed art drops in here</b> — never generated, redrawn or recreated.</span></li>
+            <li><span class="k">Name field</span><span>On the certificate <em>screen</em>: a friendly optional input. Copy states it <b>stays on this device</b> — never stored, sent, or put in a URL/OG image.</span></li>
+            <li><span class="k">Named</span><span>The name is the hero (64px violet). "Awarded to …".</span></li>
+            <li><span class="k">Unnamed</span><span>The name block collapses to a generic celebratory line; the layout stays balanced.</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 style="margin:0 0 12px;color:var(--ink-head);font-size:18px;">Open Graph share image — name-free</h3>
+          <p class="fnote" style="margin-bottom:12px">The preview shown when a certificate/link is shared. <b>Generic and name-free by rule</b> — 1200×630, the personalised name never leaves the browser.</p>
+          <div class="embed ogframe"><iframe src="surfaces/OG.html?embed=1&lang=mk" title="OG image" loading="lazy" scrolling="no"></iframe></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 · TOKENS -->
+    <section class="block">
+      <div class="sec-head"><span class="n">5</span><h2>Tokens — everything maps to the locked v2 system</h2>
+        <p>No new brand identity. Every colour, radius, space and type role on these three surfaces is an existing token from <code>assessment/tokens-v2.css</code> / the 3.01 primitives.</p>
+      </div>
+      <div class="card" style="overflow-x:auto">
+        <table class="tok">
+          <thead><tr><th>Role</th><th>Token</th><th>Used on</th></tr></thead>
+          <tbody>
+            <tr><td>Logical thinking</td><td><span class="sw" style="background:var(--ix-logic)"></span><code>--ix-logic / -tint / -ink</code></td><td>pentagon · card · PDF rail</td></tr>
+            <tr><td>Spatial thinking</td><td><span class="sw" style="background:var(--ix-spatial)"></span><code>--ix-spatial …</code></td><td>pentagon · card · STEM card</td></tr>
+            <tr><td>Memory &amp; focus</td><td><span class="sw" style="background:var(--ix-memory)"></span><code>--ix-memory …</code></td><td>pentagon · card · cert wave</td></tr>
+            <tr><td>Planning &amp; speed</td><td><span class="sw" style="background:var(--ix-planning)"></span><code>--ix-planning …</code></td><td>pentagon · card</td></tr>
+            <tr><td>Learning &amp; STEM</td><td><span class="sw" style="background:var(--ix-learning)"></span><code>--ix-learning …</code></td><td>pentagon · card · cert frame</td></tr>
+            <tr><td>Primary action (violet)</td><td><span class="sw" style="background:var(--action)"></span><code>--action / -hover / -tint / -ink / -soft</code></td><td>all CTAs · top-strength · cert ribbon</td></tr>
+            <tr><td>Ink</td><td><span class="sw" style="background:var(--ink)"></span><code>--ink / -head / -muted / -faint</code></td><td>all text (never an index hue)</td></tr>
+            <tr><td>Surfaces / bands</td><td><span class="sw" style="background:var(--band-1)"></span><code>--bg · --surface · --band-1/2/3 · --field</code></td><td>page · cards · wave header</td></tr>
+            <tr><td>Type</td><td><code>--font-brand</code> (Montserrat) · 400/600/700/800</td><td>all — single typeface</td></tr>
+            <tr><td>Radius</td><td><code>--r-md/-lg/-xl/-badge/-pill</code></td><td>cards · pills · CTAs</td></tr>
+            <tr><td>Tap</td><td><code>--tap-min 44 · --tap-comfort 56</code></td><td>buttons · entries · inputs</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 6 · GUARDRAILS -->
+    <section class="block">
+      <div class="sec-head"><span class="n">6</span><h2>Guardrails — verified across all three</h2></div>
+      <div class="grid c2">
+        <div class="card">
+          <ul class="speclist">
+            <li><span class="check">✓</span><span><b>No number anywhere</b> — no IQ, %, score, percentile, rank, level, gauge, axis or bar. Bands are words; the pentagon is identity.</span></li>
+            <li><span class="check">✓</span><span><b>Bibi only on the certificate</b> — never on results or in the PDF. Placeholder only; never generated/redrawn.</span></li>
+            <li><span class="check">✓</span><span><b>Bilingual MK + EN</b> — Cyrillic default; every layout absorbs the text-length difference.</span></li>
+            <li><span class="check">✓</span><span><b>Gender-neutral</b>; the only child name is the optional browser-only one on the certificate.</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <ul class="speclist">
+            <li><span class="check">✓</span><span><b>WCAG 2.2 AA</b> — text ≥4.5:1, colour never the sole carrier, visible focus, ≥44px targets, reduced-motion, no anxious timers.</span></li>
+            <li><span class="check">✓</span><span><b>PDF expressible in @react-pdf/renderer</b> — flexbox, flat fills, filter-free vector, embedded Montserrat.</span></li>
+            <li><span class="check">✓</span><span><b>Confidence is a neutral meta-label</b>, always secondary to the band word.</span></li>
+            <li><span class="x">✗</span><span class="guard"><b>Never:</b> a radar/spider pentagon, a progress bar, an emoji décor, a second typeface, a gradient.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <footer class="end">
+      <b>Files (this project)</b><br>
+      <code>surfaces/Results.html</code> · <code>surfaces/Report.html</code> · <code>surfaces/Certificate.html</code> · <code>surfaces/OG.html</code> · <code>surfaces/report-kit.js</code> (shared identity-pentagon + sample <code>ReportContent</code> MK/EN).<br><br>
+      <b>Handover</b> → <code>docs/design-handovers/Part-3-Phase-08-Handover.md</code> &nbsp;·&nbsp; <b>Completion</b> → <code>src/_project-state/Part-3-Phase-08-Completion.md</code><br><br>
+      Built on the locked v2 system (<code>assessment/tokens-v2.css</code>, Montserrat, the five index hues, the puzzle-brain). The official palette &amp; typeface are confirmed; Macedonian copy is provisional pending native review; Bibi &amp; IqUp photography are licensed assets Cowork supplies.
+    </footer>
+  </div>
+
+<script src="surfaces/report-kit.js"></script>
+<script>
+  document.getElementById('idpDemo').innerHTML = window.IqReport.identityPentagon({ size:300, lang:'en' });
+</script>
+</body>
+</html>

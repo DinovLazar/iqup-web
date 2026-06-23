@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="mk">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>IqUp · Open Graph share image (name-free)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap&subset=cyrillic,cyrillic-ext,latin" rel="stylesheet" />
+<link rel="stylesheet" href="../assessment/tokens-v2.css" />
+<style>
+/* ============================================================================
+   The certificate's Open Graph share image — 1200×630, the preview shown when
+   a certificate/link is shared. GENERIC and NAME-FREE by rule: the personalised
+   child name lives ONLY in the browser and never appears here.
+   ============================================================================ */
+:root{ --og-w:1200px; --og-h:630px; }
+body{ margin:0; font-family:var(--font-brand); background:var(--surface-2); display:flex; flex-direction:column; align-items:center; gap:16px; padding:20px; }
+.devbar{ display:flex; gap:8px; align-items:center; padding:7px 12px; background:#2A2440; color:#cfc9e6; font-size:11px; font-weight:700; border-radius:999px; }
+.devbar button{ font:inherit; cursor:pointer; border:1px solid #4a4366; background:transparent; color:#cfc9e6; padding:4px 10px; border-radius:999px; }
+.devbar button[aria-pressed="true"]{ background:var(--ix-learning); color:var(--ix-learning-ink); border-color:var(--ix-learning); }
+.stage{ width:min(96vw,1000px); }
+.scaler{ transform-origin:top left; }
+
+.og{ width:var(--og-w); height:var(--og-h); position:relative; overflow:hidden; background:var(--ix-learning-tint);
+  display:flex; align-items:center; gap:56px; padding:0 80px; }
+.og .band{ position:absolute; left:0; right:0; height:100%; }
+.cw{ position:absolute; left:0; width:100%; }
+.confetti{ position:absolute; inset:0; pointer-events:none; }
+.confetti i{ position:absolute; display:block; border-radius:50%; opacity:.85; }
+
+.og__left{ position:relative; z-index:2; flex:1; }
+.wordmark{ display:inline-flex; align-items:center; gap:.04em; font-weight:800; font-size:40px; margin-bottom:26px; }
+.wordmark .iq{ color:var(--action); } .wordmark .up{ color:var(--ink-head); }
+.wordmark .b{ background:var(--ix-learning); color:var(--ix-learning-ink); width:1.05em; height:1.3em; display:inline-grid; place-items:center; border-radius:9px; margin-left:.06em; }
+.ribbon{ display:inline-flex; align-items:center; gap:12px; background:var(--action); color:#fff; padding:11px 26px; border-radius:999px; font-size:22px; font-weight:800; letter-spacing:.04em; margin-bottom:20px; }
+.ribbon svg{ width:24px; height:24px; }
+.og h1{ font-size:72px; line-height:.98; color:var(--ink-head); font-weight:800; margin:0 0 18px; letter-spacing:-.01em; }
+.og h1 em{ font-style:normal; color:var(--action); }
+.og p{ font-size:24px; color:var(--ink-muted); margin:0; max-width:24ch; line-height:1.35; font-weight:600; }
+
+/* right: Bibi placeholder medallion */
+.og__right{ position:relative; z-index:2; flex:0 0 auto; }
+.medal{ width:380px; height:380px; border-radius:50%; background:var(--surface); border:14px solid var(--ix-learning);
+  display:flex; align-items:center; justify-content:center; position:relative; }
+.medal::after{ content:""; position:absolute; inset:-34px; border-radius:50%; border:6px dashed var(--action-soft); }
+.bibi{ width:240px; height:250px; border-radius:30px; border:4px dashed var(--action-soft); background:var(--action-tint);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; color:var(--action-ink); }
+.bibi .sil{ width:120px; height:124px; position:relative; }
+.bibi .sil .body{ position:absolute; left:50%; transform:translateX(-50%); bottom:0; width:86px; height:86px; border-radius:44px 44px 40px 40px; background:var(--action-soft); }
+.bibi .sil .ear{ position:absolute; top:2px; width:30px; height:40px; border-radius:50%; background:var(--action-soft); }
+.bibi .sil .ear.l{ left:10px; transform:rotate(-16deg);} .bibi .sil .ear.r{ right:10px; transform:rotate(16deg);}
+.bibi .note{ font-size:15px; font-weight:800; text-align:center; }
+
+body.embed{ background:transparent; padding:0; } body.embed .devbar{ display:none; } body.embed .stage{ width:auto; }
+</style>
+</head>
+<body>
+  <div class="devbar" aria-hidden="true"><b>Lang:</b><button data-lang="mk" aria-pressed="true">МК</button><button data-lang="en">EN</button></div>
+  <div class="stage">
+    <div class="scaler" id="scaler">
+      <div class="og">
+        <svg class="cw" viewBox="0 0 1200 90" preserveAspectRatio="none" aria-hidden="true" style="top:0;height:90px;"><path fill="var(--ix-logic-tint)" d="M0 0 H1200 V44 C980 80 760 26 540 48 C360 66 180 30 0 56 Z"/></svg>
+        <svg class="cw" viewBox="0 0 1200 90" preserveAspectRatio="none" aria-hidden="true" style="bottom:0;height:90px;transform:scaleY(-1);"><path fill="var(--ix-memory-tint)" d="M0 0 H1200 V44 C980 80 760 26 540 48 C360 66 180 30 0 56 Z"/></svg>
+        <div class="confetti" id="confetti"></div>
+
+        <div class="og__left">
+          <div class="wordmark"><span class="iq">IQ</span><span class="up">UP</span><span class="b">!</span></div>
+          <div class="ribbon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.6 6.6L21.5 9l-5.2 4.4 1.8 6.6L12 16.7 5.9 20l1.8-6.6L2.5 9l6.9-.4z"/></svg><span data-i="ribbon"></span></div>
+          <h1 data-i-html="big"></h1>
+          <p data-i="sub"></p>
+        </div>
+        <div class="og__right">
+          <div class="medal">
+            <div class="bibi" role="img" aria-label="Bibi placeholder">
+              <div class="sil" aria-hidden="true"><span class="ear l"></span><span class="ear r"></span><span class="body"></span></div>
+              <span class="note" data-i="bibi"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<script>
+const qp=new URLSearchParams(location.search);
+let lang=qp.get('lang')==='en'?'en':'mk';
+const embed=qp.get('embed')==='1'; if(embed) document.body.classList.add('embed');
+const COPY={
+  mk:{ ribbon:'IQ UP!', big:'Стани <em>Истражувач</em>', sub:'Бесплатна авантура на размислување за деца 5–13 г.', bibi:'Биби' },
+  en:{ ribbon:'IQ UP!', big:'Become an <em>Explorer</em>', sub:'A free thinking adventure for kids aged 5–13.', bibi:'Bibi' },
+};
+function render(){
+  const c=COPY[lang]; document.documentElement.lang=lang;
+  document.querySelectorAll('[data-i]').forEach(el=>{ if(c[el.dataset.i]!==undefined) el.textContent=c[el.dataset.i]; });
+  document.querySelectorAll('[data-i-html]').forEach(el=>{ el.innerHTML=c[el.dataset.iHtml]??''; });
+  document.querySelectorAll('[data-lang]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.lang===lang)));
+  fit();
+}
+function fit(){ if(embed) return; const st=document.querySelector('.stage'),sc=document.getElementById('scaler'); const s=st.clientWidth/1200; sc.style.transform=`scale(${s})`; st.style.height=(630*s)+'px'; }
+(function(){ const COL=['var(--ix-logic)','var(--ix-spatial)','var(--ix-memory)','var(--ix-planning)','var(--action)']; let seed=11,out=[];
+  const rnd=()=>{seed=(seed*9301+49297)%233280;return seed/233280;};
+  for(let i=0;i<16;i++){ const x=Math.round(rnd()*1120)+40,y=Math.round(rnd()*560)+30; if(x>120&&x<760&&y>140&&y<520&&rnd()<.8)continue; const s=10+Math.round(rnd()*12); out.push(`<i style="left:${x}px;top:${y}px;width:${s}px;height:${s}px;background:${COL[i%COL.length]}"></i>`);} 
+  document.getElementById('confetti').innerHTML=out.join(''); })();
+document.querySelectorAll('[data-lang]').forEach(b=>b.addEventListener('click',()=>{lang=b.dataset.lang;render();}));
+window.addEventListener('resize',fit); render();
+</script>
+</body>
+</html>

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="mk" data-mood="insight">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>IqUp · Профил на детето / Child's profile (results)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap&subset=cyrillic,cyrillic-ext,latin" rel="stylesheet" />
+<link rel="stylesheet" href="../assessment/tokens-v2.css" />
+<style>
+/* ============================================================================
+   Surface A · /results — the on-screen payoff. Mood = INSIGHT (parent):
+   calm white, violet + ink dominant, hue used only as fills/accents.
+   NO number / % / score / gauge / bar anywhere. Bands are WORDS; the pentagon
+   is an identity graphic (same shape & size for everyone).
+   ============================================================================ */
+body{ background:var(--bg); color:var(--ink); }
+.page{ max-width:520px; margin:0 auto; min-height:100dvh; background:var(--bg); }
+img,svg{ display:block; }
+
+/* mockup-only chrome (NOT product) */
+.devbar{ display:flex; flex-wrap:wrap; gap:6px 12px; align-items:center; justify-content:center;
+  padding:7px 12px; background:#2A2440; color:#cfc9e6; font-size:11px; font-weight:700; letter-spacing:.02em; }
+.devbar .grp{ display:inline-flex; align-items:center; gap:6px; }
+.devbar button{ font:inherit; cursor:pointer; border:1px solid #4a4366; background:transparent; color:#cfc9e6; padding:4px 10px; border-radius:999px; }
+.devbar button[aria-pressed="true"]{ background:var(--ix-learning); color:var(--ix-learning-ink); border-color:var(--ix-learning); }
+
+/* --- header over a soft wave band --- */
+.head{ position:relative; background:var(--band-1); padding:var(--space-6) var(--space-5) 0; overflow:hidden; }
+.head__top{ display:flex; align-items:center; justify-content:space-between; gap:var(--space-3); }
+.logo{ display:inline-flex; align-items:center; gap:.04em; font-weight:800; font-size:20px; text-decoration:none; }
+.logo .iq{ color:var(--action); } .logo .up{ color:var(--ink-head); }
+.logo .b{ background:var(--ix-learning); color:var(--ix-learning-ink); width:1.1em; height:1.35em; display:inline-grid; place-items:center; border-radius:6px; margin-left:.08em; }
+.lang{ display:inline-flex; padding:3px; gap:2px; background:var(--surface); border:1px solid var(--line); border-radius:var(--r-pill); }
+.lang button{ font:inherit; font-weight:700; font-size:13px; min-width:40px; min-height:36px; border:0; background:transparent; color:var(--ink-muted); border-radius:var(--r-pill); cursor:pointer; }
+.lang button[aria-pressed="true"]{ background:var(--bg); color:var(--ink-head); box-shadow:var(--elev-raise); }
+.head__intro{ padding:var(--space-5) 0 var(--space-4); }
+.eyebrow{ font-size:12px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--action-ink); }
+.head h1{ font-size:var(--mood-display); color:var(--ink-head); margin:var(--space-2) 0; line-height:1.1; }
+.head .meta{ display:flex; flex-wrap:wrap; gap:6px 14px; font-size:13px; color:var(--ink-muted); font-weight:600; }
+.head .meta span{ display:inline-flex; align-items:center; gap:6px; }
+.head .meta svg{ color:var(--action-soft); }
+.wave{ display:block; width:100%; height:30px; margin-top:var(--space-4); }
+
+/* --- hero pentagon --- */
+.hero{ padding:var(--space-7) var(--space-5) var(--space-5); text-align:center; }
+.hero .idp{ width:300px; max-width:84%; margin:0 auto; }
+.hero .cap{ font-size:13px; color:var(--ink-muted); margin-top:var(--space-3); max-width:34ch; margin-inline:auto; line-height:1.5; }
+
+/* --- not_representative gentle banner --- */
+.gentle{ display:none; margin:0 var(--space-5) var(--space-2); background:var(--warning-tint);
+  border:1px solid var(--warning); border-radius:var(--r-lg); padding:var(--space-4); gap:var(--space-3); align-items:flex-start; }
+[data-validity="not_representative"] .gentle{ display:flex; }
+.gentle svg{ color:var(--warning-ink); flex:0 0 auto; margin-top:2px; }
+.gentle b{ color:var(--ink-head); display:block; font-size:14px; }
+.gentle p{ margin:2px 0 0; font-size:13px; color:var(--ink-muted); line-height:1.5; }
+.gentle .retry{ margin-top:var(--space-3); }
+.gentle a{ font-size:13px; font-weight:700; color:var(--action-ink); }
+
+/* --- section scaffold --- */
+.sec{ padding:var(--space-5) var(--space-5) 0; }
+.sec__h{ font-size:18px; font-weight:800; color:var(--ink-head); margin:0 0 var(--space-4); display:flex; align-items:center; gap:8px; }
+.sec__h .k{ font-size:12px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:var(--action-ink); }
+
+/* --- index cards --- */
+.cards{ display:flex; flex-direction:column; gap:var(--space-3); }
+.ixc{ position:relative; display:grid; grid-template-columns:auto 1fr; gap:var(--space-4);
+  background:var(--surface); border:1px solid var(--line); border-left:4px solid var(--c); border-radius:var(--r-lg);
+  padding:var(--space-4) var(--space-4) var(--space-4) var(--space-5); }
+.ixc__ico{ width:44px; height:44px; border-radius:var(--r-md); display:grid; place-items:center; background:var(--c-tint); color:var(--c-ink); }
+.ixc__main{ min-width:0; }
+.ixc__top{ display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 10px; }
+.ixc__name{ font-size:16px; font-weight:700; color:var(--ink-head); }
+.ixc__band{ font-size:12px; font-weight:800; padding:3px 10px; border-radius:var(--r-pill); background:var(--c-tint); color:var(--c-ink); white-space:nowrap; }
+.ixc__desc{ margin:6px 0 0; font-size:14px; color:var(--ink-muted); line-height:1.5; }
+.ixc__conf{ margin-top:var(--space-3); padding-top:var(--space-3); border-top:1px dashed var(--line); display:flex; gap:8px; align-items:flex-start; }
+.ixc__conf .lvl{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; color:var(--ink-faint); white-space:nowrap; flex:0 0 auto; }
+.conf-mark{ display:inline-flex; gap:2px; align-items:center; }
+.conf-mark i{ width:5px; height:5px; border-radius:var(--r-pill); background:var(--neutral); }
+.conf-mark i.on{ background:var(--ink-muted); }
+.ixc__conf .txt{ font-size:12px; color:var(--ink-muted); line-height:1.45; }
+
+/* --- top strength callout --- */
+.shine{ background:var(--action-tint); border:1px solid var(--action-soft); border-radius:var(--r-lg);
+  padding:var(--space-5); display:flex; gap:var(--space-4); align-items:flex-start; }
+.shine__star{ width:42px; height:42px; flex:0 0 auto; border-radius:var(--r-pill); background:var(--action); color:#fff; display:grid; place-items:center; }
+.shine__k{ font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:var(--action-ink); }
+.shine__t{ font-size:17px; font-weight:700; color:var(--ink-head); margin:2px 0 6px; }
+.shine p{ margin:0; font-size:14px; color:var(--ink); line-height:1.55; }
+
+/* --- what we noticed --- */
+.noticed{ background:var(--surface-2); border:1px solid var(--line); border-radius:var(--r-lg); padding:var(--space-5); }
+.noticed p{ margin:0 0 var(--space-3); font-size:15px; color:var(--ink); line-height:1.6; }
+.noticed p:last-child{ margin-bottom:0; }
+.noticed .lbl{ font-weight:700; color:var(--ink-head); }
+
+/* --- email confirmation --- */
+.emailed{ display:flex; gap:var(--space-3); align-items:center; background:var(--success-tint);
+  border:1px solid color-mix(in srgb, var(--success) 30%, #fff); border-radius:var(--r-lg); padding:var(--space-4) var(--space-5); }
+.emailed .ic{ width:38px; height:38px; flex:0 0 auto; border-radius:var(--r-pill); background:var(--success); color:#fff; display:grid; place-items:center; }
+.emailed b{ color:var(--success-ink); font-size:14px; }
+.emailed p{ margin:1px 0 0; font-size:13px; color:var(--ink-muted); }
+
+/* --- trial CTA --- */
+.trial{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-xl); padding:var(--space-6); text-align:center; box-shadow:var(--elev-raise); }
+.trial h2{ font-size:20px; color:var(--ink-head); margin:0 0 var(--space-2); }
+.trial p{ font-size:14px; color:var(--ink-muted); margin:0 auto var(--space-4); max-width:38ch; line-height:1.55; }
+.trial .city{ display:inline-flex; align-items:center; gap:7px; font-size:13px; font-weight:700; color:var(--action-ink);
+  background:var(--action-tint); padding:7px 14px; border-radius:var(--r-pill); margin-bottom:var(--space-5); }
+.btn{ font-family:var(--font-brand); font-weight:600; font-size:16px; min-height:var(--tap-comfort); padding:0 var(--space-6);
+  display:inline-flex; align-items:center; justify-content:center; gap:var(--space-2); border:0; border-radius:var(--r-badge); cursor:pointer;
+  transition:transform var(--dur-fast) var(--ease-out), background var(--dur-fast); }
+.btn:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; box-shadow:var(--focus-ring); }
+.btn--primary{ background:var(--action); color:#fff; box-shadow:var(--elev-cta); width:100%; }
+.btn--primary:hover{ background:var(--action-hover); transform:translateY(-2px); }
+.btn--ghost{ background:transparent; color:var(--action-ink); box-shadow:inset 0 0 0 2px var(--line-strong); }
+.btn svg{ width:20px; height:20px; }
+
+/* --- certificate entry --- */
+.cert{ display:flex; gap:var(--space-4); align-items:center; background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--r-lg); padding:var(--space-4); text-align:left; width:100%; cursor:pointer; }
+.cert:hover{ border-color:var(--action-soft); }
+.cert__thumb{ width:60px; height:75px; flex:0 0 auto; border-radius:var(--r-sm); overflow:hidden; border:1px solid var(--line);
+  background:linear-gradient(0deg,var(--ix-logic-tint),var(--ix-learning-tint)); position:relative; }
+.cert__thumb svg{ position:absolute; inset:0; margin:auto; width:46px; height:46px; }
+.cert__b{ flex:1; min-width:0; }
+.cert__b b{ font-size:15px; color:var(--ink-head); }
+.cert__b p{ margin:2px 0 0; font-size:13px; color:var(--ink-muted); line-height:1.45; }
+.cert__go{ flex:0 0 auto; color:var(--action); }
+
+/* --- disclaimer footnote --- */
+.foot{ padding:var(--space-6) var(--space-5) calc(var(--space-10) + env(safe-area-inset-bottom)); }
+.disc{ font-size:12px; color:var(--ink-faint); line-height:1.6; text-align:center; max-width:44ch; margin:0 auto; }
+
+/* --- desktop adaptation --- */
+@media (min-width:880px){
+  .page{ max-width:1080px; }
+  .deskgrid{ display:grid; grid-template-columns:380px 1fr; gap:var(--space-8); align-items:start; padding:0 var(--space-6) ; }
+  .deskgrid .left{ position:sticky; top:var(--space-6); }
+  .deskgrid .left .hero{ padding-top:var(--space-5); }
+  .deskgrid .right{ padding-top:var(--space-7); }
+  .sec{ padding-left:0; padding-right:0; }
+  .desk-hide-pad{ padding-left:0; padding-right:0; }
+}
+</style>
+</head>
+<body data-validity="valid">
+  <div class="page">
+    <!-- mockup-only controls -->
+    <div class="devbar" aria-hidden="true">
+      <span class="grp"><b>Validity:</b>
+        <button data-val="valid" aria-pressed="true">valid</button>
+        <button data-val="gentle_note">gentle_note</button>
+        <button data-val="not_representative">not_repr.</button>
+      </span>
+    </div>
+
+    <!-- header -->
+    <header class="head">
+      <div class="head__top">
+        <a class="logo" href="#" aria-label="IqUp"><span class="iq">IQ</span><span class="up">UP</span><span class="b">!</span></a>
+        <div class="lang" role="group" aria-label="Language / Јазик">
+          <button data-lang="mk" aria-pressed="true">МК</button>
+          <button data-lang="en" aria-pressed="false">EN</button>
+        </div>
+      </div>
+      <div class="head__intro">
+        <span class="eyebrow" data-i="eyebrow"></span>
+        <h1 data-i="title"></h1>
+        <div class="meta">
+          <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg><span data-i="age"></span></span>
+          <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg><span data-i="gen"></span></span>
+        </div>
+      </div>
+      <svg class="wave" viewBox="0 0 1440 30" preserveAspectRatio="none" aria-hidden="true"><path fill="var(--bg)" d="M0 14 C220 0 360 0 560 12 C760 24 920 30 1120 20 C1280 12 1380 8 1440 12 L1440 30 L0 30 Z"/></svg>
+    </header>
+
+    <div class="deskgrid">
+      <div class="left">
+        <!-- hero pentagon -->
+        <section class="hero">
+          <div class="idp" id="idp"></div>
+          <p class="cap" data-i="hero_cap"></p>
+        </section>
+      </div>
+
+      <div class="right">
+        <!-- gentle not_representative banner -->
+        <div class="gentle" role="status">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+          <div>
+            <b data-i="gentle_h"></b>
+            <p data-i="gentle_p"></p>
+            <div class="retry"><a href="#" data-i="gentle_retry"></a></div>
+          </div>
+        </div>
+
+        <!-- index cards -->
+        <section class="sec">
+          <h3 class="sec__h"><span class="k" data-i="sec_indices"></span></h3>
+          <div class="cards" id="cards"></div>
+        </section>
+
+        <!-- top strength -->
+        <section class="sec">
+          <div class="shine">
+            <span class="shine__star" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.6 6.6L21.5 9l-5.2 4.4 1.8 6.6L12 16.7 5.9 20l1.8-6.6L2.5 9l6.9-.4z"/></svg></span>
+            <div>
+              <div class="shine__k" data-i="shine_k"></div>
+              <div class="shine__t" id="shineT"></div>
+              <p id="shineP"></p>
+            </div>
+          </div>
+        </section>
+
+        <!-- what we noticed -->
+        <section class="sec">
+          <h3 class="sec__h"><span class="k" data-i="sec_noticed"></span></h3>
+          <div class="noticed">
+            <p id="ntOverview"></p>
+            <p><span class="lbl" data-i="nt_style"></span> <span id="ntStyle"></span></p>
+          </div>
+        </section>
+
+        <!-- emailed confirmation -->
+        <section class="sec">
+          <div class="emailed">
+            <span class="ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>
+            <div><b data-i="email_h"></b><p data-i="email_p"></p></div>
+          </div>
+        </section>
+
+        <!-- trial CTA -->
+        <section class="sec">
+          <div class="trial">
+            <h2 data-i="trial_h"></h2>
+            <p data-i="trial_p"></p>
+            <div class="city"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span id="cityName"></span></div>
+            <button class="btn btn--primary"><span data-i="trial_cta"></span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+        </section>
+
+        <!-- certificate entry -->
+        <section class="sec">
+          <h3 class="sec__h"><span class="k" data-i="sec_cert"></span></h3>
+          <button class="cert" id="certEntry">
+            <span class="cert__thumb" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="var(--action)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="5"/><path d="M8.5 13 7 22l5-2.6L17 22l-1.5-9"/></svg></span>
+            <span class="cert__b">
+              <b data-i="cert_h"></b>
+              <p data-i="cert_p"></p>
+            </span>
+            <span class="cert__go" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg></span>
+          </button>
+        </section>
+
+        <!-- disclaimer -->
+        <footer class="foot">
+          <p class="disc" data-i="disclaimer"></p>
+        </footer>
+      </div>
+    </div>
+  </div>
+
+<script src="report-kit.js"></script>
+<script>
+const R = window.IqReport;
+const qp = new URLSearchParams(location.search);
+let lang = qp.get('lang')==='en' ? 'en' : 'mk';
+let validity = ['valid','gentle_note','not_representative'].includes(qp.get('validity')) ? qp.get('validity') : 'valid';
+
+const COPY = {
+  mk:{
+    eyebrow:'Профил на размислување', title:'Профилот на вашето дете',
+    age:'Возраст 8', gen:'Генериран на 23 јуни 2026',
+    hero_cap:'Сите пет области заедно — една целина. Бојата ја покажува областа, не резултат.',
+    gentle_h:'Можеби ова не е најмирниот обид',
+    gentle_p:'Резултатите изгледаат избрзано. Тоа е сосема во ред — пробајте повторно во помирен момент за поверна слика.',
+    gentle_retry:'Пробај повторно →',
+    sec_indices:'Петте области', sec_noticed:'Што забележавме', sec_cert:'Сертификат',
+    shine_k:'Каде блеска вашето дете',
+    nt_style:'Како решава:',
+    email_h:'Целосниот извештај е на пат до вашето сандаче',
+    email_p:'Проверете го е-поштата за PDF со деталите.',
+    trial_h:'Следен чекор: бесплатен пробен час',
+    trial_p:'Видете како вашето дете учи во живо — без обврска.',
+    trial_cta:'Резервирајте бесплатен час',
+    cert_h:'Сертификат „IQ UP! Истражувач"', cert_p:'Радосен спомен за споделување со семејството.',
+    disclaimer:'Информативно, не дијагноза. Ова не е клиничко мерење — опишува како детето пристапи кон играта денес и може да се менува од ден на ден.',
+  },
+  en:{
+    eyebrow:'Thinking profile', title:"Your child's profile",
+    age:'Age 8', gen:'Generated on 23 June 2026',
+    hero_cap:'All five areas together — one whole. Colour shows the area, not a score.',
+    gentle_h:'This may not have been the calmest attempt',
+    gentle_p:'These results look a little rushed. That is completely fine — try again in a calmer moment for a truer picture.',
+    gentle_retry:'Try again →',
+    sec_indices:'The five areas', sec_noticed:'What we noticed', sec_cert:'Certificate',
+    shine_k:'Where your child shines',
+    nt_style:'How they solve:',
+    email_h:'Your full report is on its way to your inbox',
+    email_p:'Check your email for a PDF with the details.',
+    trial_h:'Next step: a free trial class',
+    trial_p:'See how your child learns in person — no commitment.',
+    trial_cta:'Book a free class',
+    cert_h:'“IQ UP! Explorer” certificate', cert_p:'A joyful keepsake to share with the family.',
+    disclaimer:'Informative, not a diagnosis. This is not a clinical measurement — it describes how your child approached the games today and can change from day to day.',
+  }
+};
+
+function confMark(level){
+  const n = level==='high'?3 : level==='medium'?2 : 1;
+  let s='<span class="conf-mark" aria-hidden="true">';
+  for(let i=0;i<3;i++) s+=`<i class="${i<n?'on':''}"></i>`;
+  return s+'</span>';
+}
+
+function render(){
+  const c = COPY[lang]; const S = R.SAMPLE;
+  document.documentElement.lang = lang;
+  document.body.dataset.validity = validity;
+
+  document.querySelectorAll('[data-i]').forEach(el=>{ if(c[el.dataset.i]!==undefined) el.textContent=c[el.dataset.i]; });
+
+  // hero pentagon (identity — same for everyone)
+  document.getElementById('idp').innerHTML = R.identityPentagon({ size:300, lang });
+
+  // index cards
+  document.getElementById('cards').innerHTML = S.indices.map(ix=>{
+    const meta = R.byCode[ix.code];
+    const band = R.BAND[ix.band][lang];
+    return `<article class="ixc" style="--c:var(--ix-${ix.code});--c-tint:var(--ix-${ix.code}-tint);--c-ink:var(--ix-${ix.code}-ink)">
+      <span class="ixc__ico">${R.icon(ix.code,{size:24,stroke:2})}</span>
+      <div class="ixc__main">
+        <div class="ixc__top">
+          <span class="ixc__name">${meta.label[lang]}</span>
+          <span class="ixc__band">${band}</span>
+        </div>
+        <p class="ixc__desc">${ix.desc[lang]}</p>
+        <div class="ixc__conf">
+          <span class="lvl">${lang==='en'?'Confidence':'Сигурност'}: ${R.CONF[ix.conf][lang]} ${confMark(ix.conf)}</span>
+          <span class="txt">${ix.confNote[lang]}</span>
+        </div>
+      </div>
+    </article>`;
+  }).join('');
+
+  // top strength
+  document.getElementById('shineT').textContent = R.byCode[S.topStrength.code].label[lang];
+  document.getElementById('shineP').textContent = S.topStrength[lang];
+
+  // what we noticed
+  document.getElementById('ntOverview').textContent = S.overview[lang];
+  document.getElementById('ntStyle').textContent = S.solvingStyle[lang];
+
+  // city
+  document.getElementById('cityName').textContent = S.iqup.city[lang];
+
+  // dev + lang state
+  document.querySelectorAll('.lang button').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.lang===lang)));
+  document.querySelectorAll('.devbar [data-val]').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.val===validity)));
+}
+
+document.querySelectorAll('.lang button').forEach(b=>b.addEventListener('click',()=>{ lang=b.dataset.lang; render(); }));
+document.querySelectorAll('.devbar [data-val]').forEach(b=>b.addEventListener('click',()=>{ validity=b.dataset.val; render(); }));
+render();
+</script>
+</body>
+</html>

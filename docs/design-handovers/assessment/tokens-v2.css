@@ -1,0 +1,215 @@
+/* ============================================================================
+   IqUp · v2 Assessment — Two-Mood Semantic Token System
+   Part 3 · Phase 3.02 · Design
+   ----------------------------------------------------------------------------
+   Sits ON TOP of the 3.01 brand primitives already in globals.css
+   (Montserrat via next/font, the --iq and --index palette, radius/space/tap scales).
+   This file is the SEMANTIC layer the assessment screens consume. It does NOT
+   redefine the primitives — it names roles and exact values Code lifts into the
+   v2 theme. The v1 tokens.css (Rubik/Nunito/yellow) is untouched & superseded.
+
+   LAW: the index hues are FILLS / ACCENTS / LARGE-DISPLAY — never body text.
+   Text uses --ink-* or a darkened per-index *-ink that clears AA 4.5:1.
+   ============================================================================ */
+
+:root {
+  /* ====================================================== SHARED CORE =======
+     Identical across both moods. The palette, action colour and ink are the
+     constant brand spine; only surface treatment, accent intensity, type
+     scale and density change between moods (see [data-mood] blocks below). */
+
+  /* --- The five index hues (official IqUp palette — locked) --------------- */
+  /* Each hue: -solid (fill / glyph / large display, ≥3:1 graphical)
+              -soft  (chrome / soft chips — one even ramp, ~45% toward white)
+              -tint  (pale wash / selected-tile fill, ~14% toward white)
+              -ink   (DARKENED so text/meaning clears AA 4.5:1 on white) */
+  --ix-logic:        #EC008C;  --ix-logic-soft:#F47CC2;  --ix-logic-tint:#FBDDEF;  --ix-logic-ink:#A8005E;  /* Logical thinking · magenta */
+  --ix-spatial:      #00B6F1;  --ix-spatial-soft:#74D2F7;--ix-spatial-tint:#DAF1FC;--ix-spatial-ink:#0A6A8C;/* Spatial thinking · blue */
+  --ix-memory:       #00B9AD;  --ix-memory-soft:#6FD3CC; --ix-memory-tint:#D9F3F0; --ix-memory-ink:#07655E; /* Memory & focus · teal */
+  --ix-planning:     #F7941D;  --ix-planning-soft:#FBC07A;--ix-planning-tint:#FDEBD3;--ix-planning-ink:#97550A;/* Planning & speed · orange */
+  --ix-learning:     #FFC20E;  --ix-learning-soft:#FFDD78;--ix-learning-tint:#FFF2CC;--ix-learning-ink:#806100;/* Learning & STEM · yellow */
+
+  /* --- Primary action — violet (the one brand hue that is NOT a section) -- */
+  --action:          #762D90;  /* buttons, primary CTAs — 7.4:1 on white (also AA as text) */
+  --action-hover:    #5E2274;  /* pressed / hover — deeper violet */
+  --action-tint:     #EFE4F4;  /* soft violet wash (selected, focus halo bg) */
+  --action-ink:      #5E2274;  /* violet text on white / on tint */
+  --action-soft:     #B98FCB;  /* large decorative violet */
+
+  /* --- Secondary / link (brand sky + highlight blue) --------------------- */
+  --sky:             #6FD0F6;  /* secondary blue — large UI / decorative only (3:1) */
+  --link:            #05B3E9;  /* brand link/highlight blue — UI & large only */
+  --link-ink:        #0784B8;  /* darkened link blue for normal-size link TEXT (AA) */
+
+  /* --- Ink (from the live site, AA-tuned) -------------------------------- */
+  --ink:             #212529;  /* body near-black — 15.3:1 on white */
+  --ink-head:        #3B4757;  /* headings slate — 9.0:1 */
+  --ink-muted:       #5A6675;  /* secondary text (AA 5.2:1) — derived from slate */
+  --ink-faint:       #777777;  /* brand muted grey — large / UI / placeholder only (3.0:1) */
+  --neutral:         #999999;  /* brand neutral — borders / disabled glyphs */
+
+  /* --- Surfaces & wave-band tints (real Cowork / live-site values) ------- */
+  --bg:              #FFFFFF;  /* page base — white dominant */
+  --surface:         #FFFFFF;  /* cards / panels (mostly white, often translucent over waves) */
+  --surface-2:       #FAFCFC;  /* off-white inner panels */
+  --band-1:          #F0F8FB;  /* wave-band tint A — light blue-tint */
+  --band-2:          #EAF5F7;  /* wave-band tint B — light blue-tint (deeper) */
+  --band-3:          #FAFCFC;  /* wave-band tint C — off-white */
+  --line:            #ECEFF2;  /* hairline border */
+  --line-strong:     #D8DEE4;  /* input / divider border */
+  --field:           #F4F7F9;  /* input fill */
+  --scrim:           rgba(33,37,41,.46); /* overlay scrim for reveal/modal */
+
+  /* --- Status (kept minimal; success carries the "growing/positive" read) - */
+  --success:         #1B9E54;  --success-tint:#E2F4E9;  --success-ink:#136B39;
+  --warning:         #E5920F;  --warning-tint:#FCEFD6;  --warning-ink:#7A4E06;
+  --error:           #D7263D;  --error-tint:#FBE4E7;    --error-ink:#951323;
+
+  /* --- Typography (Montserrat — the single mandated typeface) ------------ */
+  --font-brand: "Montserrat", system-ui, "Segoe UI", sans-serif; /* Cyrillic + Latin */
+  --fw-body:    400;   /* Body Regular */
+  --fw-medium:  500;   /* Body Medium */
+  --fw-label:   600;   /* Label / button SemiBold */
+  --fw-sub:     700;   /* Subheading Bold */
+  --fw-display: 800;   /* Display / heading ExtraBold */
+
+  /* --- Radius (3.01 primitives + assessment additions) ------------------- */
+  --r-sm:    10px;
+  --r-md:    12px;
+  --r-card:  14px;   /* 3.01 rounded-card */
+  --r-lg:    18px;   /* 3.01 rounded-card-lg */
+  --r-tile:  20px;   /* answer tiles / large targets */
+  --r-xl:    26px;   /* hero / sheet surfaces */
+  --r-badge: 30px;   /* 3.01 rounded-badge */
+  --r-pill:  999px;
+
+  /* --- Spacing (3.01 --space-1..8 = 4–32px, extended) -------------------- */
+  --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
+  --space-5: 20px; --space-6: 24px; --space-7: 28px; --space-8: 32px;
+  --space-10: 40px; --space-12: 48px; --space-16: 64px; --space-20: 80px;
+
+  /* --- Tap target (child audience) --------------------------------------- */
+  --tap-min: 44px;        /* 3.01 minimum */
+  --tap-comfort: 56px;    /* preferred for answer tiles / primary controls */
+
+  /* --- Minimal elevation recipe -----------------------------------------
+     Depth comes from wave bands + spacing + soft tints. Shadows are reserved
+     for GENUINE elevation only (raised CTA, floating sheet, reveal card). */
+  --elev-none:  none;
+  --elev-raise: 0 6px 20px rgba(33,37,41,.08);   /* a card that truly floats */
+  --elev-pop:   0 14px 34px rgba(33,37,41,.12);  /* sheet / reveal / badge */
+  --elev-cta:   0 8px 22px rgba(118,45,144,.26); /* violet glow under primary CTA */
+
+  /* --- Focus ring (visible, ≥2px, ≥3:1) ---------------------------------- */
+  --focus:        #762D90;                 /* violet ring — 3:1+ on white & on tints */
+  --focus-ring:   0 0 0 3px rgba(118,45,144,.45);
+
+  /* white check glyph (selected tiles / checkboxes) */
+  --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 13l4 4L19 7'/%3E%3C/svg%3E");
+
+  /* --- Motion (transform / opacity only; LazyMotion budget) -------------- */
+  --ease-out:    cubic-bezier(.22,.61,.36,1);
+  --ease-in-out: cubic-bezier(.45,.05,.55,.95);
+  --ease-snap:   cubic-bezier(.34,1.45,.5,1);  /* facet snaps into the brain */
+  --dur-fast:    140ms;
+  --dur-base:    240ms;
+  --dur-slow:    400ms;
+  --dur-celebrate: 640ms;
+
+  /* ===================================================== MOOD: DEFAULTS ====
+     Base = the shared core resolved with neutral mood knobs. The two named
+     moods below override only the four mood dimensions. */
+  --mood-page:       var(--bg);      /* page backdrop */
+  --mood-band:       var(--band-1);  /* the active wave-band tint for this mood */
+  --mood-card:       var(--surface); /* card surface */
+  --mood-accent:     var(--action);  /* the accent the mood leans on by default */
+  --mood-display:    30px;           /* display heading size */
+  --mood-sub:        20px;           /* subheading size */
+  --mood-body:       16px;           /* body size */
+  --mood-gap:        var(--space-5); /* vertical rhythm between blocks */
+  --mood-pad:        var(--space-6); /* card / screen padding */
+  --mood-shape:      1;              /* shape-scale multiplier (brain / icons) */
+  --mood-hue-chrome: .55;            /* how present the section hue is in chrome (0–1) */
+}
+
+/* ============================================================= EXPLORER ====
+   Child-facing: tasks, practice, completion badge.
+   Brighter, more colour, larger shapes, more breathing room, the active
+   section hue more present, the brain motif prominent, encouragement only. */
+[data-mood="explorer"] {
+  --mood-page:       var(--surface-2);   /* warmer off-white so colour pops */
+  --mood-band:       var(--band-1);
+  --mood-card:       var(--surface);
+  --mood-accent:     var(--ix-active, var(--action)); /* the live section hue */
+  --mood-display:    34px;               /* larger display */
+  --mood-sub:        22px;
+  --mood-body:       16px;
+  --mood-gap:        var(--space-7);      /* more breathing room */
+  --mood-pad:        var(--space-7);
+  --mood-shape:      1.12;                /* larger shapes */
+  --mood-hue-chrome: .9;                  /* section hue is present */
+}
+
+/* ============================================================== INSIGHT ====
+   Parent-facing: age-setup intro, the 5–7 parent-assist screen (and, later,
+   the form + results). Calmer, more white space, violet + ink dominant with
+   minimal hue, a slightly tighter type scale, text-forward, trusted-educator. */
+[data-mood="insight"] {
+  --mood-page:       var(--bg);          /* clean white */
+  --mood-band:       var(--band-3);      /* the quietest off-white band */
+  --mood-card:       var(--surface);
+  --mood-accent:     var(--action);      /* violet + ink dominant, minimal hue */
+  --mood-display:    28px;               /* tighter */
+  --mood-sub:        20px;
+  --mood-body:       16px;
+  --mood-gap:        var(--space-5);
+  --mood-pad:        var(--space-6);
+  --mood-shape:      1;
+  --mood-hue-chrome: .25;                 /* hue barely present */
+}
+
+/* ---------------------------------------------------- PER-INDEX BINDING ----
+   While the child is inside a section, set --ix-active / its companions on the
+   screen root (e.g. <main data-section="spatial">) so chrome, the active brain
+   facet, the section icon, selected-state highlights and the within-section
+   indicator all pick up that one hue. */
+[data-section="logic"]    { --ix-active:var(--ix-logic);    --ix-active-soft:var(--ix-logic-soft);    --ix-active-tint:var(--ix-logic-tint);    --ix-active-ink:var(--ix-logic-ink); }
+[data-section="spatial"]  { --ix-active:var(--ix-spatial);  --ix-active-soft:var(--ix-spatial-soft);  --ix-active-tint:var(--ix-spatial-tint);  --ix-active-ink:var(--ix-spatial-ink); }
+[data-section="memory"]   { --ix-active:var(--ix-memory);   --ix-active-soft:var(--ix-memory-soft);   --ix-active-tint:var(--ix-memory-tint);   --ix-active-ink:var(--ix-memory-ink); }
+[data-section="planning"] { --ix-active:var(--ix-planning); --ix-active-soft:var(--ix-planning-soft); --ix-active-tint:var(--ix-planning-tint); --ix-active-ink:var(--ix-planning-ink); }
+[data-section="learning"] { --ix-active:var(--ix-learning); --ix-active-soft:var(--ix-learning-soft); --ix-active-tint:var(--ix-learning-tint); --ix-active-ink:var(--ix-learning-ink); }
+
+/* ------------------------------------------------------ REDUCED MOTION ----- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ------------------------------------------------------------ BASE --------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font-brand);
+  font-size: var(--mood-body);
+  font-weight: var(--fw-body);
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+h1, h2, h3, h4 {
+  font-family: var(--font-brand);
+  font-weight: var(--fw-display);
+  line-height: 1.12;
+  color: var(--ink-head);
+  margin: 0;
+  text-wrap: balance;
+}
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+::selection { background: var(--action-tint); color: var(--action-ink); }

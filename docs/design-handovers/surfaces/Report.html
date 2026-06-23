@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="mk">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>IqUp · PDF report (3 pages) — design reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap&subset=cyrillic,cyrillic-ext,latin" rel="stylesheet" />
+<link rel="stylesheet" href="../assessment/tokens-v2.css" />
+<style>
+/* ============================================================================
+   Surface B · the PDF report — print-quality, formal, the CREDIBILITY document.
+   Built to be expressible in @react-pdf/renderer: FLEXBOX layout, FLAT fills,
+   simple shapes, a FILTER-FREE pentagon, embedded Montserrat. NO Bibi, no
+   characters, no numbers/scores/%. Three A4 pages.
+
+   This HTML mirror uses pt sizing throughout so the design reads in true print
+   units; the page boxes are A4 (210×297mm).
+   ============================================================================ */
+body{ background:#5b6470; margin:0; font-family:var(--font-brand); color:var(--ink); }
+.toolbar{ position:sticky; top:0; z-index:30; display:flex; flex-wrap:wrap; gap:6px 14px; align-items:center; justify-content:center;
+  padding:8px 12px; background:#2A2440; color:#cfc9e6; font-size:11px; font-weight:700; }
+.toolbar .grp{ display:inline-flex; gap:6px; align-items:center; }
+.toolbar button{ font:inherit; cursor:pointer; border:1px solid #4a4366; background:transparent; color:#cfc9e6; padding:4px 10px; border-radius:999px; }
+.toolbar button[aria-pressed="true"]{ background:var(--ix-learning); color:var(--ix-learning-ink); border-color:var(--ix-learning); }
+
+.stack{ display:flex; flex-direction:column; align-items:center; gap:18px; padding:22px 12px 60px; }
+
+/* an A4 page */
+.page{ width:210mm; min-height:297mm; background:#fff; position:relative; overflow:hidden;
+  box-shadow:0 8px 30px rgba(0,0,0,.28); display:flex; flex-direction:column; }
+.pad{ padding:15mm 15mm 10mm; display:flex; flex-direction:column; flex:1; }
+
+/* ---- shared type (print pt) ---- */
+.wordmark{ display:inline-flex; align-items:center; gap:.04em; font-weight:800; font-size:18pt; }
+.wordmark .iq{ color:var(--action); } .wordmark .up{ color:var(--ink-head); }
+.wordmark .b{ background:var(--ix-learning); color:var(--ix-learning-ink); width:1.05em; height:1.3em; display:inline-grid; place-items:center; border-radius:5px; margin-left:.06em; font-size:.92em; }
+.kick{ font-size:8pt; font-weight:800; letter-spacing:.18em; text-transform:uppercase; color:var(--action-ink); }
+h1.cover{ font-size:30pt; line-height:1.05; color:var(--ink-head); font-weight:800; margin:6pt 0; letter-spacing:-.01em; }
+h2.sec{ font-size:15pt; color:var(--ink-head); font-weight:800; margin:0; }
+.lede{ font-size:11pt; color:var(--ink-muted); line-height:1.55; }
+.p{ font-size:10.5pt; color:var(--ink); line-height:1.6; margin:0; }
+.small{ font-size:8.5pt; color:var(--ink-muted); line-height:1.5; }
+
+/* page chrome */
+.toprule{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding-bottom:10pt; border-bottom:2px solid var(--line); }
+.foot{ margin-top:auto; padding-top:10pt; border-top:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; }
+.foot .pg{ font-size:8pt; font-weight:700; color:var(--ink-faint); }
+.foot .fm{ font-size:8pt; color:var(--ink-faint); }
+
+/* ---- PAGE 1 cover ---- */
+.cover-meta{ display:flex; gap:10mm; margin:8pt 0 0; }
+.cover-meta div{ display:flex; flex-direction:column; gap:2pt; }
+.cover-meta .lab{ font-size:8pt; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint); }
+.cover-meta .v{ font-size:11pt; font-weight:700; color:var(--ink-head); }
+.pent-wrap{ display:flex; justify-content:center; padding:6mm 0 4mm; }
+.topstrength{ background:var(--action-tint); border:1pt solid var(--action-soft); border-radius:10pt; padding:9mm 8mm; }
+.topstrength .k{ font-size:8.5pt; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--action-ink); }
+.topstrength .t{ font-size:15pt; font-weight:800; color:var(--ink-head); margin:3pt 0 5pt; }
+.topstrength .p{ font-size:10.5pt; }
+.cover-row{ display:flex; gap:8mm; align-items:stretch; margin-top:8mm; }
+.cover-row .topstrength{ flex:1; }
+
+/* photo slot */
+.photo{ border-radius:10pt; overflow:hidden; display:flex; align-items:center; justify-content:center; text-align:center;
+  border:1.5pt dashed var(--line-strong); background:var(--band-2); color:var(--ink-faint); }
+.photo .ico{ display:block; margin:0 auto 6pt; }
+.photo .cap{ font-size:8.5pt; font-weight:700; max-width:30ch; line-height:1.4; }
+.photo.is-filled{ border:1pt solid var(--line); background:#cdd6dc; color:#67737d; }
+.photo.is-filled .placeholder-art{ position:absolute; }
+.photo--cover{ width:46mm; flex:0 0 auto; }
+.photo--stem{ width:100%; height:30mm; margin-top:4mm; position:relative; }
+
+/* ---- PAGE 2 index detail ---- */
+.ixrow{ display:flex; gap:7mm; padding:6mm 0; border-bottom:1px solid var(--line); }
+.ixrow:last-child{ border-bottom:0; }
+.ixrail{ width:7mm; flex:0 0 auto; border-radius:4pt; background:var(--c); }
+.ixhead{ display:flex; align-items:center; gap:8pt; flex-wrap:wrap; }
+.ixhead .nm{ font-size:13pt; font-weight:800; color:var(--ink-head); }
+.ixhead .band{ font-size:9pt; font-weight:800; padding:2pt 9pt; border-radius:999px; background:var(--c-tint); color:var(--c-ink); }
+.ixbody .p{ margin:4pt 0 6pt; }
+.ixconf{ display:flex; gap:7pt; align-items:baseline; }
+.ixconf .lvl{ font-size:8.5pt; font-weight:800; color:var(--ink-faint); white-space:nowrap; text-transform:uppercase; letter-spacing:.06em; }
+.ixconf .note{ font-size:9pt; color:var(--ink-muted); line-height:1.5; }
+.ixicon{ width:9mm; height:9mm; border-radius:7pt; display:grid; place-items:center; background:var(--c-tint); color:var(--c-ink); flex:0 0 auto; }
+
+/* ---- PAGE 3 narrative ---- */
+.block{ margin-bottom:4.5mm; }
+.block .bh{ font-size:11pt; font-weight:800; color:var(--ink-head); margin:0 0 3pt; display:flex; align-items:center; gap:7pt; }
+.block .bh .dot{ width:9pt; height:9pt; border-radius:999px; background:var(--action); }
+.actlist{ margin:4pt 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:4pt; }
+.actlist li{ display:flex; gap:7pt; font-size:10pt; color:var(--ink); line-height:1.5; }
+.actlist li .n{ width:6mm; height:6mm; flex:0 0 auto; border-radius:999px; background:var(--action-tint); color:var(--action-ink); font-size:8.5pt; font-weight:800; display:grid; place-items:center; }
+.stem-card{ background:var(--ix-spatial-tint); border-radius:10pt; padding:5mm 6mm; }
+.stem-card .bridge{ margin-top:5pt; font-size:9.5pt; color:var(--ix-spatial-ink); font-weight:600; line-height:1.5; }
+.iqup-card{ background:var(--action-tint); border-radius:10pt; padding:5mm 6mm; display:flex; flex-direction:column; gap:5pt; }
+.iqup-card .prog{ display:inline-flex; align-self:flex-start; gap:6pt; align-items:center; font-size:9pt; font-weight:700; color:var(--action-ink); background:#fff; padding:4pt 10pt; border-radius:999px; }
+.cta{ align-self:flex-start; background:var(--action); color:#fff; font-size:10pt; font-weight:700; padding:6pt 14pt; border-radius:999px; }
+.disc{ background:var(--field); border-radius:8pt; padding:4mm 6mm; }
+.disc .p{ font-size:9pt; color:var(--ink-muted); }
+.disc .honesty{ font-size:8.5pt; color:var(--ink-faint); margin-top:4pt; font-style:italic; }
+
+@media print{
+  body{ background:#fff; } .toolbar{ display:none; } .stack{ gap:0; padding:0; }
+  .page{ box-shadow:none; margin:0; page-break-after:always; }
+}
+</style>
+</head>
+<body>
+  <div class="toolbar" aria-hidden="true">
+    <span class="grp"><b>Lang:</b><button data-lang="mk" aria-pressed="true">МК</button><button data-lang="en">EN</button></span>
+    <span class="grp"><b>Photo slots:</b><button data-photo="empty" aria-pressed="true">empty</button><button data-photo="filled">filled</button></span>
+  </div>
+
+  <div class="stack">
+    <!-- ============ PAGE 1 — COVER / SUMMARY ============ -->
+    <section class="page" id="p1">
+      <div class="pad">
+        <div class="toprule">
+          <div class="wordmark"><span class="iq">IQ</span><span class="up">UP</span><span class="b">!</span></div>
+          <div class="kick" data-i="report_kick"></div>
+        </div>
+
+        <div style="padding-top:8mm">
+          <div class="kick" data-i="cover_eyebrow"></div>
+          <h1 class="cover" data-i="cover_title"></h1>
+          <div class="cover-meta">
+            <div><span class="lab" data-i="m_age"></span><span class="v" id="cv_age"></span></div>
+            <div><span class="lab" data-i="m_gen"></span><span class="v" id="cv_gen"></span></div>
+            <div><span class="lab" data-i="m_city"></span><span class="v" id="cv_city"></span></div>
+          </div>
+        </div>
+
+        <div class="pent-wrap" id="cv_pent"></div>
+
+        <div class="cover-row">
+          <div class="topstrength">
+            <div class="k" data-i="cover_top_k"></div>
+            <div class="t" id="cv_topName"></div>
+            <p class="p" id="cv_topText"></p>
+          </div>
+          <div class="photo photo--cover" id="photo_cover">
+            <div>
+              <svg class="ico" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.2"/><path d="M8 6l1.5-2h5L16 6"/></svg>
+              <span class="cap" data-i="photo_cover"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="foot">
+          <span class="pg">1 / 3</span>
+          <span class="fm" data-i="foot_motto"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PAGE 2 — THE FIVE INDICES ============ -->
+    <section class="page" id="p2">
+      <div class="pad">
+        <div class="toprule">
+          <h2 class="sec" data-i="p2_title"></h2>
+          <div class="kick">2 / 3</div>
+        </div>
+        <p class="lede" data-i="p2_lede" style="margin:8pt 0 2mm"></p>
+        <div id="ixlist"></div>
+        <div class="foot">
+          <span class="pg">2 / 3</span>
+          <span class="fm" data-i="foot_motto2"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PAGE 3 — NARRATIVE + NEXT STEPS ============ -->
+    <section class="page" id="p3">
+      <div class="pad">
+        <div class="toprule">
+          <h2 class="sec" data-i="p3_title"></h2>
+          <div class="kick">3 / 3</div>
+        </div>
+
+        <div style="padding-top:3mm">
+          <div class="block">
+            <div class="bh"><span class="dot"></span><span data-i="b_overview"></span></div>
+            <p class="p" id="n_overview"></p>
+          </div>
+
+          <div class="block">
+            <div class="bh"><span class="dot"></span><span data-i="b_growth"></span></div>
+            <p class="p" id="n_growth"></p>
+            <p class="small" id="n_growthAct" style="margin-top:3pt"></p>
+          </div>
+
+          <div class="block">
+            <div class="bh"><span class="dot"></span><span data-i="b_home"></span></div>
+            <ul class="actlist" id="n_home"></ul>
+          </div>
+
+          <div class="block">
+            <div class="bh"><span class="dot"></span><span data-i="b_stem"></span></div>
+            <div class="stem-card">
+              <p class="p" id="n_stem"></p>
+              <p class="bridge" id="n_bridge"></p>
+            </div>
+            <div class="photo photo--stem" id="photo_stem">
+              <div>
+                <svg class="ico" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.2"/><path d="M8 6l1.5-2h5L16 6"/></svg>
+                <span class="cap" data-i="photo_stem"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="block">
+            <div class="iqup-card">
+              <div class="bh" style="margin:0"><span class="dot"></span><span data-i="b_iqup"></span></div>
+              <p class="p" id="n_iqup"></p>
+              <span class="prog"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.7 6.2.6-4.7 4.1 1.4 6.1L12 16.9 6.6 19.5 8 13.4 3.3 9.3l6.2-.6z"/></svg><span id="n_prog"></span></span>
+              <span class="cta" id="n_cta"></span>
+            </div>
+          </div>
+
+          <div class="disc">
+            <p class="p" id="n_disc"></p>
+            <p class="honesty" id="n_honesty"></p>
+          </div>
+        </div>
+
+        <div class="foot">
+          <span class="pg">3 / 3</span>
+          <span class="fm" data-i="foot_motto3"></span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+<script src="report-kit.js"></script>
+<script>
+const R = window.IqReport;
+const qp = new URLSearchParams(location.search);
+let lang = qp.get('lang')==='en' ? 'en' : 'mk';
+let photo = qp.get('photo')==='filled' ? 'filled' : 'empty';
+
+const COPY = {
+  mk:{
+    report_kick:'Извештај за размислување',
+    cover_eyebrow:'Профил на детето · IqUp', cover_title:'Профил на размислување',
+    m_age:'Возраст', m_gen:'Генерирано', m_city:'Град',
+    cover_top_k:'Водечка сила', photo_cover:'По избор: фотографија од дете во IqUp (се додава подоцна)',
+    foot_motto:'Информативно, не дијагноза · IqUp 2026',
+    p2_title:'Петте области во детали',
+    p2_lede:'Секоја област е прикажана со збор за нивото, реченица за сигурноста на читањето и краток опис. Без бројки, без оценки.',
+    foot_motto2:'IqUp · учење преку игра',
+    p3_title:'Целина и следни чекори',
+    b_overview:'Општ профил', b_growth:'Простор за раст', b_home:'Активности дома',
+    b_stem:'Подготвеност за СТЕМ', b_iqup:'За IqUp',
+    photo_stem:'По избор: фотографија од активност во IqUp (се додава подоцна)',
+    foot_motto3:'IqUp · од светот на Биби',
+  },
+  en:{
+    report_kick:'Thinking report',
+    cover_eyebrow:"Child's profile · IqUp", cover_title:'Thinking profile',
+    m_age:'Age', m_gen:'Generated', m_city:'City',
+    cover_top_k:'Leading strength', photo_cover:'Optional: a photo of a child at IqUp (drops in later)',
+    foot_motto:'Informative, not a diagnosis · IqUp 2026',
+    p2_title:'The five areas in detail',
+    p2_lede:'Each area is shown with a word for its level, a sentence on how confident the reading is, and a short description. No numbers, no scores.',
+    foot_motto2:'IqUp · learning through play',
+    p3_title:'The whole picture & next steps',
+    b_overview:'Overall profile', b_growth:'Room to grow', b_home:'Activities at home',
+    b_stem:'STEM readiness', b_iqup:'About IqUp',
+    photo_stem:'Optional: a photo of an IqUp activity (drops in later)',
+    foot_motto3:'IqUp · from the world of Bibi',
+  }
+};
+
+function render(){
+  const c = COPY[lang], S = R.SAMPLE;
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i]').forEach(el=>{ if(c[el.dataset.i]!==undefined) el.textContent=c[el.dataset.i]; });
+
+  // cover meta
+  document.getElementById('cv_age').textContent = (lang==='en'?'8 years':'8 години');
+  document.getElementById('cv_gen').textContent = S.meta.generatedOn[lang];
+  document.getElementById('cv_city').textContent = S.iqup.city[lang];
+
+  // cover pentagon (identity)
+  document.getElementById('cv_pent').innerHTML = R.identityPentagon({ size:300, lang });
+
+  // top strength
+  document.getElementById('cv_topName').textContent = R.byCode[S.topStrength.code].label[lang];
+  document.getElementById('cv_topText').textContent = S.topStrength[lang];
+
+  // page 2 — index detail
+  document.getElementById('ixlist').innerHTML = S.indices.map(ix=>{
+    const meta = R.byCode[ix.code]; const band = R.BAND[ix.band][lang];
+    return `<div class="ixrow" style="--c:var(--ix-${ix.code});--c-tint:var(--ix-${ix.code}-tint);--c-ink:var(--ix-${ix.code}-ink)">
+      <span class="ixrail"></span>
+      <span class="ixicon">${R.icon(ix.code,{size:22,stroke:2})}</span>
+      <div class="ixbody" style="flex:1">
+        <div class="ixhead"><span class="nm">${meta.label[lang]}</span><span class="band">${band}</span></div>
+        <p class="p">${ix.desc[lang]}</p>
+        <div class="ixconf">
+          <span class="lvl">${lang==='en'?'Confidence':'Сигурност'}: ${R.CONF[ix.conf][lang]}</span>
+          <span class="note">${ix.confNote[lang]}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // page 3 narrative
+  document.getElementById('n_overview').textContent = S.overview[lang];
+  document.getElementById('n_growth').textContent = S.growthArea[lang];
+  document.getElementById('n_growthAct').textContent = '↳ ' + S.growthArea.activity[lang];
+  document.getElementById('n_home').innerHTML = S.homeActivities.map((a,i)=>
+    `<li><span class="n">${i+1}</span><span>${a[lang]}</span></li>`).join('');
+  document.getElementById('n_stem').textContent = S.stemReadiness[lang];
+  document.getElementById('n_bridge').textContent = '→ ' + S.stemReadiness.bridge[lang];
+  document.getElementById('n_iqup').textContent = S.iqup[lang];
+  document.getElementById('n_prog').textContent = S.iqup.program[lang];
+  document.getElementById('n_cta').textContent = S.iqup.cta[lang] + ' · ' + S.iqup.city[lang];
+  document.getElementById('n_disc').textContent = S.disclaimer[lang];
+  document.getElementById('n_honesty').textContent = S.disclaimer.honesty[lang];
+
+  // photo slots
+  applyPhoto();
+
+  document.querySelectorAll('.toolbar [data-lang]').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.lang===lang)));
+  document.querySelectorAll('.toolbar [data-photo]').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.photo===photo)));
+}
+
+function applyPhoto(){
+  const filled = photo==='filled';
+  ['photo_cover','photo_stem'].forEach(id=>{
+    const el = document.getElementById(id);
+    el.classList.toggle('is-filled', filled);
+    if(filled){
+      el.innerHTML = `<div style="text-align:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.2"/><path d="M8 6l1.5-2h5L16 6"/></svg><div style="font-size:8pt;font-weight:700;margin-top:5pt">${lang==='en'?'[ sample IqUp photo ]':'[ примерна IqUp фотографија ]'}</div></div>`;
+    }
+  });
+  // restore empty markup if toggled back
+  if(!filled){
+    const capCover = COPY[lang].photo_cover, capStem = COPY[lang].photo_stem;
+    document.getElementById('photo_cover').innerHTML = photoEmpty(capCover);
+    document.getElementById('photo_stem').innerHTML = photoEmpty(capStem);
+  }
+}
+function photoEmpty(cap){
+  return `<div><svg class="ico" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.2"/><path d="M8 6l1.5-2h5L16 6"/></svg><span class="cap">${cap}</span></div>`;
+}
+
+document.querySelectorAll('.toolbar [data-lang]').forEach(b=>b.addEventListener('click',()=>{ lang=b.dataset.lang; render(); }));
+document.querySelectorAll('.toolbar [data-photo]').forEach(b=>b.addEventListener('click',()=>{ photo=b.dataset.photo; render(); }));
+render();
+</script>
+</body>
+</html>
