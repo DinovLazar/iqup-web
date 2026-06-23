@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored design-handover reference surfaces (standalone browser HTML/JS to
+    // PORT, not app source — e.g. the 3.08 surfaces + report-kit.js).
+    "docs/**",
   ]),
 ]);
 

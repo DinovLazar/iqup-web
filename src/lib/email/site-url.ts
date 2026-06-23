@@ -48,3 +48,29 @@ export function trialBookingUrl(locale: Locale, utmCampaign?: string): string {
   u.searchParams.set('utm_campaign', utmCampaign);
   return u.toString();
 }
+
+/**
+ * The on-screen demo-class CTA target for the v2 results screen (Phase 3.09) —
+ * resolves the 3.07 `?grad` seam so the CTA is NEVER a dead link before the real
+ * IqUp booking URL lands.
+ *
+ * Prefers `NEXT_PUBLIC_BOOKING_URL` (the real booking flow, pending IqUp); until
+ * that env var is set it falls back to the localized `/trial` page via
+ * `trialBookingUrl`. Either way the chosen centre is carried as `?grad=${cityKey}`
+ * — `cityKey` is the STABLE centre id (the `?grad` value `ReportContent.iqup.city`
+ * carries), never a localized display label, and the only thing ever put in the
+ * URL (no PII). Isomorphic: `NEXT_PUBLIC_*` is inlined for the client island.
+ */
+export function bookingUrlFor(locale: Locale, cityKey: string): string {
+  const configured = process.env.NEXT_PUBLIC_BOOKING_URL?.trim();
+  const target = configured && configured.length > 0 ? configured : trialBookingUrl(locale);
+  try {
+    const u = new URL(target);
+    u.searchParams.set('grad', cityKey);
+    return u.toString();
+  } catch {
+    // A relative/malformed configured value — append the param defensively.
+    const sep = target.includes('?') ? '&' : '?';
+    return `${target}${sep}grad=${encodeURIComponent(cityKey)}`;
+  }
+}

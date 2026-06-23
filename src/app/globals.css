@@ -108,6 +108,47 @@
 
   /* minimum tap target for children — ≥44px (spec Прилог G / §18.5) */
   --tap-min: 2.75rem;         /* 44px */
+
+  /* v2 SEMANTIC LAYER — Phase 3.09 (the parent-facing results screen / "Insight"
+     mood). Lifts the 3.02 design token roles (docs/design-handovers/assessment/
+     tokens-v2.css) the payoff surfaces consume but globals.css never received.
+     Additive & non-breaking; the official hues stay SINGLE-SOURCED by aliasing
+     --ix-* to the --iq-* primitives above (no new identity). Only the genuinely-
+     new ramps / inks / surfaces carry literal values, copied from tokens-v2.css.
+     Text never uses a raw index hue — only the darkened *-ink (AA ≥4.5:1). */
+  /* the five index hues → official primitives, + soft/tint/ink ramps */
+  --ix-logic: var(--iq-magenta);
+  --ix-logic-soft: #f47cc2;   --ix-logic-tint: #fbddef;   --ix-logic-ink: #a8005e;
+  --ix-spatial: var(--iq-blue);
+  --ix-spatial-soft: #74d2f7; --ix-spatial-tint: #daf1fc; --ix-spatial-ink: #0a6a8c;
+  --ix-memory: var(--iq-teal);
+  --ix-memory-soft: #6fd3cc;  --ix-memory-tint: #d9f3f0;  --ix-memory-ink: #07655e;
+  --ix-planning: var(--iq-orange);
+  --ix-planning-soft: #fbc07a;--ix-planning-tint: #fdebd3;--ix-planning-ink: #97550a;
+  --ix-learning: var(--iq-yellow);
+  --ix-learning-soft: #ffdd78;--ix-learning-tint: #fff2cc;--ix-learning-ink: #806100;
+
+  /* primary action — violet (aliased to the primitive) + its ramp */
+  --action: var(--iq-violet);
+  --action-hover: #5e2274; --action-tint: #efe4f4; --action-ink: #5e2274; --action-soft: #b98fcb;
+
+  /* additional ink levels (the v1 --ink/-soft/-faint stay; head/muted are new) */
+  --ink-head: #3b4757;  --ink-muted: #5a6675;  --neutral: #999999;
+
+  /* surfaces, wave-band tints, hairlines (aliased to white where one exists) */
+  --bg: var(--background);  --surface: var(--card);  --surface-2: #fafcfc;
+  --band-1: #f0f8fb;  --band-2: #eaf5f7;  --band-3: #fafcfc;
+  --line: #eceff2;  --line-strong: #d8dee4;
+
+  /* radius + tap (named to match the design system; primitives stay) */
+  --r-sm: 10px; --r-md: 12px; --r-lg: 18px; --r-xl: 26px; --r-badge: 30px; --r-pill: 999px;
+  --tap-comfort: 3.5rem;   /* 56px */
+
+  /* minimal elevation + focus + motion */
+  --elev-raise: 0 6px 20px rgba(33, 37, 41, 0.08);
+  --elev-cta: 0 8px 22px rgba(118, 45, 144, 0.26);
+  --focus: #762d90;  --focus-ring: 0 0 0 3px rgba(118, 45, 144, 0.45);
+  --dur-fast: 140ms;
 }
 
 @theme inline {
@@ -231,4 +272,125 @@
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* =========================================================================
+   Phase 3.09 — the on-screen results screen (Surface A, "Insight" mood).
+   Ported from docs/design-handovers/surfaces/Results.html. Scoped under
+   `.iq-results` so it never leaks into the rest of the app; the React island
+   stays pure TSX (no CSS-module import) so it renders under Vitest's Node env.
+   No magnitude anywhere — bands are words, the pentagon is identity, confidence
+   is a word + a non-numeric pip mark. (handover §1–2)
+   ========================================================================= */
+.iq-results {
+  --c: var(--ix-logic); /* per-card hue, set inline */
+  max-width: 520px;
+  margin: 0 auto;
+  font-family: var(--font-brand);
+  color: var(--ink);
+}
+.iq-results :where(svg) { display: block; }
+
+/* header over a soft wave band */
+.iqr-head { position: relative; background: var(--band-1); padding: var(--space-6) var(--space-5) 0; overflow: hidden; }
+.iqr-head__top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.iqr-logo { display: inline-flex; align-items: center; font-weight: 800; font-size: 20px; text-decoration: none; }
+.iqr-logo .iq { color: var(--action); }
+.iqr-logo .up { color: var(--ink-head); }
+.iqr-logo .b { background: var(--ix-learning); color: var(--ix-learning-ink); width: 1.1em; height: 1.35em; display: inline-grid; place-items: center; border-radius: 6px; margin-left: 0.08em; }
+.iqr-head__intro { padding: var(--space-5) 0 var(--space-4); }
+.iqr-eyebrow { font-size: 12px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--action-ink); }
+.iqr-head h1 { font-size: 28px; color: var(--ink-head); margin: var(--space-2) 0; line-height: 1.1; font-weight: 800; }
+.iqr-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--ink-muted); font-weight: 600; }
+.iqr-meta span { display: inline-flex; align-items: center; gap: 6px; }
+.iqr-meta svg { color: var(--action-soft); }
+.iqr-wave { display: block; width: 100%; height: 30px; margin-top: var(--space-4); }
+
+/* hero pentagon */
+.iqr-hero { padding: var(--space-7) var(--space-5) var(--space-5); text-align: center; }
+.iqr-hero .iqr-idp { width: 300px; max-width: 84%; margin: 0 auto; }
+.iqr-cap { font-size: 13px; color: var(--ink-muted); margin-top: var(--space-3); max-width: 34ch; margin-inline: auto; line-height: 1.5; }
+
+/* gentle / not-representative validity note */
+.iqr-validity { margin: 0 var(--space-5) var(--space-2); border-radius: var(--r-lg); padding: var(--space-4); display: flex; gap: var(--space-3); align-items: flex-start; }
+.iqr-validity--gentle { background: var(--surface-2); border: 1px solid var(--line-strong); }
+.iqr-validity--caveat { background: var(--warning-tint); border: 1px solid var(--warning); }
+.iqr-validity svg { flex: 0 0 auto; margin-top: 2px; }
+.iqr-validity--gentle svg { color: var(--ink-muted); }
+.iqr-validity--caveat svg { color: var(--warning-ink); }
+.iqr-validity b { color: var(--ink-head); display: block; font-size: 14px; }
+.iqr-validity p { margin: 2px 0 0; font-size: 13px; color: var(--ink-muted); line-height: 1.5; }
+.iqr-validity a { display: inline-block; margin-top: var(--space-3); font-size: 13px; font-weight: 700; color: var(--action-ink); }
+
+/* section scaffold */
+.iqr-sec { padding: var(--space-5) var(--space-5) 0; }
+.iqr-sec__h { font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--action-ink); margin: 0 0 var(--space-4); }
+
+/* index cards */
+.iqr-cards { display: flex; flex-direction: column; gap: var(--space-3); }
+.iqr-card { position: relative; display: grid; grid-template-columns: auto 1fr; gap: var(--space-4); background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--c); border-radius: var(--r-lg); padding: var(--space-4) var(--space-4) var(--space-4) var(--space-5); }
+.iqr-card__ico { width: 44px; height: 44px; border-radius: var(--r-md); display: grid; place-items: center; background: var(--c-tint); color: var(--c-ink); }
+.iqr-card__main { min-width: 0; }
+.iqr-card__top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; }
+.iqr-card__name { font-size: 16px; font-weight: 700; color: var(--ink-head); }
+.iqr-card__band { font-size: 12px; font-weight: 800; padding: 3px 10px; border-radius: var(--r-pill); background: var(--c-tint); color: var(--c-ink); white-space: nowrap; }
+.iqr-card__conf { margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px dashed var(--line); display: flex; gap: 8px; align-items: flex-start; }
+.iqr-card__lvl { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--ink-muted); white-space: nowrap; flex: 0 0 auto; }
+.iqr-pips { display: inline-flex; gap: 2px; align-items: center; }
+.iqr-pips i { width: 5px; height: 5px; border-radius: var(--r-pill); background: var(--neutral); }
+.iqr-pips i.on { background: var(--ink-muted); }
+.iqr-card__note { font-size: 12px; color: var(--ink-muted); line-height: 1.45; }
+
+/* top strength callout */
+.iqr-shine { background: var(--action-tint); border: 1px solid var(--action-soft); border-radius: var(--r-lg); padding: var(--space-5); display: flex; gap: var(--space-4); align-items: flex-start; }
+.iqr-shine__star { width: 42px; height: 42px; flex: 0 0 auto; border-radius: var(--r-pill); background: var(--action); color: #fff; display: grid; place-items: center; }
+.iqr-shine__k { font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--action-ink); }
+.iqr-shine__t { font-size: 17px; font-weight: 700; color: var(--ink-head); margin: 2px 0 6px; }
+.iqr-shine p { margin: 0; font-size: 14px; color: var(--ink); line-height: 1.55; }
+
+/* what we noticed */
+.iqr-noticed { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--space-5); }
+.iqr-noticed p { margin: 0 0 var(--space-3); font-size: 15px; color: var(--ink); line-height: 1.6; }
+.iqr-noticed p:last-child { margin-bottom: 0; }
+.iqr-noticed .lbl { font-weight: 700; color: var(--ink-head); }
+
+/* report-emailed confirmation */
+.iqr-emailed { display: flex; gap: var(--space-3); align-items: center; background: var(--success-tint); border: 1px solid color-mix(in srgb, var(--success) 30%, #fff); border-radius: var(--r-lg); padding: var(--space-4) var(--space-5); }
+.iqr-emailed .ic { width: 38px; height: 38px; flex: 0 0 auto; border-radius: var(--r-pill); background: var(--success); color: #fff; display: grid; place-items: center; }
+.iqr-emailed b { color: var(--success-ink); font-size: 14px; }
+.iqr-emailed p { margin: 1px 0 0; font-size: 13px; color: var(--ink-muted); }
+
+/* trial CTA */
+.iqr-trial { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-xl); padding: var(--space-6); text-align: center; box-shadow: var(--elev-raise); }
+.iqr-trial h2 { font-size: 20px; color: var(--ink-head); margin: 0 0 var(--space-2); font-weight: 800; }
+.iqr-trial p { font-size: 14px; color: var(--ink-muted); margin: 0 auto var(--space-4); max-width: 38ch; line-height: 1.55; }
+.iqr-city { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; color: var(--action-ink); background: var(--action-tint); padding: 7px 14px; border-radius: var(--r-pill); margin-bottom: var(--space-5); }
+.iqr-btn { font-family: var(--font-brand); font-weight: 600; font-size: 16px; min-height: var(--tap-comfort); padding: 0 var(--space-6); display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); border: 0; border-radius: var(--r-badge); cursor: pointer; text-decoration: none; background: var(--action); color: #fff; box-shadow: var(--elev-cta); width: 100%; transition: transform var(--dur-fast) var(--ease-out), background var(--dur-fast); }
+.iqr-btn:hover { background: var(--action-hover); transform: translateY(-2px); }
+.iqr-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; box-shadow: var(--focus-ring); }
+.iqr-btn svg { width: 20px; height: 20px; }
+
+/* certificate entry */
+.iqr-cert { display: flex; gap: var(--space-4); align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--space-4); text-align: left; width: 100%; cursor: pointer; font: inherit; color: inherit; }
+.iqr-cert:hover { border-color: var(--action-soft); }
+.iqr-cert:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; box-shadow: var(--focus-ring); }
+.iqr-cert__thumb { width: 60px; height: 75px; flex: 0 0 auto; border-radius: var(--r-sm); overflow: hidden; border: 1px solid var(--line); background: linear-gradient(0deg, var(--ix-logic-tint), var(--ix-learning-tint)); position: relative; }
+.iqr-cert__thumb svg { position: absolute; inset: 0; margin: auto; width: 46px; height: 46px; }
+.iqr-cert__b { flex: 1; min-width: 0; }
+.iqr-cert__b b { font-size: 15px; color: var(--ink-head); }
+.iqr-cert__b p { margin: 2px 0 0; font-size: 13px; color: var(--ink-muted); line-height: 1.45; }
+.iqr-cert__go { flex: 0 0 auto; color: var(--action); }
+
+/* disclaimer footnote */
+.iqr-foot { padding: var(--space-6) var(--space-5) var(--space-10); }
+.iqr-disc { font-size: 12px; color: var(--ink-muted); line-height: 1.6; text-align: center; max-width: 44ch; margin: 0 auto; }
+
+/* desktop: sticky pentagon + header left, card stack right */
+@media (min-width: 880px) {
+  .iq-results { max-width: 1080px; }
+  .iqr-grid { display: grid; grid-template-columns: 380px 1fr; gap: var(--space-8); align-items: start; padding: 0 var(--space-6); }
+  .iqr-grid .iqr-left { position: sticky; top: var(--space-6); }
+  .iqr-grid .iqr-right { padding-top: var(--space-7); }
+  .iqr-grid .iqr-sec { padding-left: 0; padding-right: 0; }
+  .iqr-grid .iqr-validity { margin-left: 0; margin-right: 0; }
 }

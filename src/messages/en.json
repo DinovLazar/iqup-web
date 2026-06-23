@@ -454,5 +454,30 @@
       "title": "All done — your results are ready!",
       "body": "We're putting your child's report together. Your results will appear here in a moment."
     }
+  },
+  "Results": {
+    "eyebrow": "Thinking profile",
+    "title": "Your child's profile",
+    "ageLabel": "Age {age}",
+    "generatedLabel": "Generated on {date}",
+    "heroCaption": "All five areas together — one whole. The colour marks each area; the shape is the same for everyone.",
+    "sectionIndices": "The five areas",
+    "sectionNoticed": "What we noticed",
+    "sectionCertificate": "Certificate",
+    "shineKicker": "Where your child shines",
+    "confidencePrefix": "Confidence",
+    "solvingStyleLabel": "How they solve:",
+    "emailedHeading": "Your full report is on its way to your inbox",
+    "emailedBody": "Check your email for a PDF with all the details.",
+    "trialHeading": "Next step: a free trial class",
+    "trialBody": "See how your child learns in person — no commitment.",
+    "trialCta": "Book a free class",
+    "certificateHeading": "Your “Explorer” certificate",
+    "certificateBody": "A joyful keepsake to share with the family.",
+    "validity": {
+      "gentleHeading": "A note on today's session",
+      "caveatHeading": "This may not have been the calmest attempt",
+      "retry": "Try again"
+    }
   }
 }

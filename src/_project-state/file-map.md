@@ -35,8 +35,8 @@
 | `src/i18n/request.ts` | Per-request next-intl config; loads `src/messages/<locale>.json`. |
 | `src/i18n/navigation.ts` | Locale-aware navigation APIs (`Link`, `redirect`, `usePathname`, …). |
 | `src/proxy.ts` | Next.js 16 proxy (ex-middleware) applying next-intl locale routing. |
-| `src/messages/mk.json` | Macedonian UI strings (Meta, Landing, Test, Gate, Result, Email, Consent, Privacy, Trial, **Assessment** [v2 flow, Phase 3.05] namespaces; default locale; MK provisional). |
-| `src/messages/en.json` | English UI strings (mirror of mk.json incl. **Assessment**). |
+| `src/messages/mk.json` | Macedonian UI strings (Meta, Landing, Test, Gate, Result, Email, Consent, Privacy, Trial, Assessment, Form, **Results** [v2 results-screen chrome, Phase 3.09] namespaces; default locale; MK provisional). |
+| `src/messages/en.json` | English UI strings (mirror of mk.json incl. **Results**). |
 | `src/messages/messages.test.ts` | Vitest i18n parity suite (identical mk↔en key sets + matching `{placeholders}` + no empty strings; required-key lists incl. the `Email`, `Consent` + `Privacy` namespaces). |
 
 ## App shell & components
@@ -49,7 +49,7 @@
 | `src/app/[locale]/not-found.tsx` | Localized 404 (1.11) — skip-link + header/footer + AA copy, rendered inside the locale layout (correct `<html lang>`). |
 | `src/app/[locale]/[...rest]/page.tsx` | Catch-all (1.11): routes unmatched locale paths through `notFound()` → the localized 404 (avoids the global-not-found hydration mismatch). |
 | `src/app/not-found.tsx` | Global 404 fallback (1.11) for Next's internal `/_not-found` — self-contained `<html>`, bilingual, skip-link, AA contrast. |
-| `src/app/globals.css` | Tailwind v4 + the 1.03 brand tokens (palette, status, strengths, radii, shadows, motion) via `@theme inline`; reduced-motion reset; light-only (no `.dark`). **+ v2 brand primitives (Phase 3.01):** official palette (`--iq-*`, `--index-*`), `--font-brand` Montserrat, `rounded-card/-lg/-badge`, spacing + `--tap-min` (additive; v1 tokens kept). |
+| `src/app/globals.css` | Tailwind v4 + the 1.03 brand tokens (palette, status, strengths, radii, shadows, motion) via `@theme inline`; reduced-motion reset; light-only (no `.dark`). **+ v2 brand primitives (Phase 3.01):** official palette (`--iq-*`, `--index-*`), `--font-brand` Montserrat, `rounded-card/-lg/-badge`, spacing + `--tap-min`. **+ v2 semantic layer + `.iq-results` styles (Phase 3.09):** the `--ix-*` ramps, `--action*`, `--band-*`, `--surface-2`, `--ink-head/-muted`, `--neutral`, `--line*`, `--r-*`, `--tap-comfort`, `--elev-*`, `--focus*`, `--dur-fast` (lifted from `tokens-v2.css`; `--ix-*`→`--iq-*`) + the scoped results-screen CSS (all additive; v1 tokens kept). |
 | `src/app/favicon.ico` | Default favicon (placeholder until brand asset lands). |
 | `src/components/LanguageToggle.tsx` | Accessible MK/EN pill switcher; preserves the current path **and query string** (so a mid-test `?age` survives the switch — 1.11); label via prop. |
 | `src/components/ui/button.tsx` | shadcn/ui Button primitive. |
@@ -248,7 +248,8 @@
 
 | Path | Description |
 |---|---|
-| `src/lib/email/site-url.ts` | Pure shared seam: `siteUrlFor(locale)` (locale-prefixed site base) + `trialBookingUrl(locale, utmCampaign?)` — **the single trial target** (`/trial` + optional UTM) for the results email, the three trial nurture emails, and the on-screen surface (phase 2.05, decision #119). |
+| `src/lib/email/site-url.ts` | Pure shared seam: `siteUrlFor(locale)` (locale-prefixed site base) + `trialBookingUrl(locale, utmCampaign?)` — **the single trial target** (`/trial` + optional UTM) for the results email, the three trial nurture emails, and the on-screen surface (phase 2.05, decision #119). **+ `bookingUrlFor(locale, cityKey)` (3.09):** the results-screen demo CTA target — `NEXT_PUBLIC_BOOKING_URL` else `/trial`, always `?grad=<centre-id>`. |
+| `src/lib/email/site-url.test.ts` | **New (3.09)** — `bookingUrlFor` (env set/unset, `?grad` merge, stable-slug-not-label) + `siteUrlFor`/`trialBookingUrl` baseline. |
 | `src/emails/nurture/copy.ts` | Bilingual (MK+EN) copy for all four nurture emails (subject/preview/heading/greeting/intro/body/cta/footer) + the `MERGE` tags + the legal/postal line; reuses the 2.01 `Email.footer` identity/signoff. No numbers; child-name merge tag with a graceful fallback. MK provisional. |
 | `src/emails/nurture/links.ts` | The single link source: per-email `UTM_CAMPAIGN`, `withUtm`, and `ctaHref` — trial emails via `trialBookingUrl` (`/trial`); `welcome-general` keeps its general site-root link (phase 2.05). |
 | `src/emails/nurture/styles.ts` | Shared style objects — a faithful reuse of the 2.01 `ResultsEmail` presentation (literal-hex brand, web-safe fonts, same container/button/footer). Not a parallel design system. |
@@ -380,10 +381,15 @@
 | `src/lib/leads/submit-assessment.ts` | `'use server'` action: honeypot → re-validate lead → Store A via `after()` (isolated, non-blocking) + Brevo inline (isolated, primary, non-trapping); two payloads, no shared key. |
 | `src/lib/leads/lead-context-v2.ts` | `iqup.leadContext.v2` (`{parentFirstName, city, submittedAt}`) — the minimal 3.09 hand-off (no email, no scores). |
 | `src/lib/leads/{assessment-lead,upsert-assessment-lead,submit-assessment}.test.ts` | Vitest: Brevo mapping + consent→list, no-key no-op + never-throw + recoverable log, honeypot/non-trapping + **unlinkability** (no shared key, anon payload PII-free, Brevo id discarded). |
-| `src/components/report/ReportFlow.tsx` | The form + interstitial client island: reads the persisted run (SSR-safe `useSyncExternalStore`), recomputes the profile client-side, captures parent + 3 consents + honeypot, writes both stores, lands on the interstitial. WCAG 2.2 AA. `// HANDOFF (3.09)` / `// SEAM (3.10)` notes. |
+| `src/components/report/ReportFlow.tsx` | **Modified (3.09)** — the form + results client island: reads the persisted run + `iqup.leadContext.v2` (SSR-safe `useSyncExternalStore`), recomputes the profile client-side, captures parent + 3 consents + honeypot, writes both stores, then reveals `ResultsScreen` (the former interstitial is gone). Refresh re-reveals; `// SEAM (3.10)/(3.11)/(3.12)` left. WCAG 2.2 AA. |
+| `src/components/report/ResultsScreen.tsx` | **New (3.09)** — Surface A results screen (pure/presentational; props `report`/`copy`/`locale`/`bookingUrl`). Header + pentagon + five index cards + top strength + what-we-noticed + emailed strip + demo CTA + cert entry + disclaimer. No magnitude; deterministic date formatter; node-renderable. |
+| `src/components/report/IdentityPentagon.tsx` | **New (3.09)** — the magnitude-free identity pentagon (React/SVG port of the kit's `identityPentagon()`; same shape & size for everyone; `var(--ix-*)` fills; `dim` for the caveated read; filter-free for 3.10's PDF). |
+| `src/components/report/index-meta.ts` | **New (3.09)** — `INDEX_META`/`INDEX_ORDER` keyed by the real `IndexId` → pentagon angle, hue slug, short label (MK/EN), card glyph. |
+| `src/components/report/results-copy.ts` | **New (3.09)** — the `ResultsCopy` chrome contract (resolved server-side from the `Results` namespace, threaded to the island). |
+| `src/components/report/results-screen.test.tsx` | **New (3.09)** — renders the screen via `react-dom/server`: rendered-screen forbidden-token + stray-digit scan (both locales × 3 validity states), validity-state rendering, CTA `?grad=`, pentagon byte-identity. |
 | `src/components/report/copy.ts` | The `FormCopy` contract (resolved server-side, threaded to the island). |
-| `src/components/report/index.ts` | Module barrel (`ReportFlow`, `FormCopy`). |
-| `src/app/[locale]/report/page.tsx` | SSG shell (skip-link + header/footer) resolving the `Form` namespace + mounting `ReportFlow`; `robots: noindex`; per-locale metadata. The `// HANDOFF (3.06)` destination. |
+| `src/components/report/index.ts` | **Modified (3.09)** — module barrel (`ReportFlow`, `ResultsScreen`, `IdentityPentagon`, `FormCopy`, `ResultsCopy`). |
+| `src/app/[locale]/report/page.tsx` | **Modified (3.09)** — SSG shell resolving the `Form` **and** `Results` namespaces, mounting `ReportFlow` (container widened to `max-w-[1080px]` for the results two-column); `robots: noindex`. The `// HANDOFF (3.06)` destination. |
 | `src/components/assessment/AssessmentFlow.tsx` | **Modified** — `onContinue` now `router.push('/report')` (the resolved 3.06 seam). |
 | `scripts/test-anonymous-score.ts` | `npm run test:scores` — live Store A RLS proof (anon denied, service-role write/read, day-level date, cleanup). DEFERRED-pending-keys. |
 | `src/messages/{mk,en}.json` | **Modified** — new `Form` namespace (exact MK/EN parity, MK provisional). |

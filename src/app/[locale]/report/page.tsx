@@ -3,7 +3,7 @@ import {getTranslations, setRequestLocale} from 'next-intl/server';
 import type {Locale} from '@/content/locale';
 import {SiteHeader} from '@/components/landing/SiteHeader';
 import {SiteFooter} from '@/components/landing/SiteFooter';
-import {ReportFlow, type FormCopy} from '@/components/report';
+import {ReportFlow, type FormCopy, type ResultsCopy} from '@/components/report';
 
 type Props = {
   params: Promise<{locale: string}>;
@@ -40,6 +40,7 @@ export default async function ReportPage({params}: Props) {
 
   const tA11y = await getTranslations({locale, namespace: 'A11y'});
   const copy = await resolveFormCopy(locale);
+  const resultsCopy = await resolveResultsCopy(locale);
 
   return (
     <>
@@ -51,8 +52,10 @@ export default async function ReportPage({params}: Props) {
       </a>
       <SiteHeader />
       <main id="main-content" className="min-h-[calc(100vh-4rem)] bg-canvas">
-        <div className="mx-auto max-w-2xl px-4 py-10 sm:py-14">
-          <ReportFlow locale={locale as Locale} copy={copy} />
+        {/* Wide enough for the results' desktop two-column layout (≥880px); the
+            form self-centres at max-w-md, so the capture step is unaffected. */}
+        <div className="mx-auto max-w-[1080px] px-4 py-10 sm:py-14">
+          <ReportFlow locale={locale as Locale} copy={copy} results={resultsCopy} />
         </div>
       </main>
       <SiteFooter />
@@ -113,6 +116,39 @@ async function resolveFormCopy(locale: string): Promise<FormCopy> {
     interstitial: {
       title: t('interstitial.title'),
       body: t('interstitial.body')
+    }
+  };
+}
+
+/** Resolve the results-screen CHROME server-side (Phase 3.09). Report CONTENT is
+ *  built client-side from the recomputed profile via `buildReport` — not here. The
+ *  `{age}` / `{date}` labels are read raw (placeholders intact) and interpolated in
+ *  the island; everything else is a finished string. */
+async function resolveResultsCopy(locale: string): Promise<ResultsCopy> {
+  const t = await getTranslations({locale, namespace: 'Results'});
+  return {
+    eyebrow: t('eyebrow'),
+    title: t('title'),
+    ageLabel: String(t.raw('ageLabel')),
+    generatedLabel: String(t.raw('generatedLabel')),
+    heroCaption: t('heroCaption'),
+    sectionIndices: t('sectionIndices'),
+    sectionNoticed: t('sectionNoticed'),
+    sectionCertificate: t('sectionCertificate'),
+    shineKicker: t('shineKicker'),
+    confidencePrefix: t('confidencePrefix'),
+    solvingStyleLabel: t('solvingStyleLabel'),
+    emailedHeading: t('emailedHeading'),
+    emailedBody: t('emailedBody'),
+    trialHeading: t('trialHeading'),
+    trialBody: t('trialBody'),
+    trialCta: t('trialCta'),
+    certificateHeading: t('certificateHeading'),
+    certificateBody: t('certificateBody'),
+    validity: {
+      gentleHeading: t('validity.gentleHeading'),
+      caveatHeading: t('validity.caveatHeading'),
+      retry: t('validity.retry')
     }
   };
 }
