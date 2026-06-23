@@ -1,13 +1,8 @@
 import type {Metadata} from 'next';
 import {getTranslations, setRequestLocale} from 'next-intl/server';
-import type {Locale} from '@/content/locale';
-import {AGES, BANDS, getBandForAge} from '@/lib/bands';
-import {AgeStart, type AgeStartProps} from '@/components/landing/AgeStart';
 import {SiteHeader} from '@/components/landing/SiteHeader';
-import {Card} from '@/components/ui/card';
-import {TestRunner} from '@/components/test/TestRunner';
-import type {TestCopy} from '@/components/test/copy';
-import type {GateCopy} from '@/components/gate/copy';
+import {AssessmentFlow, type AssessmentCopy} from '@/components/assessment';
+import type {TaskType} from '@/content/tasks';
 
 type Props = {
   params: Promise<{locale: string}>;
@@ -37,27 +32,49 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
   };
 }
 
-function readAge(value: string | string[] | undefined): number {
+function readAge(value: string | string[] | undefined): number | undefined {
   const raw = Array.isArray(value) ? value[0] : value;
-  return raw != null && raw.trim() !== '' ? Number(raw) : Number.NaN;
+  if (raw == null || raw.trim() === '') return undefined;
+  const n = Number(raw);
+  return Number.isInteger(n) && n >= 5 && n <= 13 ? n : undefined;
 }
 
+const TASK_TYPES: readonly TaskType[] = [
+  'gf.matrix',
+  'gf.series',
+  'gv.rotation',
+  'gsm.corsi',
+  'gs.symbolSearch',
+  'ef.towerOfLondon',
+  'glr.pairedAssociate',
+  'ct.sequence',
+  'ct.debug',
+  'ct.loop',
+  'ct.conditional',
+  'ct.maze'
+];
+
+/**
+ * The `/test` route is now the **v2 assessment** (Phase 3.05). It supersedes the
+ * v1 `TestRunner`, which is left intact but no longer mounted here (its files,
+ * `/result`, gate, and email code stay until their v2 replacements land — see
+ * Compatibility). The age is read from `?age=N` (the landing's age picker links
+ * here); a missing/invalid age falls back to the flow's own age-setup screen.
+ */
 export default async function TestPage({params, searchParams}: Props) {
   const {locale} = await params;
   setRequestLocale(locale);
   const sp = await searchParams;
 
-  const loc = locale as Locale;
-  const age = readAge(sp.age);
-  const band = getBandForAge(age);
+  const initialAge = readAge(sp.age);
 
   // Dev preview is gated to non-production AND an explicit ?dev=1 — a no-op in prod.
   const devParam = Array.isArray(sp.dev) ? sp.dev[0] : sp.dev;
   const dev =
-    process.env.NODE_ENV !== 'production' &&
-    (devParam === '1' || devParam === 'true');
+    process.env.NODE_ENV !== 'production' && (devParam === '1' || devParam === 'true');
 
   const tA11y = await getTranslations({locale, namespace: 'A11y'});
+  const copy = await resolveAssessmentCopy(locale);
 
   return (
     <>
@@ -69,129 +86,89 @@ export default async function TestPage({params, searchParams}: Props) {
       </a>
       <SiteHeader />
       <main id="main-content" className="min-h-[calc(100vh-4rem)] bg-canvas">
-        {band ? (
-          <TestRunner
-            band={band}
-            bandLabel={await bandLabel(locale, band)}
-            age={age}
-            locale={loc}
-            copy={await resolveCopy(locale)}
-            gateCopy={await resolveGateCopy(locale)}
-            dev={dev}
-          />
-        ) : (
-          <AgePickerFallback locale={locale} />
-        )}
+        <AssessmentFlow copy={copy} initialAge={initialAge} dev={dev} />
       </main>
     </>
   );
 }
 
-/** Resolve the runner's chrome copy server-side (templated strings via `.raw`). */
-async function resolveCopy(locale: string): Promise<TestCopy> {
-  const t = await getTranslations({locale, namespace: 'Test'});
+/** Resolve the whole flow's copy server-side (the island ships no i18n runtime). */
+async function resolveAssessmentCopy(locale: string): Promise<AssessmentCopy> {
+  const t = await getTranslations({locale, namespace: 'Assessment'});
+  const instructions = Object.fromEntries(
+    TASK_TYPES.map((tt) => [tt, t(`instructions.${tt}`)])
+  ) as Record<TaskType, string>;
+
   return {
-    start: {
-      title: t('start.title'),
-      subtitle: t('start.subtitle'),
-      metaCount: t.raw('start.metaCount'),
-      metaTime: t('start.metaTime'),
-      cta: t('start.cta')
+    setup: {
+      title: t('setup.title'),
+      lead: t('setup.lead'),
+      ageQuestion: t('setup.ageQuestion'),
+      ageHint: t('setup.ageHint'),
+      start: t('setup.start'),
+      // Raw template — the `{age}` token is filled client-side in AgeSetup.
+      ariaAge: t.raw('setup.ariaAge') as string
     },
-    progress: t.raw('progress'),
-    progressAria: t.raw('progressAria'),
-    back: t('back'),
-    next: t('next'),
-    finish: t('finish'),
-    reveal: {
-      title: t('reveal.title'),
-      intro: t('reveal.intro'),
-      ready: t('reveal.ready'),
-      show: t('reveal.show'),
-      watching: t('reveal.watching'),
-      hide: t('reveal.hide')
-    }
+    assist: {
+      forParent: t('assist.forParent'),
+      title: t('assist.title'),
+      body: t('assist.body'),
+      rules: t.raw('assist.rules') as string[],
+      checkbox: t('assist.checkbox'),
+      confirm: t('assist.confirm')
+    },
+    practice: {
+      label: t('practice.label'),
+      title: t('practice.title'),
+      intro: t('practice.intro'),
+      ready: t('practice.ready'),
+      calibrationTitle: t('practice.calibrationTitle'),
+      calibrationIntro: t('practice.calibrationIntro'),
+      tapHere: t('practice.tapHere'),
+      calibrating: t('practice.calibrating')
+    },
+    brain: {
+      title: t('brain.title'),
+      doneWord: t('brain.doneWord'),
+      regions: {
+        logical: t('brain.regions.logical'),
+        spatial: t('brain.regions.spatial'),
+        memory: t('brain.regions.memory'),
+        planning: t('brain.regions.planning'),
+        learning: t('brain.regions.learning')
+      }
+    },
+    complete: {
+      title: t('complete.title'),
+      body: t('complete.body'),
+      badgeName: t('complete.badgeName'),
+      badgeTagline: t('complete.badgeTagline'),
+      continue: t('complete.continue'),
+      gentleNote: t('complete.gentleNote')
+    },
+    retry: {
+      title: t('retry.title'),
+      body: t('retry.body'),
+      button: t('retry.button')
+    },
+    task: {
+      confirm: t('task.confirm'),
+      clear: t('task.clear'),
+      reveal: {
+        watch: t('task.reveal.watch'),
+        showButton: t('task.reveal.showButton'),
+        ready: t('task.reveal.ready'),
+        yourTurn: t('task.reveal.yourTurn')
+      },
+      timer: {
+        label: t('task.timer.label'),
+        timeUp: t('task.timer.timeUp')
+      },
+      tower: {
+        movesLabel: t('task.tower.movesLabel'),
+        goalLabel: t('task.tower.goalLabel')
+      }
+    },
+    instructions
   };
-}
-
-/** Resolve the email-gate copy server-side (templated `preview` via `.raw`). */
-async function resolveGateCopy(locale: string): Promise<GateCopy> {
-  const t = await getTranslations({locale, namespace: 'Gate'});
-  return {
-    forParent: t('forParent'),
-    heading: t('heading'),
-    intro: t('intro'),
-    preview: t.raw('preview'),
-    email: {
-      label: t('email.label'),
-      placeholder: t('email.placeholder'),
-      errorRequired: t('email.errorRequired'),
-      errorInvalid: t('email.errorInvalid')
-    },
-    childName: {
-      label: t('childName.label'),
-      placeholder: t('childName.placeholder'),
-      errorRequired: t('childName.errorRequired'),
-      errorTooLong: t('childName.errorTooLong')
-    },
-    consent: {
-      label: t('consent.label'),
-      privacyPrefix: t('consent.privacyPrefix'),
-      privacyLink: t('consent.privacyLink'),
-      privacySuffix: t('consent.privacySuffix'),
-      error: t('consent.error')
-    },
-    marketing: {
-      label: t('marketing.label')
-    },
-    privacyNote: t('privacyNote'),
-    submit: t('submit'),
-    submitting: t('submitting'),
-    error: t('error'),
-    honeypotLabel: t('honeypotLabel')
-  };
-}
-
-async function bandLabel(locale: string, band: string): Promise<string> {
-  const t = await getTranslations({locale, namespace: 'Landing.age'});
-  return t(`bands.${band}`);
-}
-
-/**
- * Robust direct-visit fallback: no/invalid `?age` → show the same band-aware age
- * picker as the landing (reusing `AgeStart`), which links back to `/test?age=N`.
- */
-async function AgePickerFallback({locale}: {locale: string}) {
-  const tTest = await getTranslations({locale, namespace: 'Test.age'});
-  const tAge = await getTranslations({locale, namespace: 'Landing.age'});
-
-  const ageProps: AgeStartProps = {
-    labels: {
-      question: tAge('question'),
-      hint: tAge('hint'),
-      start: tAge('start'),
-      startHint: tAge('startHint'),
-      noSignup: tAge('noSignup')
-    },
-    bands: BANDS.map((b) => ({
-      key: b.key,
-      label: tAge(`bands.${b.key}`),
-      ages: AGES.filter((a) => a >= b.minAge && a <= b.maxAge).map((a) => ({
-        value: a,
-        ariaLabel: tAge('ariaAge', {age: a})
-      }))
-    }))
-  };
-
-  return (
-    <div className="mx-auto w-full max-w-md px-4 py-10">
-      <h1 className="font-display text-2xl font-bold text-ink text-balance">
-        {tTest('title')}
-      </h1>
-      <p className="mt-2 text-ink-soft">{tTest('lead')}</p>
-      <Card className="mt-6 p-5 sm:p-6">
-        <AgeStart {...ageProps} />
-      </Card>
-    </div>
-  );
 }

@@ -35,8 +35,8 @@
 | `src/i18n/request.ts` | Per-request next-intl config; loads `src/messages/<locale>.json`. |
 | `src/i18n/navigation.ts` | Locale-aware navigation APIs (`Link`, `redirect`, `usePathname`, …). |
 | `src/proxy.ts` | Next.js 16 proxy (ex-middleware) applying next-intl locale routing. |
-| `src/messages/mk.json` | Macedonian UI strings (Meta, Landing, Test, Gate, Result, Email, **Consent**, **Privacy** namespaces; default locale; draft). |
-| `src/messages/en.json` | English UI strings (mirror of mk.json; draft). |
+| `src/messages/mk.json` | Macedonian UI strings (Meta, Landing, Test, Gate, Result, Email, Consent, Privacy, Trial, **Assessment** [v2 flow, Phase 3.05] namespaces; default locale; MK provisional). |
+| `src/messages/en.json` | English UI strings (mirror of mk.json incl. **Assessment**). |
 | `src/messages/messages.test.ts` | Vitest i18n parity suite (identical mk↔en key sets + matching `{placeholders}` + no empty strings; required-key lists incl. the `Email`, `Consent` + `Privacy` namespaces). |
 
 ## App shell & components
@@ -98,8 +98,8 @@
 | `src/lib/scoring/storage.test.ts` | Vitest guard suite for `isTestResult` (valid/invalid persisted results). |
 | `src/lib/scoring/index.ts` | Scoring public surface (`score`, `TIE_BREAK_ORDER`, `compareStrengthScores`, `tierForRank`, `reconstructResult`, `TEST_RESULT_STORAGE_KEY`, `isTestResult`, `readTestResult`, types). |
 | `src/lib/scoring/score.test.ts` | Vitest scoring suite (ranking, tiers, determinism, no-total/no-IQ invariants). |
-| `src/app/[locale]/test/page.tsx` | Server shell for `/test`: per-locale metadata, `?age=N`→band, runner mount (passes `age` + resolved `gateCopy`), age-picker fallback. |
-| `src/components/test/TestRunner.tsx` | Client island: phases (start/running/**gate**), answers, sessionStorage hand-off, dynamic-imported `EmailGate`, dev preview wiring. |
+| `src/app/[locale]/test/page.tsx` | **v2 (Phase 3.05):** server shell for `/test` — per-locale metadata, reads `?age=N`, resolves the whole `Assessment` copy, mounts `AssessmentFlow`. (v1 `TestRunner` no longer mounted.) |
+| `src/components/test/TestRunner.tsx` | **v1, orphaned (Phase 3.05):** no longer mounted at `/test`; kept intact until its v2 replacement lands (3.06). Client island: phases (start/running/gate), sessionStorage hand-off. |
 | `src/components/test/QuestionView.tsx` | One question: strength chip, prompt (h1), stem, radio-group options, + the reveal mechanic (spec §7). |
 | `src/components/test/OptionTile.tsx` | Accessible answer tile (Radix RadioGroup.Item) — image or text variant; icon+colour selected feedback. |
 | `src/components/test/ProgressHeader.tsx` | Back affordance + progress bar + "Question X of Y" (aria-live). |
@@ -111,6 +111,24 @@
 | `src/components/test/visuals/StemVisual.tsx` | Composes glyphs into stems (sequence/grid/count/scene/…); `role="img"` + generated alt. |
 | `src/components/test/visuals/lexicon.ts` | `toyVar`, default glyph colours, and locale-aware `stemAlt()` text-alternative generator. |
 | `src/components/test/visuals/index.ts` | Visuals barrel (`Glyph`, `StemVisual`, `stemAlt`, `toyVar`). |
+| **`src/components/assessment/` — the live v2 assessment flow (Phase 3.05)** | |
+| `src/components/assessment/index.ts` | Public barrel: `AssessmentFlow`, `AssessmentCopy`, the hand-off key + types, the index↔domain mapping. |
+| `src/components/assessment/AssessmentFlow.tsx` | The client island `/test` mounts: drives the flow per phase, renders the puzzle-brain + the current task, dev autopilot, the `// HANDOFF (3.06)` continue seam. |
+| `src/components/assessment/useAssessment.ts` | The orchestrator hook: drives `createDomainController` across all domains, threads telemetry into each `Response`, assembles the `SessionRun`, runs validity, persists the hand-off, retry. |
+| `src/components/assessment/types.ts` | Flow types + the index↔task-domain mapping (`REGION_DOMAINS`/`DOMAIN_REGION`/`REGION_HEX`) + `TaskRendererProps`/`AnswerTelemetry`. |
+| `src/components/assessment/copy.ts` | `AssessmentCopy` contract (all localized chrome + per-`taskType` instructions) + `rendererCopy` slice helper. |
+| `src/components/assessment/telemetry.ts` | `useItemTimer` (silent response-time + idle/blur capture, spec Дел 8) + `baselineFromTaps` (device calibration). |
+| `src/components/assessment/session.ts` | The 3.06 hand-off: `generateSeed` (crypto), `persistHandoff`/`readHandoff` to the versioned `iqup.assessmentRun.v1` sessionStorage key (no PII). |
+| `src/components/assessment/PuzzleBrain.tsx` | The puzzle-brain progress motif — 5 index-region pentagon pieces that fill (brand hue + check tab) when their domains complete; non-numeric. |
+| `src/components/assessment/TaskFrame.tsx` | Shared task frame: instruction, bespoke-SVG stage, the quiet within-domain micro-indicator, action slot. |
+| `src/components/assessment/interactions/SelectOneGrid.tsx` | The `select-one` primitive (Radix RadioGroup; keyboard, focus ring, icon+colour selected). |
+| `src/components/assessment/interactions/TapField.tsx` | The Gs `multi-tap-timed` field — the ONLY visible countdown; reports marked indices + `tappedCells`. |
+| `src/components/assessment/renderers/TaskRenderer.tsx` | Dispatcher: `TaskSpec.taskType` → its renderer. |
+| `src/components/assessment/renderers/{GfTask,GvTask,GsmTask,GsTask,EfTask,GlrTask,CtTask}.tsx` | The seven task-type renderers (Gf matrix+series, Gv rotation, Gsm Corsi, Gs search, EF Tower of London, Glr paired-associate, CT 5 sub-types). |
+| `src/components/assessment/renderers/ConfirmAction.tsx` | Shared confirm button (≥44px, violet primary, disabled-state non-colour-only). |
+| `src/components/assessment/screens/{AgeSetup,ParentAssist,PracticeScreen,CompletionScreen,RetryScreen,ExplorerBadge}.tsx` | Flow screens: age setup (no name), 5–7 parent-assist gate, practice+calibration, completion, not-representative+retry, the "IQ UP! Explorer" badge. |
+| `src/components/assessment/visuals/Glyph.tsx` | The language-neutral visual vocabulary: `Glyph`/`PolyShapeGlyph`/`DirectionArrow` + `COLOR_HEX` (bespoke SVG, literal hex). |
+| `src/components/assessment/flow.test.ts` | Phase 3.05 flow tests: index↔domain mapping, calibration baseline, hand-off persistence, validity wiring, determinism + `buildProfile` smoke. |
 | `.claude/launch.json` | Local preview launch config (dev/prod) for the Claude preview tool (no app effect). |
 
 ## Email gate + lead capture (phase 1.08)
