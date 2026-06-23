@@ -153,6 +153,80 @@ describe('i18n message parity (mk ↔ en)', () => {
     }
   });
 
+  it('includes the new Form namespace (phase 3.06 parent form) in both locales', () => {
+    const required = [
+      'Form.meta.title',
+      'Form.meta.description',
+      'Form.forParent',
+      'Form.heading',
+      'Form.intro',
+      'Form.parentName.label',
+      'Form.parentName.errorRequired',
+      'Form.email.label',
+      'Form.email.errorInvalid',
+      'Form.phone.label',
+      'Form.phone.errorRequired',
+      'Form.city.label',
+      'Form.city.errorRequired',
+      'Form.gender.label',
+      'Form.gender.female',
+      'Form.gender.male',
+      'Form.gender.unspecified',
+      'Form.consent.process',
+      'Form.consent.guardian',
+      'Form.consent.marketing',
+      'Form.consent.processError',
+      'Form.consent.guardianError',
+      'Form.consent.privacyLink',
+      'Form.submit',
+      'Form.submitting',
+      'Form.honeypotLabel',
+      'Form.privacyNote',
+      'Form.interstitial.title',
+      'Form.interstitial.body'
+    ];
+    for (const key of required) {
+      expect(mkPaths.has(key), `mk missing ${key}`).toBe(true);
+      expect(enPaths.has(key), `en missing ${key}`).toBe(true);
+    }
+  });
+
+  it('no Form string uses a forbidden score/IQ/%/band/rank token (EN + MK, non-vacuous)', () => {
+    // No number, percentage, IQ, percentile, rank, or band WORD may appear in any
+    // parent-facing form string (the honest-framing hard rule). The EN matcher
+    // covers Latin tokens; the MK matcher covers the Macedonian score/rank stems so
+    // a Cyrillic leak is caught too (e.g. поен/ранг/процент/коефициент/перцентил).
+    const FORBIDDEN_EN = /\b(iq|score|scores|percentile|percent|rank|ranking|band)\b|%/i;
+    const FORBIDDEN_MK = /(поен|ранг|процент|коефициент|перцентил)|%/i;
+    // Guard against a vacuous test: each matcher must fire on a bad sample.
+    expect(FORBIDDEN_EN.test('your IQ score is in the 90th percentile')).toBe(true);
+    expect(FORBIDDEN_MK.test('вашиот коефициент е во 90-тиот перцентил')).toBe(true);
+
+    for (const [key, value] of enPaths) {
+      if (!key.startsWith('Form.')) continue;
+      expect(FORBIDDEN_EN.test(value), `forbidden EN token in ${key}: "${value}"`).toBe(
+        false
+      );
+    }
+    for (const [key, value] of mkPaths) {
+      if (!key.startsWith('Form.')) continue;
+      expect(FORBIDDEN_MK.test(value), `forbidden MK token in ${key}: "${value}"`).toBe(
+        false
+      );
+    }
+  });
+
+  it('the Form never asks to collect a child name (no-child-name invariant)', () => {
+    // The form collects the PARENT first name + (optional) child GENDER only — never
+    // a child's name. No form string may request the child's name.
+    const ASKS_CHILD_NAME =
+      /(child'?s? name|name of (your |the )?child|име(то)? на детето|детско име)/i;
+    for (const [key, value] of [...mkPaths, ...enPaths]) {
+      if (!key.startsWith('Form.')) continue;
+      expect(ASKS_CHILD_NAME.test(value), `${key} asks for a child name`).toBe(false);
+    }
+  });
+
   it('uses the same placeholders for every shared key', () => {
     for (const [key, mkValue] of mkPaths) {
       const enValue = enPaths.get(key);

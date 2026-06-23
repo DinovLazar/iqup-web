@@ -520,3 +520,17 @@ Installed with `npm install @react-pdf/renderer --save-exact`. **Smoke-tested** 
 **Net-new env var documented for v2 (not yet wired):** `META_CAPI_ACCESS_TOKEN` (server-only secret) — for the server-side Meta Conversions API (spec Дел 13). To be added to `.env.local.example` + Vercel when CAPI is implemented. Also note `NEXT_PUBLIC_META_PIXEL_ID` becomes server-scoped once the Pixel moves to CAPI.
 
 **No app route changed** (route table identical in `next build`). **No new app dependency beyond `@react-pdf/renderer`.**
+
+---
+
+## Phase 3.06 — the parent form + the two-store data model (Code)
+
+**No new runtime dependency** (Supabase + Brevo clients already exist). **No new env var** — Store A reuses `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`; Store B reuses `BREVO_API_KEY` + `BREVO_LEADS_LIST_ID` + `BREVO_MARKETING_LIST_ID` (the same vars 2.01/2.02 documented). The Brevo path is a logged no-op when `BREVO_API_KEY` is unset; the Store A write throws-then-is-swallowed when the Supabase vars are unset.
+
+**New Supabase migration:** `supabase/migrations/20260623120000_create_assessment_scores.sql` — Store A (`assessment_scores`): age/gender/city/language + the 8 signals + 5 indices (`double precision`, 0–100) + validity + norms_version + a day-level `created_date DATE`. RLS enabled, no anon policies, `revoke all … from anon, authenticated`, service-role write only (mirrors the v1 `leads` table). **Apply via `npm run db:push` (once linked) or the dashboard SQL editor** — NOT applied from the sandbox (Postgres unreachable; `.env.local` here is the blank template). Hand-authored types added to `src/lib/supabase/types.ts` (regenerate with `npm run db:types` when linked).
+
+**New throwaway live-verification script:** `npm run test:scores` (`scripts/test-anonymous-score.ts`, `tsx --conditions=react-server`) — the Store A RLS proof (anon denied read+write, service-role insert/read, day-level date, cleanup), mirroring `npm run test:insert`. Requires the migration applied + live keys → DEFERRED-pending-Cowork.
+
+**New Brevo contact attributes (Store B, v2):** `PARENT_FIRST_NAME`, `PHONE`, `CITY`, `CHILD_AGE`, `CHILD_GENDER` (omitted when null), `LOCALE`, `CONSENT_PROCESS`, `CONSENT_GUARDIAN`, `MARKETING_OPT_IN`, `CONSENT_VERSION` (`v2-draft-2026-06`), `TOP_INDEX` (coarse English label), `SOURCE` (`website-assessment`). Cowork must create these attributes in Brevo (parallel to the 2.02 set).
+
+**New app route:** `/[locale]/report` (SSG shell + `ReportFlow` island), `robots: noindex`. New i18n namespace **`Form`** (MK + EN, exact parity, MK provisional).

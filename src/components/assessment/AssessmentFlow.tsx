@@ -12,6 +12,7 @@
 
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {useReducedMotion} from 'framer-motion';
+import {useRouter} from '@/i18n/navigation';
 import {MotionProvider} from '@/components/landing/MotionProvider';
 import {correctAnswerFor, specOf} from '@/content/tasks';
 import {DOMAIN_REGION} from './types';
@@ -43,6 +44,7 @@ export function AssessmentFlow({
   options?: AssessmentOptions;
 }) {
   const reducedMotion = useReducedMotion() ?? false;
+  const router = useRouter();
   const a = useAssessment(options);
   const {
     phase,
@@ -113,16 +115,13 @@ export function AssessmentFlow({
   ]);
 
   const onContinue = useCallback(() => {
-    // HANDOFF (3.06): the parent form plugs in here. The completed SessionRun +
-    // validity outcome are already persisted (sessionStorage, no PII, not in the
-    // URL) by the orchestrator; 3.06 reads `ASSESSMENT_RESULT_STORAGE_KEY` and
-    // takes the parent on to capture + the report. This phase renders no results,
-    // calls no form, and writes nothing to Supabase/Brevo.
-    if (typeof window !== 'undefined') {
-      // Intentionally a no-op landing until 3.06 mounts the form route.
-      window.dispatchEvent(new CustomEvent('iqup:assessment-complete'));
-    }
-  }, []);
+    // HANDOFF (3.06) — RESOLVED: the parent form lives at `/report`. The completed
+    // SessionRun + validity outcome are already persisted (sessionStorage, no PII,
+    // never in the URL) by the orchestrator; `/report` reads
+    // `ASSESSMENT_RESULT_STORAGE_KEY`, recomputes the profile client-side, captures
+    // the parent + consents, and writes the two stores. Results reveal there (3.09).
+    router.push('/report');
+  }, [router]);
 
   const activeRegion = currentDomain ? DOMAIN_REGION[currentDomain] : null;
   const showBrain = phase === 'practice' || phase === 'task';
