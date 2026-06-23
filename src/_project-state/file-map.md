@@ -365,6 +365,30 @@
 | `src/content/tasks/integration.test.ts` | Vitest (headline): full session through engine + real provider + v2 scoring → byte-identical `SessionRun` + `CognitiveProfile`; variety; Gsm format by age; Glr slope. |
 | `src/content/tasks/README.md` | The 3.04→3.05 seam doc: provider, content-spec contract, determinism guarantee, PROVISIONAL parameters. |
 
+## Parent form + two-store data model (phase 3.06)
+
+| Path | Description |
+|---|---|
+| `supabase/migrations/20260623120000_create_assessment_scores.sql` | Store A migration: `assessment_scores` (no PII, day-level `created_date DATE`, 8 signals + 5 indices + age/gender/city/language + validity + norms_version). RLS on, no anon policies, anon grants revoked, service-role write only (mirrors v1 `leads`). |
+| `src/lib/supabase/types.ts` | Hand-authored `Database` types — **extended** with the `assessment_scores` Row/Insert/Update. |
+| `src/lib/scores/anonymous-score.ts` | Store A pure mapper + `.strict()` zod schema (`buildAnonymousScore`, `anonymousScoreSchema`) — rejects PII-shaped fields; validity 3→2 collapse; city = centre id. |
+| `src/lib/scores/insert-anonymous-score.ts` | `server-only` Store A write via the service-role client; row id intentionally not returned (unlinkability). |
+| `src/lib/scores/anonymous-score.test.ts` | Vitest: allowed-columns-only, no-PII, validity mapping, strict PII/city/age/range rejection. |
+| `src/lib/scores/insert-anonymous-score.test.ts` | Vitest (mocked Supabase): valid write, no id/timestamp in payload, PII rejected before write, DB-error throw. |
+| `src/lib/leads/assessment-lead.ts` | Store B pure schema + Brevo attribute mapper (`assessmentLeadSchema`, `buildAssessmentLeadUpsert`); `CONSENT_VERSION_V2`, `TOP_INDEX_LABEL`, `ASSESSMENT_LEAD_SOURCE`; consent→list gating. |
+| `src/lib/leads/upsert-assessment-lead.ts` | `server-only` Brevo upsert orchestrator — never throws, no-key no-op, discards the Brevo id, logs the lead recoverably on failure (`// TODO(durability 3.16)`). |
+| `src/lib/leads/submit-assessment.ts` | `'use server'` action: honeypot → re-validate lead → Store A via `after()` (isolated, non-blocking) + Brevo inline (isolated, primary, non-trapping); two payloads, no shared key. |
+| `src/lib/leads/lead-context-v2.ts` | `iqup.leadContext.v2` (`{parentFirstName, city, submittedAt}`) — the minimal 3.09 hand-off (no email, no scores). |
+| `src/lib/leads/{assessment-lead,upsert-assessment-lead,submit-assessment}.test.ts` | Vitest: Brevo mapping + consent→list, no-key no-op + never-throw + recoverable log, honeypot/non-trapping + **unlinkability** (no shared key, anon payload PII-free, Brevo id discarded). |
+| `src/components/report/ReportFlow.tsx` | The form + interstitial client island: reads the persisted run (SSR-safe `useSyncExternalStore`), recomputes the profile client-side, captures parent + 3 consents + honeypot, writes both stores, lands on the interstitial. WCAG 2.2 AA. `// HANDOFF (3.09)` / `// SEAM (3.10)` notes. |
+| `src/components/report/copy.ts` | The `FormCopy` contract (resolved server-side, threaded to the island). |
+| `src/components/report/index.ts` | Module barrel (`ReportFlow`, `FormCopy`). |
+| `src/app/[locale]/report/page.tsx` | SSG shell (skip-link + header/footer) resolving the `Form` namespace + mounting `ReportFlow`; `robots: noindex`; per-locale metadata. The `// HANDOFF (3.06)` destination. |
+| `src/components/assessment/AssessmentFlow.tsx` | **Modified** — `onContinue` now `router.push('/report')` (the resolved 3.06 seam). |
+| `scripts/test-anonymous-score.ts` | `npm run test:scores` — live Store A RLS proof (anon denied, service-role write/read, day-level date, cleanup). DEFERRED-pending-keys. |
+| `src/messages/{mk,en}.json` | **Modified** — new `Form` namespace (exact MK/EN parity, MK provisional). |
+| `src/messages/messages.test.ts` | **Modified** — Form key parity + forbidden-token + no-child-name invariants. |
+
 ## Project-state docs
 
 | Path | Description |

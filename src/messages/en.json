@@ -398,5 +398,61 @@
         "maze": "Order the steps to guide the robot through the maze to the flag."
       }
     }
+  },
+  "Form": {
+    "meta": {
+      "title": "Your report — IqUp",
+      "description": "Leave your details to receive your child's personalised IqUp report."
+    },
+    "forParent": "For the grown-up",
+    "heading": "Where should we send the report?",
+    "intro": "Your child did a great job! Leave your details and we'll email you a personalised report about their thinking strengths.",
+    "parentName": {
+      "label": "Your first name",
+      "placeholder": "e.g. Maria",
+      "errorRequired": "Please enter your first name."
+    },
+    "email": {
+      "label": "Email address",
+      "placeholder": "you@example.com",
+      "errorRequired": "Please enter your email.",
+      "errorInvalid": "Please enter a valid email address."
+    },
+    "phone": {
+      "label": "Phone number",
+      "placeholder": "Your phone number",
+      "errorRequired": "Please enter your phone number."
+    },
+    "city": {
+      "label": "Nearest IqUp center",
+      "placeholder": "Choose a city",
+      "errorRequired": "Please choose your nearest center."
+    },
+    "gender": {
+      "label": "Child's gender",
+      "optionalHint": "(optional)",
+      "none": "Prefer not to say",
+      "female": "Girl",
+      "male": "Boy",
+      "unspecified": "Other"
+    },
+    "consent": {
+      "process": "I agree that my details may be used to prepare and send my child's report.",
+      "guardian": "I confirm I am the child's parent or legal guardian.",
+      "marketing": "I'd like to receive occasional tips and news from IqUp. (optional)",
+      "processError": "Please agree so we can send your report.",
+      "guardianError": "Please confirm you are the parent or guardian.",
+      "privacyPrefix": "See our ",
+      "privacyLink": "Privacy Policy",
+      "privacySuffix": "."
+    },
+    "submit": "Send me the report",
+    "submitting": "Sending…",
+    "honeypotLabel": "Leave this field empty",
+    "privacyNote": "We keep your child's results anonymous and never share your details.",
+    "interstitial": {
+      "title": "All done — your results are ready!",
+      "body": "We're putting your child's report together. Your results will appear here in a moment."
+    }
   }
 }
