@@ -1,10 +1,26 @@
 'use server';
 
 import {after} from 'next/server';
+import type {SessionRun} from '@/lib/engine';
 import {assessmentLeadSchema, type AssessmentLead} from './assessment-lead';
 import {upsertAssessmentLead} from './upsert-assessment-lead';
+import {sendReportEmail} from '@/lib/email/send-report-email';
 import {insertAnonymousScore} from '@/lib/scores/insert-anonymous-score';
 import type {AnonymousScore} from '@/lib/scores/anonymous-score';
+
+/**
+ * The transient payload that lets the server reproduce the SAME report the screen
+ * showed and email it (SEAM 3.10). It carries the completed `SessionRun` (so the
+ * server recomputes the identical profile via `buildProfile`) + the same submit
+ * timestamp the screen used as the generated date. It is used ONLY to build the
+ * emailed PDF — it is NEVER persisted, and is unconnected to either store, so the
+ * two-store unlinkability is untouched (the run reaches neither Store A nor B).
+ */
+export interface ReportEmailRequest {
+  readonly run: SessionRun;
+  /** ISO submit time — the report's generated date (matches the screen). */
+  readonly generatedAt: string;
+}
 
 /** What the report form submits — two INDEPENDENT payloads, no shared key. */
 export interface AssessmentSubmission {
@@ -14,6 +30,11 @@ export interface AssessmentSubmission {
   anonymous: AnonymousScore;
   /** Off-screen honeypot — a filled value means a bot (no writes happen). */
   honeypot?: string;
+  /**
+   * Optional report-email request (SEAM 3.10). Absent → no email is scheduled
+   * (e.g. older clients / tests). Never written to either store.
+   */
+  report?: ReportEmailRequest;
 }
 
 /** Typed result — `{ok:true}` even when the Brevo write fails (non-trapping). */
@@ -71,6 +92,26 @@ export async function submitAssessment(
   // Store A: isolated + non-blocking — runs AFTER the response is sent so it never
   // delays the reveal. A separate payload with no shared key to the lead.
   after(() => isolate(() => insertAnonymousScore(submission.anonymous)));
+
+  // SEAM (3.10): the report PDF + email send. Scheduled via `after()` (so it never
+  // delays the reveal) and fully isolated (so a slow / failing / unconfigured Brevo
+  // can never affect the reveal, the two writes, or each other). The honeypot
+  // already returned above, so bots never reach this. The PDF is rendered in memory
+  // from the run and discarded — nothing extra is persisted.
+  const reportReq = submission.report;
+  if (reportReq) {
+    after(() =>
+      isolate(() =>
+        sendReportEmail({
+          run: reportReq.run,
+          email: lead.email,
+          locale: lead.locale,
+          city: lead.city,
+          generatedAt: reportReq.generatedAt
+        })
+      )
+    );
+  }
 
   // Store B: the primary capture — attempted inline, isolated, never throws.
   await isolate(() => upsertAssessmentLead(lead));

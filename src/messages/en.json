@@ -225,6 +225,21 @@
       "signoff": "From the world of Bibi · IqUp"
     }
   },
+  "ReportEmail": {
+    "subject": "Your child’s thinking profile is ready",
+    "preview": "A warm look at how your child thinks — the full profile is attached.",
+    "greeting": "Hi there,",
+    "intro": "Thank you for exploring IqUp with your child. Their thinking profile is attached as a PDF — a calm, informative look at how they approached today’s games, with simple ideas to try at home.",
+    "teaserKicker": "A glimpse of what stood out",
+    "trialHeading": "See it come alive in person",
+    "trialBody": "Bring your child to a free trial class — playful, hands-on learning through play, with no pressure at all.",
+    "cta": "Book a free trial class",
+    "footer": {
+      "identity": "IqUp — a STEM-and-thinking program for children, learning through play.",
+      "contact": "Questions? Just reply to this email — we’re happy to help.",
+      "signoff": "Warmly, the IqUp team"
+    }
+  },
   "Consent": {
     "banner": {
       "ariaLabel": "Cookie consent notice",

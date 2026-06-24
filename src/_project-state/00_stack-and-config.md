@@ -550,3 +550,23 @@ Installed with `npm install @react-pdf/renderer --save-exact`. **Smoke-tested** 
 **Config edits:** `eslint.config.mjs` ignores `docs/**` (vendored design-handover reference surfaces incl. `report-kit.js` are browser JS to PORT, not app source); `vitest.config.ts` include widened to `src/**/*.test.{ts,tsx}` for the results-screen render test.
 
 **3.08 design deliverables landed on `main`** (separate commit, before the 3.09 branch): the `Part-3-Phase-08-Handover.md` + `surfaces/{Results,Report,Certificate,OG}.html` + `report-kit.js` + `assessment/tokens-v2.css` + `Phase-08-Mockups.html` (under `docs/design-handovers/`) + `Part-3-Phase-08-Completion.md`. Reference only (HTML/JS to PORT, not imported/built).
+
+---
+
+## 2026-06-24 — Phase 3.10 PDF report + email delivery (Code)
+
+**No new npm dependency.** `@react-pdf/renderer@4.5.1` + `@react-email/*` were already installed (3.01/2.01). The PDF generator + the v2 report email reuse them.
+
+**New committed font assets:** `src/lib/pdf/fonts/Montserrat-{Regular,SemiBold,Bold,ExtraBold}.ttf` (weights 400/600/700/800) — static instances of the upstream Montserrat variable font (`fonttools varLib.instancer`), each carrying the FULL Latin + Cyrillic glyph set so the MK report renders with no tofu. Registered with `@react-pdf/renderer`'s `Font.register` as base64 data URIs (read via `process.cwd()`); hyphenation disabled globally. **These TTFs are a runtime dependency — committed (not gitignored).**
+
+**next.config.ts (additive):** `outputFileTracingIncludes` traces `./src/lib/pdf/fonts/*.ttf` into the `/[locale]/report` route bundle so a standalone production build ships the fonts.
+
+**New npm scripts:** `report:sample` (renders sample PDFs → `docs/qa/Part-3-Phase-10/` for eyeballing) and `test:report-email` (drives the REAL v2 send path to `TEST_EMAIL_TO`; refuses prod/CI; no-op-clean without `BREVO_API_KEY`). Both run via the existing `scripts/email-runtime/tsconfig.json` (maps `server-only` → empty stub so `react-dom/server` + react-pdf run as in the real Next runtime).
+
+**No new env.** The v2 report email REUSES the 2.01 Brevo vars (`BREVO_API_KEY`, `EMAIL_FROM_ADDRESS`, optional `EMAIL_FROM_NAME` / `EMAIL_REPLY_TO`) and `TEST_EMAIL_TO`. Same no-key → logged no-op (`{event:'report-email', status:'skipped-no-key'}`). Live delivery DEFERRED pending the Brevo key (like 2.01).
+
+**New i18n namespace `ReportEmail`** (MK + EN, exact parity, MK provisional) — the report email's CHROME only. The PDF's own chrome lives self-contained in `src/lib/pdf/pdf-copy.ts` (NOT in `messages`); the report CONTENT stays solely in `buildReport`.
+
+**.gitignore (additive):** `/docs/qa/Part-3-Phase-10/` (dev-only sample PDFs; each embeds ~1.5MB Montserrat).
+
+**Seam wired:** `submitAssessment` gains an optional transient `report?: { run, generatedAt }` field; on submit it `after()`-schedules `sendReportEmail` (honeypot returns before it; fully isolated; never throws). The run is request-scoped email input — written to NEITHER store; two-store unlinkability + Store A schema unchanged.
