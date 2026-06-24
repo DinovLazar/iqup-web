@@ -306,6 +306,61 @@ describe('i18n message parity (mk ↔ en)', () => {
     }
   });
 
+  it('includes the new Certificate namespace (phase 3.11 certificate) in both locales', () => {
+    const required = [
+      'Certificate.intro',
+      'Certificate.addName',
+      'Certificate.nameLabel',
+      'Certificate.namePlaceholder',
+      'Certificate.namePrivacy',
+      'Certificate.tag',
+      'Certificate.reward',
+      'Certificate.awardedTo',
+      'Certificate.from',
+      'Certificate.bibiPlaceholder',
+      'Certificate.bibiPlaceholderNote',
+      'Certificate.altLabel',
+      'Certificate.download',
+      'Certificate.share',
+      'Certificate.preparing',
+      'Certificate.linkCopied',
+      'Certificate.shareError',
+      'Certificate.strengthLine.logical',
+      'Certificate.strengthLine.spatial',
+      'Certificate.strengthLine.memory_focus',
+      'Certificate.strengthLine.planning_speed',
+      'Certificate.strengthLine.learning_stem',
+      'Certificate.og.headline',
+      'Certificate.og.tagline'
+    ];
+    for (const key of required) {
+      expect(mkPaths.has(key), `mk missing ${key}`).toBe(true);
+      expect(enPaths.has(key), `en missing ${key}`).toBe(true);
+    }
+  });
+
+  it('no Certificate string uses a forbidden score/IQ/%/rank token or a literal digit (EN + MK, non-vacuous)', () => {
+    // The certificate is the JOYFUL surface: no magnitude word, no digit (the only
+    // digits on the rendered keepsake are the computed month/year, not a string).
+    // The "IQ UP!" wordmark is rendered as structural markup, never an i18n string,
+    // so no Certificate value should trip the `\biq\b` matcher either.
+    const FORBIDDEN_EN = /\b(iq|score|scores|percentile|percent|rank|ranking|band)\b|%/i;
+    const FORBIDDEN_MK = /(поен|ранг|процент|коефициент|перцентил)|%/i;
+    expect(FORBIDDEN_EN.test('your IQ score is in the 90th percentile')).toBe(true);
+    expect(FORBIDDEN_MK.test('вашиот коефициент е во 90-тиот перцентил')).toBe(true);
+
+    for (const [key, value] of enPaths) {
+      if (!key.startsWith('Certificate.')) continue;
+      expect(FORBIDDEN_EN.test(value), `forbidden EN token in ${key}: "${value}"`).toBe(false);
+      expect(/\d/.test(value), `literal digit in ${key}: "${value}"`).toBe(false);
+    }
+    for (const [key, value] of mkPaths) {
+      if (!key.startsWith('Certificate.')) continue;
+      expect(FORBIDDEN_MK.test(value), `forbidden MK token in ${key}: "${value}"`).toBe(false);
+      expect(/\d/.test(value), `literal digit in ${key}: "${value}"`).toBe(false);
+    }
+  });
+
   it('the Form never asks to collect a child name (no-child-name invariant)', () => {
     // The form collects the PARENT first name + (optional) child GENDER only — never
     // a child's name. No form string may request the child's name.

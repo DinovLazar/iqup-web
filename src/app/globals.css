@@ -394,3 +394,33 @@
   .iqr-grid .iqr-sec { padding-left: 0; padding-right: 0; }
   .iqr-grid .iqr-validity { margin-left: 0; margin-right: 0; }
 }
+
+/* =========================================================================
+   Phase 3.11 — the shareable certificate panel (the `// SEAM (3.11)` slot in
+   the results screen). Scoped `.iqc-*`; uses only DEFINED v2 tokens. The
+   ARTWORK itself uses inline styles (so html-to-image captures it faithfully);
+   this styles only the surrounding panel chrome — intro, the opt-in on-device
+   name field, the scaled preview, and the download/share actions.
+   ========================================================================= */
+.iqc { display: flex; flex-direction: column; gap: var(--space-4); align-items: center; }
+.iqc__intro { font-size: 14px; color: var(--ink-muted); line-height: 1.55; text-align: center; max-width: 42ch; margin: 0; }
+.iqc__namebox { width: 100%; max-width: 460px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--space-4); }
+.iqc__toggle { display: flex; gap: 10px; align-items: center; font-size: 14px; font-weight: 700; color: var(--ink-head); cursor: pointer; }
+.iqc__toggle input { width: 18px; height: 18px; accent-color: var(--action); flex: 0 0 auto; cursor: pointer; }
+.iqc__field { margin-top: var(--space-3); }
+.iqc__field > label { display: block; font-size: 13px; font-weight: 700; color: var(--ink-head); margin-bottom: 6px; }
+.iqc__field input { width: 100%; font-family: var(--font-brand); font-size: 16px; font-weight: 600; color: var(--ink-head); padding: 12px 14px; border: 2px solid var(--line-strong); border-radius: var(--r-md); background: var(--field); }
+.iqc__field input:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; border-color: var(--action); }
+.iqc__priv { display: flex; gap: 8px; align-items: flex-start; margin: 10px 0 0; font-size: 12px; color: var(--ink-muted); line-height: 1.45; }
+.iqc__priv svg { color: var(--success); flex: 0 0 auto; margin-top: 1px; }
+.iqc__stage { width: 100%; max-width: 460px; overflow: hidden; border-radius: var(--r-lg); box-shadow: var(--elev-raise); }
+.iqc__scaler { width: 1080px; }
+.iqc__actions { display: flex; gap: var(--space-3); flex-wrap: wrap; justify-content: center; }
+.iqc__btn { font-family: var(--font-brand); font-weight: 700; font-size: 15px; min-height: var(--tap-comfort); padding: 0 var(--space-6); display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); border: 0; border-radius: var(--r-badge); cursor: pointer; }
+.iqc__btn:disabled { opacity: 0.6; cursor: default; }
+.iqc__btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; box-shadow: var(--focus-ring); }
+.iqc__btn--primary { background: var(--action); color: #fff; box-shadow: var(--elev-cta); }
+.iqc__btn--primary:hover:not(:disabled) { background: var(--action-hover); }
+.iqc__btn--ghost { background: transparent; color: var(--action-ink); box-shadow: inset 0 0 0 2px var(--line-strong); }
+.iqc__status { display: flex; gap: 6px; align-items: center; justify-content: center; min-height: 20px; margin: 0; font-size: 13px; font-weight: 700; color: var(--success-ink); }
+.iqc__status--err { color: var(--ink-muted); }

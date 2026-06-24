@@ -3,7 +3,13 @@ import {getTranslations, setRequestLocale} from 'next-intl/server';
 import type {Locale} from '@/content/locale';
 import {SiteHeader} from '@/components/landing/SiteHeader';
 import {SiteFooter} from '@/components/landing/SiteFooter';
-import {ReportFlow, type FormCopy, type ResultsCopy} from '@/components/report';
+import {
+  ReportFlow,
+  type FormCopy,
+  type ResultsCopy,
+  type CertificateCopy
+} from '@/components/report';
+import type {IndexId} from '@/lib/scoring/v2';
 
 type Props = {
   params: Promise<{locale: string}>;
@@ -41,6 +47,7 @@ export default async function ReportPage({params}: Props) {
   const tA11y = await getTranslations({locale, namespace: 'A11y'});
   const copy = await resolveFormCopy(locale);
   const resultsCopy = await resolveResultsCopy(locale);
+  const certificateCopy = await resolveCertificateCopy(locale);
 
   return (
     <>
@@ -55,7 +62,12 @@ export default async function ReportPage({params}: Props) {
         {/* Wide enough for the results' desktop two-column layout (≥880px); the
             form self-centres at max-w-md, so the capture step is unaffected. */}
         <div className="mx-auto max-w-[1080px] px-4 py-10 sm:py-14">
-          <ReportFlow locale={locale as Locale} copy={copy} results={resultsCopy} />
+          <ReportFlow
+            locale={locale as Locale}
+            copy={copy}
+            results={resultsCopy}
+            certificate={certificateCopy}
+          />
         </div>
       </main>
       <SiteFooter />
@@ -149,6 +161,48 @@ async function resolveResultsCopy(locale: string): Promise<ResultsCopy> {
       gentleHeading: t('validity.gentleHeading'),
       caveatHeading: t('validity.caveatHeading'),
       retry: t('validity.retry')
+    }
+  };
+}
+
+/** Resolve the certificate CHROME server-side (Phase 3.11). The strength NAME on
+ *  the certificate comes from `buildReport` (client-side); only the warm,
+ *  child-facing one-liner per index lives here. */
+async function resolveCertificateCopy(locale: string): Promise<CertificateCopy> {
+  const t = await getTranslations({locale, namespace: 'Certificate'});
+  const INDICES: IndexId[] = [
+    'logical',
+    'spatial',
+    'memory_focus',
+    'planning_speed',
+    'learning_stem'
+  ];
+  const strengthLine = Object.fromEntries(
+    INDICES.map((id) => [id, t(`strengthLine.${id}`)])
+  ) as Record<IndexId, string>;
+
+  return {
+    intro: t('intro'),
+    addName: t('addName'),
+    nameLabel: t('nameLabel'),
+    namePlaceholder: t('namePlaceholder'),
+    namePrivacy: t('namePrivacy'),
+    tag: t('tag'),
+    reward: t('reward'),
+    awardedTo: t('awardedTo'),
+    from: t('from'),
+    bibiPlaceholder: t('bibiPlaceholder'),
+    bibiPlaceholderNote: t('bibiPlaceholderNote'),
+    altLabel: t('altLabel'),
+    download: t('download'),
+    share: t('share'),
+    preparing: t('preparing'),
+    linkCopied: t('linkCopied'),
+    shareError: t('shareError'),
+    strengthLine,
+    og: {
+      headline: t('og.headline'),
+      tagline: t('og.tagline')
     }
   };
 }

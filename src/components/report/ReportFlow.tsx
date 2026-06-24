@@ -32,8 +32,10 @@ import {
   writeLeadContextV2
 } from '@/lib/leads/lead-context-v2';
 import {ResultsScreen} from './ResultsScreen';
+import {CertificatePanel} from './CertificatePanel';
 import type {FormCopy} from './copy';
 import type {ResultsCopy} from './results-copy';
+import type {CertificateCopy} from './certificate-copy';
 
 /** No-op subscribe: the persisted run is read once after mount, never mutated. */
 const subscribe = () => () => {};
@@ -94,11 +96,13 @@ type FieldErrors = {
 export function ReportFlow({
   locale,
   copy,
-  results
+  results,
+  certificate
 }: {
   locale: Locale;
   copy: FormCopy;
   results: ResultsCopy;
+  certificate: CertificateCopy;
 }) {
   const router = useRouter();
   const uid = useId();
@@ -208,8 +212,11 @@ export function ReportFlow({
     // SEAM (3.10): the PDF report + email send is now wired in `submitAssessment`
     //   (scheduled via `after()` on submit). The "report emailed" strip below is the
     //   parent-facing confirmation; the actual send happens server-side, isolated.
-    // SEAM (3.11): the shareable Bibi certificate (route + artwork) lands in 3.11 —
-    //   ResultsScreen renders only the entry affordance.
+    // SEAM (3.11): the shareable Bibi certificate is injected here as the results'
+    //   certificate slot. `CertificatePanel` renders the artwork (top strength +
+    //   per-child accent), the OPTIONAL on-device-only name, and download/share —
+    //   it writes to neither store, hits no network with the name, and adds no
+    //   tracking. It reads only the already-built `report`.
     // SEAM (3.12): CAPI/GA4 results events are added in 3.12 — no tracking here.
     return (
       <ResultsScreen
@@ -217,6 +224,9 @@ export function ReportFlow({
         copy={results}
         locale={locale}
         bookingUrl={bookingUrlFor(locale, reportCtx.city)}
+        certificate={
+          <CertificatePanel report={report} locale={locale} copy={certificate} />
+        }
       />
     );
   }
