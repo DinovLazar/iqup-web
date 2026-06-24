@@ -494,5 +494,35 @@
       "caveatHeading": "This may not have been the calmest attempt",
       "retry": "Try again"
     }
+  },
+  "Certificate": {
+    "intro": "A joyful keepsake from the adventure. Add your child's name if you like, then download or share it.",
+    "addName": "Add your child's name (optional)",
+    "nameLabel": "Child's name",
+    "namePlaceholder": "Type a name",
+    "namePrivacy": "The name stays on this device only — it is never sent and never stored.",
+    "tag": "Certificate",
+    "reward": "Explorer",
+    "awardedTo": "Awarded to",
+    "from": "From the world of Bibi · IqUp",
+    "bibiPlaceholder": "Bibi goes here",
+    "bibiPlaceholderNote": "The licensed illustration drops in later.",
+    "altLabel": "An IqUp Explorer certificate",
+    "download": "Download",
+    "share": "Share",
+    "preparing": "Preparing…",
+    "linkCopied": "Link copied",
+    "shareError": "Couldn't share — try download instead",
+    "strengthLine": {
+      "logical": "A wonderful mind for puzzles and logic!",
+      "spatial": "A brilliant eye for shapes and space!",
+      "memory_focus": "A sharp memory and a great focus!",
+      "planning_speed": "A clever plan for every step!",
+      "learning_stem": "A real spark for discovery and STEM!"
+    },
+    "og": {
+      "headline": "An IqUp Explorer!",
+      "tagline": "Discover how your child thinks and learns."
+    }
   }
 }

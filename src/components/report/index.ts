@@ -1,6 +1,10 @@
-/** Public surface of the v2 report-form module (Phase 3.06) + results (3.09). */
+/** Public surface of the v2 report-form module (Phase 3.06) + results (3.09) +
+ *  the shareable certificate (3.11). */
 export {ReportFlow} from './ReportFlow';
 export {ResultsScreen} from './ResultsScreen';
 export {IdentityPentagon} from './IdentityPentagon';
+export {CertificatePanel} from './CertificatePanel';
+export {CertificateArt} from './CertificateArt';
 export type {FormCopy} from './copy';
 export type {ResultsCopy} from './results-copy';
+export type {CertificateCopy} from './certificate-copy';

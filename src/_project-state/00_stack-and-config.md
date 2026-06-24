@@ -570,3 +570,19 @@ Installed with `npm install @react-pdf/renderer --save-exact`. **Smoke-tested** 
 **.gitignore (additive):** `/docs/qa/Part-3-Phase-10/` (dev-only sample PDFs; each embeds ~1.5MB Montserrat).
 
 **Seam wired:** `submitAssessment` gains an optional transient `report?: { run, generatedAt }` field; on submit it `after()`-schedules `sendReportEmail` (honeypot returns before it; fully isolated; never throws). The run is request-scoped email input — written to NEITHER store; two-store unlinkability + Store A schema unchanged.
+
+---
+
+## 2026-06-24 — Phase 3.11 shareable certificate (Code)
+
+**No new npm dependency.** The certificate reuses `html-to-image@1.11.13` (client-side PNG, from 1.10) and `next/og` (the share OG image, as used by the landing + `/result` OG). Nothing added to `package.json`.
+
+**No new env. No new store write / Brevo call / CAPI event / GA4-Clarity event / schema change / migration / processor.** The certificate is client-only and reads just the already-built `ReportContent`; the optional on-device child name is never transmitted anywhere.
+
+**Font reuse:** the new `/[locale]/report/opengraph-image.tsx` loads the SAME committed Montserrat TTFs as the 3.10 PDF (`src/lib/pdf/fonts/Montserrat-{SemiBold,ExtraBold}.ttf`) for the Cyrillic-safe OG image — no new asset. The client download embeds Montserrat by FILTERING the page's live `@font-face` set (via html-to-image's `getFontEmbedCSS`) down to the two Montserrat (latin + cyrillic) faces, then `toBlob({fontEmbedCSS})`; a **6s timeout falls back to `skipFonts`** so the export never hangs (the live page declares ~23 `@font-face` rules — Rubik + Nunito Sans + dev fonts × subsets — and embedding all of them stalls the rasterised SVG; the fallback still renders Cyrillic cleanly, verified).
+
+**New i18n namespace `Certificate`** (MK + EN, exact parity, MK provisional) — the certificate CHROME + the per-`IndexId` warm `strengthLine` + the OG copy. Report CONTENT (the strength NAME) stays in `buildReport`; the "IQ UP!" wordmark is structural markup, not a string.
+
+**New OG route in the build:** `/[locale]/report/opengraph-image` (mk + en) — generic, name-free, auto-wired to `/report`'s metadata by Next's file convention (mirrors `/result` + `/trial`). All other routes unchanged; `/report` stays SSG + `robots: noindex`.
+
+**Seam wired:** the certificate renders **inline** at `// SEAM (3.11)` — `ResultsScreen` gains an optional `certificate?: ReactNode` slot that `ReportFlow` fills with `<CertificatePanel>`. No certificate route. `// SEAM (3.10)` + `// SEAM (3.12)` untouched. **Scoped `.iqc-*` CSS** appended to `globals.css` (panel chrome only; the artwork uses inline styles for html-to-image fidelity; uses only DEFINED tokens).

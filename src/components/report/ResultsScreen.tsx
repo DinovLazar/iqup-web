@@ -60,12 +60,17 @@ export function ResultsScreen({
   report,
   copy,
   locale,
-  bookingUrl
+  bookingUrl,
+  certificate
 }: {
   report: ReportContent;
   copy: ResultsCopy;
   locale: Locale;
   bookingUrl: string;
+  /** The shareable certificate, injected at `// SEAM (3.11)` by `ReportFlow`.
+   *  Optional: when absent (e.g. the pure forbidden-token test), the section shows
+   *  the lightweight entry affordance instead — the screen stays presentational. */
+  certificate?: React.ReactNode;
 }) {
   const {meta} = report;
   const outcome = meta.validity.outcome;
@@ -276,31 +281,31 @@ export function ResultsScreen({
             </div>
           </section>
 
-          {/* 8 · Certificate entry. SEAM (3.11): the shareable Bibi certificate
-              (artwork, route, download/share, OG image) lands in 3.11. This is the
-              entry affordance ONLY — no Bibi art, no certificate route this phase. */}
+          {/* 8 · Certificate. SEAM (3.11): the shareable Bibi certificate renders
+              here when `ReportFlow` injects the `certificate` slot (the artwork +
+              optional on-device name + download/share). Absent the slot, a
+              lightweight entry affordance is shown (keeps this screen pure). */}
           <section className="iqr-sec">
             <h2 className="iqr-sec__h">{copy.sectionCertificate}</h2>
-            {/* An active entry affordance; 3.11 wires the onClick → certificate
-                route. Not `aria-disabled` — the feature isn't disabled, just not
-                yet wired (avoids announcing a misleading "unavailable" state). */}
-            <button type="button" className="iqr-cert">
-              <span className="iqr-cert__thumb" aria-hidden>
-                <svg viewBox="0 0 24 24" fill="none" stroke="var(--action)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="9" r="5" />
-                  <path d="M8.5 13 7 22l5-2.6L17 22l-1.5-9" />
-                </svg>
-              </span>
-              <span className="iqr-cert__b">
-                <b>{copy.certificateHeading}</b>
-                <p>{copy.certificateBody}</p>
-              </span>
-              <span className="iqr-cert__go" aria-hidden>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="9 6 15 12 9 18" />
-                </svg>
-              </span>
-            </button>
+            {certificate ?? (
+              <button type="button" className="iqr-cert">
+                <span className="iqr-cert__thumb" aria-hidden>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="var(--action)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="9" r="5" />
+                    <path d="M8.5 13 7 22l5-2.6L17 22l-1.5-9" />
+                  </svg>
+                </span>
+                <span className="iqr-cert__b">
+                  <b>{copy.certificateHeading}</b>
+                  <p>{copy.certificateBody}</p>
+                </span>
+                <span className="iqr-cert__go" aria-hidden>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 6 15 12 9 18" />
+                  </svg>
+                </span>
+              </button>
+            )}
           </section>
 
           {/* 9 · Disclaimer — indicative-not-diagnostic + the provisional-norms note. */}
