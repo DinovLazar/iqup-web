@@ -91,6 +91,46 @@ describe('i18n message parity (mk ↔ en)', () => {
     }
   });
 
+  it('includes the new ReportEmail namespace (phase 3.10 report email) in both locales', () => {
+    const required = [
+      'ReportEmail.subject',
+      'ReportEmail.preview',
+      'ReportEmail.greeting',
+      'ReportEmail.intro',
+      'ReportEmail.teaserKicker',
+      'ReportEmail.trialHeading',
+      'ReportEmail.trialBody',
+      'ReportEmail.cta',
+      'ReportEmail.footer.identity',
+      'ReportEmail.footer.contact',
+      'ReportEmail.footer.signoff'
+    ];
+    for (const key of required) {
+      expect(mkPaths.has(key), `mk missing ${key}`).toBe(true);
+      expect(enPaths.has(key), `en missing ${key}`).toBe(true);
+    }
+  });
+
+  it('no ReportEmail string uses a forbidden score/IQ/%/rank token or a literal digit (EN + MK, non-vacuous)', () => {
+    // The report email is honest-framing chrome: no magnitude word and no literal
+    // digit (the report's age/date live in the attached PDF, not the email body).
+    const FORBIDDEN_EN = /\b(iq|score|scores|percentile|percent|rank|ranking|band)\b|%/i;
+    const FORBIDDEN_MK = /(поен|ранг|процент|коефициент|перцентил)|%/i;
+    expect(FORBIDDEN_EN.test('your IQ score is in the 90th percentile')).toBe(true);
+    expect(FORBIDDEN_MK.test('вашиот коефициент е во 90-тиот перцентил')).toBe(true);
+
+    for (const [key, value] of enPaths) {
+      if (!key.startsWith('ReportEmail.')) continue;
+      expect(FORBIDDEN_EN.test(value), `forbidden EN token in ${key}: "${value}"`).toBe(false);
+      expect(/\d/.test(value), `literal digit in ${key}: "${value}"`).toBe(false);
+    }
+    for (const [key, value] of mkPaths) {
+      if (!key.startsWith('ReportEmail.')) continue;
+      expect(FORBIDDEN_MK.test(value), `forbidden MK token in ${key}: "${value}"`).toBe(false);
+      expect(/\d/.test(value), `literal digit in ${key}: "${value}"`).toBe(false);
+    }
+  });
+
   it('includes the new Consent + Privacy namespaces (phase 2.04) in both locales', () => {
     const required = [
       'Consent.banner.title',

@@ -121,6 +121,17 @@ export function ReportFlow({
       return null;
     }
   }, [raw]);
+  // The raw run — passed to the server (SEAM 3.10) so it recomputes the SAME report
+  // and emails the PDF. It is NOT part of either store: it travels with the request,
+  // builds the emailed report, and is discarded (unlinkability untouched).
+  const run = useMemo(() => {
+    if (!raw) return null;
+    try {
+      return (JSON.parse(raw) as AssessmentHandoff).run;
+    } catch {
+      return null;
+    }
+  }, [raw]);
 
   // — Persisted lead context (chosen centre + submit time). Present on a REFRESH
   // after a completed submit, so the results re-reveal from the persisted run +
@@ -194,8 +205,9 @@ export function ReportFlow({
       city: reportCtx.city,
       generatedAt: reportCtx.submittedAt
     });
-    // SEAM (3.10): the PDF report generation + email send is wired here in 3.10.
-    //   The "report emailed" strip is presentational for now — nothing is sent yet.
+    // SEAM (3.10): the PDF report + email send is now wired in `submitAssessment`
+    //   (scheduled via `after()` on submit). The "report emailed" strip below is the
+    //   parent-facing confirmation; the actual send happens server-side, isolated.
     // SEAM (3.11): the shareable Bibi certificate (route + artwork) lands in 3.11 —
     //   ResultsScreen renders only the entry affordance.
     // SEAM (3.12): CAPI/GA4 results events are added in 3.12 — no tracking here.
@@ -289,7 +301,10 @@ export function ReportFlow({
           topIndex: safeProfile.features.highestIndex
         },
         anonymous,
-        honeypot
+        honeypot,
+        // SEAM (3.10): hand the run + the shared submit time to the server so it
+        // reproduces the SAME report and emails the PDF. Never persisted.
+        report: run ? {run, generatedAt: submittedAt} : undefined
       });
 
       // Reveal results regardless of the write outcome — the parent is never

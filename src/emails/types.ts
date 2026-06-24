@@ -56,3 +56,50 @@ export interface ResultsEmailProps {
   readonly chrome: EmailChrome;
   readonly trialUrl: string;
 }
+
+/**
+ * The v2 REPORT email chrome (Phase 3.10) — the localized `ReportEmail` next-intl
+ * namespace, resolved by `send-report-email.ts` and consumed by `ReportEmail.tsx`.
+ * Deliberately number-free and child-name-free (honest framing): the email says
+ * "your child", carries the worded top strength as a warm teaser, and points at
+ * the demo CTA — the full profile lives in the attached PDF, not the body.
+ */
+export interface ReportEmailChrome {
+  /** Subject line. */
+  readonly subject: string;
+  /** Inbox preview snippet. */
+  readonly preview: string;
+  /** Opening greeting. */
+  readonly greeting: string;
+  /** Lead-in: your child's cognitive profile is attached. */
+  readonly intro: string;
+  /** Kicker over the warm top-strength teaser. */
+  readonly teaserKicker: string;
+  /** Demo-class invite block (heading + body + button label). */
+  readonly trialHeading: string;
+  readonly trialBody: string;
+  readonly cta: string;
+  /** Footer identity + plain contact line + signoff (the IqUp identity). */
+  readonly footer: {
+    readonly identity: string;
+    readonly contact: string;
+    readonly signoff: string;
+  };
+}
+
+/**
+ * Everything `ReportEmail` renders. The teaser strings come from the assembled
+ * `ReportContent` (`topStrength` — the single source), NOT from messages, so the
+ * report content is never duplicated into the i18n catalogue. No band, no number,
+ * no child name anywhere.
+ */
+export interface ReportEmailProps {
+  readonly locale: Locale;
+  readonly chrome: ReportEmailChrome;
+  /** The parent-facing top-strength NAME (worded, no number). */
+  readonly topStrengthName: string;
+  /** The parent-facing top-strength blurb (worded, no number). */
+  readonly topStrengthBody: string;
+  /** The demo-CTA target (carries `?grad=<centre>`). */
+  readonly bookingUrl: string;
+}

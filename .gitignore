@@ -24,6 +24,10 @@
 /playwright-report/
 /playwright/.cache/
 
+# Phase 3.10 PDF eyeball samples (dev-only, regenerated via `npm run report:sample`;
+# PDFs embed Montserrat and are large — not committed)
+/docs/qa/Part-3-Phase-10/
+
 # next.js
 /.next/
 /out/

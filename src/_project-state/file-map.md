@@ -307,7 +307,7 @@
 | `src/lib/engine/README.md` | Adaptive basal/ceiling engine (deterministic, no AI) — spec Дел 5. |
 | `src/lib/validity/README.md` | Validity flags, timing, the derived attention signal, per-domain confidence — spec Дел 7–8. |
 | `src/lib/report/README.md` | Deterministic report-assembly engine (no AI) — spec Дел 9. _(Implemented 3.07 — see the `src/lib/report/*` rows below.)_ |
-| `src/lib/pdf/README.md` | Server-side PDF report via `@react-pdf/renderer`; pentagon = custom SVG — spec Дел 10. |
+| `src/lib/pdf/README.md` | Server-side PDF report via `@react-pdf/renderer`; pentagon = custom SVG — spec Дел 10. _(Implemented 3.10 — see the `src/lib/pdf/*` rows below.)_ |
 | `src/content/tasks/README.md` | The item bank seam doc (3.04 generators → 3.05 renderer) — spec Дел 4 / Прилог A. _(See the `src/content/tasks/*` file rows below for the shipped generators.)_ |
 | `src/content/norms/README.md` | Age norms + scoring weights (seed) — spec Дел 6 / Прилог B. |
 | `src/content/report/README.md` | Report module library (copy: strengths/growth/style/STEM modules) — spec Дел 9.2 / Прилог C. _(Implemented 3.07 — see the `src/content/report/*` rows below.)_ |
@@ -417,6 +417,37 @@
 | `src/content/report/report-content.test.ts` | Vitest: MK/EN parity + slot parity, non-vacuous forbidden-token scan (clinical-negation exception scoped to the disclaimer), index/band/confidence/activity coverage, age→program mapping. |
 | `src/content/report/README.md` | **Rewritten** — the module families + the MK+EN-scope correction + the honest-framing rule. |
 
+## PDF report + email delivery (phase 3.10)
+
+| Path | Role |
+| --- | --- |
+| `src/lib/pdf/render.tsx` | **`renderReportPdf({report, locale, bookingUrl}) → Promise<Buffer>`** — the Node entry (`renderToBuffer`); registers fonts, builds the model, renders `ReportDocument`. |
+| `src/lib/pdf/ReportDocument.tsx` | The 3 A4-page react-pdf `Document` (cover · five indices · narrative + CTA + disclaimer); flat fills only, Montserrat, tightened so the full content space stays exactly 3 pages. |
+| `src/lib/pdf/IdentityPentagonPdf.tsx` | The identity pentagon in react-pdf SVG primitives — EXACT geometry of the on-screen `IdentityPentagon` (viewBox/centre/R/angles); five hue kites + white seams + ink outline + short labels. |
+| `src/lib/pdf/Glyph.tsx` | Parses the raw `index-meta` glyph markup (`<circle>`/`<path>`) into react-pdf `Circle`/`Path` for the page-2 index icons. |
+| `src/lib/pdf/model.ts` | **`buildReportPdfModel(report, locale, bookingUrl)`** + **`flattenModelText`** — the single content model the document lays out AND the tests scan (zero drift); separates the digit-allowed fields (age + date). |
+| `src/lib/pdf/pdf-copy.ts` | Localized PDF CHROME (kickers, meta labels, section headings, footers, confidence prefix; MK provisional) + `formatGeneratedDate`/`formatAge` (mirror `ResultsScreen`, no `Date`/`Intl`). NOT in `messages`. |
+| `src/lib/pdf/tokens.ts` | Literal-hex mirror of the v2 `--ix-*`/`--action*`/`--ink-*` palette (react-pdf can't resolve `var(--…)`); `hueFor(IndexId)`. |
+| `src/lib/pdf/fonts.ts` | `registerReportFonts()` — registers Montserrat 400/600/700/800 as base64 data URIs (read via `process.cwd()`); disables hyphenation. Idempotent. |
+| `src/lib/pdf/fonts/Montserrat-{Regular,SemiBold,Bold,ExtraBold}.ttf` | Committed static TTFs (instanced from the variable font) with FULL Latin + Cyrillic — a runtime dependency (MK renders with no tofu). |
+| `src/lib/pdf/fixtures.ts` | `makeProfile`/`sampleReport` fixtures (mirrors `report.test`) for the PDF/email tests + the dev harnesses. |
+| `src/lib/pdf/index.ts` | Public surface (`@/lib/pdf`): `renderReportPdf`, `ReportDocument`, `buildReportPdfModel`, `flattenModelText`. |
+| `src/lib/pdf/report-pdf.test.ts` | Vitest (node env): section presence, `?grad=` CTA, forbidden-token + no-stray-digit scan (both locales × valid/gentle_note), determinism, and a binary `%PDF-` smoke render. |
+| `src/lib/pdf/pentagon-pdf.test.ts` | Vitest: the react-pdf pentagon's viewBox/centre/R/angles + five wedges match the kit geometry (walks the rendered element tree). |
+| `src/lib/pdf/README.md` | **Rewritten** — the generator overview, entry point, 3-page layout, honest-framing contract, dev harness. |
+| `src/emails/ReportEmail.tsx` | **New (3.10)** — the report cover email (React Email, 2.01 brand/layout): greeting → "profile attached" → worded top-strength teaser → demo CTA → IqUp identity footer. No number/IQ/%/rank, no child name. |
+| `src/emails/report-render.ts` | `renderReportEmail(props) → {html, text}` (no JSX, so the `.test.ts` imports it). |
+| `src/emails/types.ts` | **Modified (3.10)** — adds `ReportEmailChrome` + `ReportEmailProps` (teaser strings come from `ReportContent`, not messages). |
+| `src/emails/ReportEmail.test.ts` | Vitest per locale: HTML+text render, forbidden-token + no-stray-digit, the worded teaser + demo CTA (`?grad=`) present, no child name. |
+| `src/lib/email/send-report-email.ts` | **New (3.10)** — `server-only` v2 orchestrator: `buildProfile(run)` → validity gate (send `valid`/`gentle_note`, skip+log `not_representative`) → `buildReport` → render PDF + email in memory → `sendTransactionalEmail` (tags `['report-email', locale]`). Never throws; logged no-op without `BREVO_API_KEY`; PDF never stored. |
+| `src/lib/email/send-report-email.test.ts` | Vitest (mocked collaborators + stubbed env): no-key/no-sender no-op, validity gate (incl. `not_representative` skip), in-memory base64 attachment + tags, never-throws (thrown/slow Brevo, render error). |
+| `scripts/render-report-sample.ts` | `npm run report:sample` — renders sample PDFs (valid + gentle_note, both locales) → `docs/qa/Part-3-Phase-10/` (gitignored) for eyeballing. |
+| `scripts/test-report-email.ts` | `npm run test:report-email` — drives the REAL `sendReportEmail` to `TEST_EMAIL_TO` (refuses prod/CI; no-op-clean without `BREVO_API_KEY`). |
+| `src/lib/leads/submit-assessment.ts` | **Modified (3.10)** — adds the optional transient `report?: {run, generatedAt}` field + the `// SEAM (3.10)` wiring: `after()`-schedules `sendReportEmail` (honeypot returns before it; isolated; never throws). The run touches neither store. |
+| `src/components/report/ReportFlow.tsx` | **Modified (3.10)** — captures the raw `run` and passes `report: {run, generatedAt: submittedAt}` to `submitAssessment` so the server reproduces + emails the same report. (3.09 reveal logic unchanged.) |
+| `next.config.ts` | **Modified (3.10)** — `outputFileTracingIncludes` traces `src/lib/pdf/fonts/*.ttf` into the `/[locale]/report` bundle for standalone builds. |
+| `src/messages/{mk,en}.json` | **Modified (3.10)** — new `ReportEmail` namespace (the report email chrome; MK+EN exact parity, MK provisional). |
+
 ## Project-state docs
 
 | Path | Description |
@@ -459,6 +490,6 @@
 | `public/bibi/.gitkeep` | Licensed Bibi image assets (gathered by Cowork) — still awaiting; `HeroArt` + the certificate placeholder stand in until then. |
 | `public/og/.gitkeep` | Static OG images (not needed — the OG image is generated dynamically per locale). |
 
-*(`src/lib/supabase/.gitkeep` was removed in phase 1.05, `src/content/test/.gitkeep` + `src/lib/scoring/.gitkeep` in phase 1.07, and `src/content/results/.gitkeep` in phase 1.10, now that those folders hold real files. `src/lib/report/` + `src/content/report/` were filled in phase 3.07; only `src/lib/pdf/` (README-only) remains reserved.)*
+*(`src/lib/supabase/.gitkeep` was removed in phase 1.05, `src/content/test/.gitkeep` + `src/lib/scoring/.gitkeep` in phase 1.07, and `src/content/results/.gitkeep` in phase 1.10, now that those folders hold real files. `src/lib/report/` + `src/content/report/` were filled in phase 3.07; `src/lib/pdf/` was filled in phase 3.10. No reserved code folders remain.)*
 
 *(Phase 1.11 deleted the two non-canonical duplicate copies of the 1.04 content spec — `Part-1-Phase-04-Content-Spec.md` (repo root) and `docs/Part-1-Phase-04-Content-Spec.md`. The canonical `docs/content/Part-1-Phase-04-Content-Spec.md` is unchanged. No code referenced the deleted paths; the only live doc references already point at the canonical copy.)*

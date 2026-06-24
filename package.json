@@ -19,7 +19,9 @@
     "test:insert": "tsx --conditions=react-server scripts/test-insert.ts",
     "test:scores": "tsx --conditions=react-server scripts/test-anonymous-score.ts",
     "test:email": "tsx --tsconfig scripts/email-runtime/tsconfig.json scripts/test-email.ts",
-    "emails:nurture": "tsx --tsconfig scripts/email-runtime/tsconfig.json scripts/render-nurture.mts"
+    "emails:nurture": "tsx --tsconfig scripts/email-runtime/tsconfig.json scripts/render-nurture.mts",
+    "report:sample": "tsx --tsconfig scripts/email-runtime/tsconfig.json scripts/render-report-sample.ts",
+    "test:report-email": "tsx --tsconfig scripts/email-runtime/tsconfig.json scripts/test-report-email.ts"
   },
   "dependencies": {
     "@fontsource/nunito-sans": "5.2.7",
