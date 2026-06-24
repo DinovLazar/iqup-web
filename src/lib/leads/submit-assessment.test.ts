@@ -5,6 +5,7 @@
  * `after()` callback is run synchronously so the Store A side-effect is observable.
  */
 import {describe, it, expect, vi, beforeEach} from 'vitest';
+import {COOKIE_CONSENT_VERSION} from '@/lib/consent/constants';
 
 vi.mock('server-only', () => ({}));
 vi.mock('next/server', () => ({after: (fn: () => unknown) => fn()}));
@@ -18,6 +19,41 @@ const insertAnonymousScoreMock = vi.fn();
 vi.mock('@/lib/scores/insert-anonymous-score', () => ({
   insertAnonymousScore: (s: unknown) => insertAnonymousScoreMock(s)
 }));
+
+// SEAM (3.12): mock the request-context + the CAPI sender so the gating is
+// observable without a real cookie store / headers / network.
+const capi = vi.hoisted(() => ({
+  cookieValue: undefined as string | undefined,
+  headerEntries: {} as Record<string, string>,
+  sendMock: vi.fn()
+}));
+vi.mock('next/headers', () => ({
+  cookies: async () => ({
+    get: (name: string) =>
+      capi.cookieValue !== undefined ? {name, value: capi.cookieValue} : undefined
+  }),
+  headers: async () => new Headers(capi.headerEntries)
+}));
+vi.mock('@/lib/meta/capi', () => ({
+  sendMetaCapiLead: (input: unknown) => capi.sendMock(input)
+}));
+
+/** A valid `iqup_consent` cookie value for the given marketing grant. */
+function consentCookie(marketing: boolean): string {
+  return JSON.stringify({
+    v: COOKIE_CONSENT_VERSION,
+    analytics: true,
+    marketing,
+    ts: '2026-06-24T00:00:00.000Z'
+  });
+}
+
+const metaReq = {
+  eventId: 'evt-dedup-1',
+  fbp: 'fb.1.1.aaa',
+  fbc: 'fb.1.1.bbb',
+  eventSourceUrl: 'https://iqup.mk/report'
+};
 
 import {runSession, type SessionInput} from '@/lib/engine';
 import {alwaysCorrect, makeFixtureProvider} from '@/lib/engine/fixtures';
@@ -57,6 +93,9 @@ function submission(overrides: Partial<AssessmentSubmission> = {}): AssessmentSu
 beforeEach(() => {
   upsertAssessmentLeadMock.mockReset().mockResolvedValue(undefined);
   insertAnonymousScoreMock.mockReset().mockResolvedValue(undefined);
+  capi.sendMock.mockReset().mockResolvedValue({status: 'sent'});
+  capi.cookieValue = undefined;
+  capi.headerEntries = {};
   vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
@@ -130,5 +169,76 @@ describe('unlinkability — the load-bearing guarantee', () => {
       submitAssessment(submission({lead: {...lead, consentProcess: false as never}}))
     ).rejects.toThrow();
     expect(upsertAssessmentLeadMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('SEAM (3.12) — Meta CAPI Lead gating', () => {
+  it('fires CAPI when meta is provided AND Marketing consent is granted (server cookie)', async () => {
+    capi.cookieValue = consentCookie(true);
+    capi.headerEntries = {'x-forwarded-for': '203.0.113.5, 10.0.0.1', 'user-agent': 'UA-test'};
+
+    await submitAssessment(submission({meta: metaReq}));
+
+    expect(capi.sendMock).toHaveBeenCalledTimes(1);
+    const sent = capi.sendMock.mock.calls[0][0] as Record<string, unknown>;
+    // Reads ONLY the lead fields (Store B inputs) + the transient match data.
+    expect(sent.email).toBe(lead.email);
+    expect(sent.phone).toBe(lead.phone);
+    expect(sent.city).toBe('Skopje – Aerodrom'); // the centre's English city label
+    expect(sent.eventId).toBe('evt-dedup-1'); // the dedup id, unchanged
+    expect(sent.fbp).toBe('fb.1.1.aaa');
+    expect(sent.fbc).toBe('fb.1.1.bbb');
+    // The proxy headers are read for match quality (first XFF hop).
+    expect(sent.clientIpAddress).toBe('203.0.113.5');
+    expect(sent.clientUserAgent).toBe('UA-test');
+  });
+
+  it('does NOT fire CAPI when Marketing consent is not granted (server-read)', async () => {
+    capi.cookieValue = consentCookie(false);
+    await submitAssessment(submission({meta: metaReq}));
+    expect(capi.sendMock).not.toHaveBeenCalled();
+  });
+
+  it('does NOT fire CAPI when there is no consent cookie at all', async () => {
+    capi.cookieValue = undefined;
+    await submitAssessment(submission({meta: metaReq}));
+    expect(capi.sendMock).not.toHaveBeenCalled();
+  });
+
+  it('does NOT fire CAPI when the client supplies no meta (back-compat)', async () => {
+    capi.cookieValue = consentCookie(true);
+    await submitAssessment(submission()); // no meta
+    expect(capi.sendMock).not.toHaveBeenCalled();
+  });
+
+  it('passes NO cognitive data and NO Store A score to CAPI', async () => {
+    capi.cookieValue = consentCookie(true);
+    await submitAssessment(submission({meta: metaReq}));
+
+    const sent = capi.sendMock.mock.calls[0][0] as Record<string, unknown>;
+    const json = JSON.stringify(sent).toLowerCase();
+    for (const forbidden of [
+      'band',
+      'score',
+      'index',
+      'signal',
+      'logical',
+      'spatial',
+      'anonymous'
+    ]) {
+      expect(json, `CAPI payload leaked "${forbidden}"`).not.toContain(forbidden);
+    }
+    // The anonymous score object is never handed to CAPI.
+    expect(sent).not.toHaveProperty('anonymous');
+  });
+
+  it('a failing CAPI call NEVER breaks the submit (still ok)', async () => {
+    capi.cookieValue = consentCookie(true);
+    capi.sendMock.mockRejectedValueOnce(new Error('meta down'));
+    const res = await submitAssessment(submission({meta: metaReq}));
+    expect(res).toEqual({ok: true});
+    // The two stores still ran.
+    expect(upsertAssessmentLeadMock).toHaveBeenCalledTimes(1);
+    expect(insertAnonymousScoreMock).toHaveBeenCalledTimes(1);
   });
 });

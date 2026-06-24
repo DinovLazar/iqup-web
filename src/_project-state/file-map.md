@@ -282,7 +282,7 @@
 | `src/components/consent/ConsentRoot.tsx` | The locale-layout island: `ConsentProvider` + (dynamic) banner + (dynamic) dialog + page-view tracker (`usePathname()`) + the `syncTrackers(consent)` effect. |
 | `src/lib/analytics/env.ts` | Reads the three PUBLIC tracker ids from `process.env.NEXT_PUBLIC_*` + a dev-only no-id notice. |
 | `src/lib/analytics/runtime.ts` | Live consent snapshot + per-loader idempotency flags + the `window` (`gtag`/`dataLayer`/`clarity`/`fbq`) global type augmentations. SSR-safe. |
-| `src/lib/analytics/track.ts` | `track(event, params?)` — PII-free (sanitised to `{band,locale,path}`), per-category GA/Pixel routing, no-op without consent/env/SDK. |
+| `src/lib/analytics/track.ts` | `track(event, params?)` — **PII-free + SCORE-free** (sanitised to `{age,section,locale,path}`; `band` accepted-but-dropped — Phase 3.12), per-category GA/Pixel routing, no-op without consent/env/SDK. Event union extended with the v2 funnel set (`age_set`/`section_complete`/`form_view`/`lead_submit`/`cta_booking_click`/`retest_start`). |
 | `src/lib/analytics/sync.ts` | `syncTrackers(consent)` — load on grant (GA+Clarity / Pixel), re-signal denied/`revoke` on withdrawal; called by `ConsentRoot`. |
 | `src/lib/analytics/loaders/ga.ts` | GA4 `gtag.js` injection + Consent Mode defaults-denied→update + `revokeGa`; env-gated; never throws. |
 | `src/lib/analytics/loaders/clarity.ts` | Microsoft Clarity injection + `consentv2` signal + revoke; env-gated; notes Cowork disables auto-cookies. |
@@ -454,6 +454,28 @@
 | `src/components/report/ReportFlow.tsx` | **Modified (3.10)** — captures the raw `run` and passes `report: {run, generatedAt: submittedAt}` to `submitAssessment` so the server reproduces + emails the same report. (3.09 reveal logic unchanged.) |
 | `next.config.ts` | **Modified (3.10)** — `outputFileTracingIncludes` traces `src/lib/pdf/fonts/*.ttf` into the `/[locale]/report` bundle for standalone builds. |
 | `src/messages/{mk,en}.json` | **Modified (3.10)** — new `ReportEmail` namespace (the report email chrome; MK+EN exact parity, MK provisional). |
+
+## Analytics events + Meta CAPI (phase 3.12)
+
+| Path | Description |
+|---|---|
+| `src/lib/meta/capi.ts` | **New (3.12)** — `server-only` Meta Conversions API `Lead` sender. Pure builders (`buildCapiUserData`/`buildCapiEventPayload` + normalisers `normalizeEmail`/`normalizePhoneE164Mk`/`normalizeCity`/`normalizeCountry` + `hashSha256`) + `sendMetaCapiLead`. SHA-256-hashed `em`/`ph`/`ct`/`country` + non-hashed ip/ua/fbp/fbc; generic `custom_data`; Graph `v21.0`, dataset = Pixel id. Never throws; logged no-op without `META_CAPI_ACCESS_TOKEN`/dataset id; optional `META_CAPI_TEST_EVENT_CODE`. |
+| `src/lib/meta/capi.test.ts` | **New (3.12)** — Vitest: normalisers, hashing-over-normalised, raw-contact-never-present, ip/ua/fbp/fbc raw + omitted-when-absent, the `Lead` envelope + dedup `event_id` + `action_source`, **no-cognition scan**, config no-op (fetch not called), never-throws on reject/non-2xx, `test_event_code` forwarding. |
+| `src/lib/analytics/pixel-lead.ts` | **New (3.12)** — client dedup bridge: `firePixelLead(eventId)` (`fbq('track','Lead',{},{eventID})`; no-op unless Marketing granted + Pixel id set + `fbq` present) + `readFbCookies()` (`_fbp`/`_fbc`). Re-homes the orphaned v1 `EmailGate` Pixel Lead onto `ReportFlow`. |
+| `src/lib/analytics/pixel-lead.test.ts` | **New (3.12)** — Vitest: fires with the shared `event_id` when loaded+granted; no-op when marketing denied / no id / `fbq` absent; cookie reads. |
+| `src/lib/analytics/track.ts` | **Modified (3.12)** — widened allow-list (`{age,section,locale,path}`, `band` dropped) + the v2 funnel event union/routes. |
+| `src/lib/analytics/track.test.ts` | **Modified (3.12)** — asserts the widened, PII-free + SCORE-free allow-list (`band`/`index`/`score`/`rank` + PII all dropped); every v2 event routes to GA; `lead_submit` does not fire the Pixel. |
+| `src/lib/leads/submit-assessment.ts` | **Modified (3.12)** — adds the transient `meta?: {eventId,fbp?,fbc?,eventSourceUrl?}` field + the `// SEAM (3.12)` fire: server-reads the Marketing grant from the `iqup_consent` cookie (`cookies()` + `parseConsent`), reads request IP/UA, then `after()`-schedules an isolated `sendMetaCapiLead` (reads only Store B inputs + transient match data; never throws). |
+| `src/lib/leads/submit-assessment.test.ts` | **Modified (3.12)** — adds the CAPI gating suite (fires on server-read Marketing grant; no-op without grant / cookie / meta; no cognitive data or Store A score in the payload; a failing CAPI never breaks the submit). |
+| `src/components/assessment/useAssessment.ts` | **Modified (3.12)** — fires the funnel events (`age_set`/`test_start`/`section_complete`/`test_complete`/`retest_start`) at the orchestrator transitions via a locale-aware `emit`; `locale` added to `AssessmentOptions`. |
+| `src/components/assessment/AssessmentFlow.tsx` | **Modified (3.12)** — takes a `locale` prop and threads it into `useAssessment` (memoised options). |
+| `src/app/[locale]/test/page.tsx` | **Modified (3.12)** — passes `locale` to `AssessmentFlow`. |
+| `src/components/report/ReportFlow.tsx` | **Modified (3.12)** — `form_view` (ref-guarded, not on refresh-reveal); mints the dedup `event_id` + reads `_fbp`/`_fbc`, passes `meta` to `submitAssessment`; on success fires `lead_submit` (GA) + `firePixelLead` (browser Lead, shared `event_id`). |
+| `src/components/report/ResultsScreen.tsx` | **Modified (3.12)** — the demo CTA fires `cta_booking_click` on click (analytics-only seam; render unchanged). |
+| `src/components/trial/TrialBooking.tsx` | **Modified (3.12)** — the live `/trial` booking action standardised to `cta_booking_click` (was `trial_cta_click`); `band` no longer forwarded. |
+| `src/content/privacy/{en,mk}.ts` | **Modified (3.12)** — CAPI processor disclosure line (Marketing → server-side hashed transfer to Meta on submit; MK provisional, flagged for IqUp legal) + a `_fbc` cookie-table row. |
+| `.env.local.example` | **Modified (3.12)** — documents the secret `META_CAPI_ACCESS_TOKEN` (server-only; never `NEXT_PUBLIC`) + optional `META_CAPI_TEST_EVENT_CODE`; notes the Pixel id doubles as the CAPI dataset id. |
+| `tests/e2e/consent.spec.ts` | **Modified (3.12)** — adds an Accept-loads-trackers assertion on the v2 `/test` assessment surface. |
 
 ## Project-state docs
 

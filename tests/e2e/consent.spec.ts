@@ -98,6 +98,22 @@ test.describe('Phase 2.04 — deny-by-default load model', () => {
     expect(hits).toEqual([]);
     expect(await trackerGlobalsPresent(page)).toBe(false);
   });
+
+  // Phase 3.12: the same guarantee must hold on a v2 funnel surface. `/test` is now
+  // the v2 assessment (3.05). Deny-by-default is already asserted for it in the loop
+  // above; here we prove Accept loads the trackers on that v2 surface too.
+  test('Accept all on the v2 /test assessment loads the trackers', async ({page}) => {
+    const hits = await interceptTrackers(page);
+    await page.goto('/test?age=8');
+    const accept = page
+      .getByRole('button', {name: /accept all|прифати ги сите/i})
+      .first();
+    await accept.waitFor();
+    expect(hits).toEqual([]); // nothing before the click, on the v2 surface
+    await accept.click();
+    await expect.poll(() => hits.length, {timeout: 5000}).toBeGreaterThan(0);
+    expect(await trackerGlobalsPresent(page)).toBe(true);
+  });
 });
 
 test.describe('Phase 2.04 — consent banner a11y', () => {

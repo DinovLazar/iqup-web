@@ -100,7 +100,9 @@ export const PRIVACY_EN: PrivacyContent = {
             'Brevo (EU) — sends our emails and stores contact details for follow-up.',
             'Google (Google Analytics 4) — measures how the site is used. Loaded only with your Analytics consent.',
             'Microsoft (Clarity) — anonymous usage insights and heatmaps. Loaded only with your Analytics consent.',
-            'Meta (Pixel) — measures the effect of our ads. Loaded only with your Marketing consent.'
+            'Meta (Pixel) — measures the effect of our ads. Loaded only with your Marketing consent.',
+            // FLAG(IqUp legal): CAPI processor disclosure — provisional wording (Phase 3.12).
+            'Meta (Conversions API) — when you submit the form with Marketing consent, a securely hashed (irreversible) copy of your contact details is sent from our server to Meta to measure the results of our ads. No test answers, profile or results are ever sent.'
           ]
         }
       ]
@@ -213,6 +215,13 @@ export const PRIVACY_EN: PrivacyContent = {
       name: '_fbp',
       provider: 'Meta',
       purpose: 'Ad measurement (set only with Marketing consent)',
+      category: 'Marketing',
+      duration: '~3 months'
+    },
+    {
+      name: '_fbc',
+      provider: 'Meta',
+      purpose: 'Ad click attribution, also used to match conversions (set only with Marketing consent)',
       category: 'Marketing',
       duration: '~3 months'
     }

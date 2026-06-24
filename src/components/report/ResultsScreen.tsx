@@ -18,6 +18,7 @@
 import type {Locale} from '@/content/locale';
 import {CENTERS} from '@/content/centers';
 import type {ReportContent} from '@/lib/report';
+import {track} from '@/lib/analytics/track';
 import {INDEX_META, INDEX_ORDER} from './index-meta';
 import {IdentityPentagon} from './IdentityPentagon';
 import type {ResultsCopy} from './results-copy';
@@ -271,7 +272,11 @@ export function ResultsScreen({
                   <span>{cityName}</span>
                 </span>
               ) : null}
-              <a className="iqr-btn" href={bookingUrl}>
+              <a
+                className="iqr-btn"
+                href={bookingUrl}
+                onClick={() => track('cta_booking_click', {locale})}
+              >
                 <span>{copy.trialCta}</span>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                   <line x1="5" y1="12" x2="19" y2="12" />
