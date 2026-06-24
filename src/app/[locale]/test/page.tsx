@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import {getTranslations, setRequestLocale} from 'next-intl/server';
 import {SiteHeader} from '@/components/landing/SiteHeader';
 import {AssessmentFlow, type AssessmentCopy} from '@/components/assessment';
+import type {Locale} from '@/content/locale';
 import type {TaskType} from '@/content/tasks';
 
 type Props = {
@@ -86,7 +87,12 @@ export default async function TestPage({params, searchParams}: Props) {
       </a>
       <SiteHeader />
       <main id="main-content" className="min-h-[calc(100vh-4rem)] bg-canvas">
-        <AssessmentFlow copy={copy} initialAge={initialAge} dev={dev} />
+        <AssessmentFlow
+          copy={copy}
+          locale={locale as Locale}
+          initialAge={initialAge}
+          dev={dev}
+        />
       </main>
     </>
   );

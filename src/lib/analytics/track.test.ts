@@ -1,5 +1,6 @@
 /**
- * Tests for the consent-gated, PII-free tracker (Phase 2.04).
+ * Tests for the consent-gated, PII-free + SCORE-free tracker (Phase 2.04,
+ * extended Phase 3.12).
  *
  * HOW ENV IS STUBBED: `env.ts` reads `process.env.NEXT_PUBLIC_*` at module-load
  * time (this is how Next inlines them in the real build). So each test calls
@@ -59,7 +60,7 @@ describe('track() — consent gating', () => {
     const {mods, gtag, fbq} = await loadWith({ga: 'G-TEST', pixel: 'PX-TEST'});
     mods.setConsentSnapshot({analytics: false, marketing: false});
 
-    mods.track('generate_lead', {band: '6-9', locale: 'en'});
+    mods.track('generate_lead', {locale: 'en'});
 
     expect(gtag).not.toHaveBeenCalled();
     expect(fbq).not.toHaveBeenCalled();
@@ -69,19 +70,19 @@ describe('track() — consent gating', () => {
     const {mods, gtag, fbq} = await loadWith({ga: 'G-TEST', pixel: 'PX-TEST'});
     mods.setConsentSnapshot({analytics: true, marketing: true});
 
-    mods.track('generate_lead', {band: '6-9', locale: 'en'});
+    mods.track('generate_lead', {locale: 'en'});
 
-    expect(gtag).toHaveBeenCalledWith('event', 'generate_lead', {band: '6-9', locale: 'en'});
-    expect(fbq).toHaveBeenCalledWith('track', 'Lead', {band: '6-9', locale: 'en'});
+    expect(gtag).toHaveBeenCalledWith('event', 'generate_lead', {locale: 'en'});
+    expect(fbq).toHaveBeenCalledWith('track', 'Lead', {locale: 'en'});
   });
 
   it('fires only GA when only analytics granted', async () => {
     const {mods, gtag, fbq} = await loadWith({ga: 'G-TEST', pixel: 'PX-TEST'});
     mods.setConsentSnapshot({analytics: true, marketing: false});
 
-    mods.track('generate_lead', {band: '6-9', locale: 'en'});
+    mods.track('generate_lead', {locale: 'en'});
 
-    expect(gtag).toHaveBeenCalledWith('event', 'generate_lead', {band: '6-9', locale: 'en'});
+    expect(gtag).toHaveBeenCalledWith('event', 'generate_lead', {locale: 'en'});
     expect(fbq).not.toHaveBeenCalled();
   });
 
@@ -90,14 +91,14 @@ describe('track() — consent gating', () => {
     mods.setConsentSnapshot({analytics: false, marketing: true});
 
     // generate_lead has a pixel mapping → fbq fires, gtag does not.
-    mods.track('generate_lead', {band: '6-9', locale: 'en'});
+    mods.track('generate_lead', {locale: 'en'});
     expect(gtag).not.toHaveBeenCalled();
-    expect(fbq).toHaveBeenCalledWith('track', 'Lead', {band: '6-9', locale: 'en'});
+    expect(fbq).toHaveBeenCalledWith('track', 'Lead', {locale: 'en'});
 
     fbq.mockClear();
 
     // test_start has NO pixel mapping → nothing fires under marketing-only.
-    mods.track('test_start', {band: '6-9', locale: 'en'});
+    mods.track('test_start', {locale: 'en'});
     expect(fbq).not.toHaveBeenCalled();
     expect(gtag).not.toHaveBeenCalled();
   });
@@ -108,40 +109,109 @@ describe('track() — env gating', () => {
     const {mods, gtag, fbq} = await loadWith({}); // empty ids
     mods.setConsentSnapshot({analytics: true, marketing: true});
 
-    mods.track('generate_lead', {band: '6-9', locale: 'en'});
+    mods.track('generate_lead', {locale: 'en'});
 
     expect(gtag).not.toHaveBeenCalled();
     expect(fbq).not.toHaveBeenCalled();
   });
 });
 
-describe('track() — PII-free sanitisation', () => {
-  it('strips every key outside the {band, locale, path} whitelist', async () => {
+describe('track() — v2 funnel events route to GA', () => {
+  it('routes every v2 funnel event to GA under analytics consent', async () => {
     const {mods, gtag} = await loadWith({ga: 'G-TEST', pixel: 'PX-TEST'});
     mods.setConsentSnapshot({analytics: true, marketing: true});
 
-    const piiPayload = {
-      band: '6-9',
+    for (const ev of [
+      'age_set',
+      'test_start',
+      'section_complete',
+      'test_complete',
+      'form_view',
+      'lead_submit',
+      'cta_booking_click',
+      'retest_start'
+    ] as const) {
+      gtag.mockClear();
+      mods.track(ev, {locale: 'mk'});
+      expect(gtag, `${ev} should reach GA`).toHaveBeenCalledTimes(1);
+      expect(gtag.mock.calls[0]![1]).toBe(ev);
+    }
+  });
+
+  it('lead_submit does NOT fire the Pixel (the Pixel Lead carries the dedup id)', async () => {
+    const {mods, fbq} = await loadWith({ga: 'G-TEST', pixel: 'PX-TEST'});
+    mods.setConsentSnapshot({analytics: true, marketing: true});
+
+    mods.track('lead_submit', {locale: 'mk'});
+    expect(fbq).not.toHaveBeenCalled();
+  });
+});
+
+describe('track() — PII-free + SCORE-free sanitisation', () => {
+  it('keeps only the {age, section, locale, path} allow-list', async () => {
+    const {mods, gtag} = await loadWith({ga: 'G-TEST', pixel: 'PX-TEST'});
+    mods.setConsentSnapshot({analytics: true, marketing: true});
+
+    mods.track('age_set', {age: 7, section: 'Gf', locale: 'mk', path: '/test'});
+
+    expect(gtag).toHaveBeenCalledTimes(1);
+    expect(gtag.mock.calls[0]![2]).toEqual({
+      age: 7,
+      section: 'Gf',
       locale: 'mk',
+      path: '/test'
+    });
+  });
+
+  it('strips PII AND any cognitive outcome (band/score/index) before sending', async () => {
+    const {mods, gtag} = await loadWith({ga: 'G-TEST', pixel: 'PX-TEST'});
+    mods.setConsentSnapshot({analytics: true, marketing: true});
+
+    const dirty = {
+      locale: 'mk',
+      section: 'Gsm',
+      // PII — must never pass:
       name: 'Ana',
       email: 'x@y.z',
-      age: 7,
+      phone: '+38970123456',
       answers: ['a', 'b'],
-      strengths: 'logic'
+      // Cognitive outcomes — must never pass (Phase 3.12 guardrail):
+      band: 'Advanced',
+      index: 'logical',
+      score: 88,
+      rank: 1
     };
-    // The cast proves callers cannot smuggle PII through the typed surface
-    // either: TrackParams has no name/email/age keys.
-    mods.track('test_start', piiPayload as unknown as import('./track').TrackParams);
+    mods.track('section_complete', dirty as unknown as import('./track').TrackParams);
 
     expect(gtag).toHaveBeenCalledTimes(1);
     const forwarded = gtag.mock.calls[0]![2] as Record<string, unknown>;
 
-    // Only whitelist keys present.
-    expect(forwarded).toEqual({band: '6-9', locale: 'mk'});
+    // Only allow-list keys present.
+    expect(forwarded).toEqual({locale: 'mk', section: 'Gsm'});
 
-    // Explicit PII-free assertions.
-    for (const banned of ['name', 'email', 'age', 'answers', 'strengths']) {
-      expect(forwarded).not.toHaveProperty(banned);
+    // Explicit PII + cognitive-outcome assertions.
+    for (const banned of [
+      'name',
+      'email',
+      'phone',
+      'answers',
+      'band',
+      'index',
+      'score',
+      'rank'
+    ]) {
+      expect(forwarded, `${banned} must be dropped`).not.toHaveProperty(banned);
     }
+  });
+
+  it('drops band even when passed alone (the only number allowed is age)', async () => {
+    const {mods, gtag} = await loadWith({ga: 'G-TEST', pixel: 'PX-TEST'});
+    mods.setConsentSnapshot({analytics: true, marketing: true});
+
+    mods.track('test_complete', {band: '80+', locale: 'en'} as import('./track').TrackParams);
+
+    const forwarded = gtag.mock.calls[0]![2] as Record<string, unknown>;
+    expect(forwarded).toEqual({locale: 'en'});
+    expect(forwarded).not.toHaveProperty('band');
   });
 });

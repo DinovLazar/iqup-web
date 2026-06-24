@@ -55,13 +55,12 @@ export interface TrialBookingCopy {
  */
 export function TrialBooking({
   locale,
-  band,
   copy,
   onSelectCenter
 }: {
   locale: Locale;
-  /** Band of the completed test (result screen only) — carried into the PII-free
-   *  analytics event, never shown. The public page omits it. */
+  /** Accepted for back-compat with the orphaned v1 `TrialInvite` caller, but no
+   *  longer forwarded to analytics (cognitive outcomes never reach GA — 3.12). */
   band?: string;
   copy: TrialBookingCopy;
   /** Notified with the chosen centre's city label (or null) so a surface can fill
@@ -78,12 +77,13 @@ export function TrialBooking({
     onSelectCenter?.(c ? c.city[locale] : null);
   };
 
-  // Analytics: a real trial action (call / email / directions / Viber-WhatsApp).
-  // PII-free — exactly {band?, locale, path}; a no-op until Analytics consent +
-  // the GA id are present (consent-gated as built in 2.04).
-  const trackTrialClick = () =>
-    track('trial_cta_click', {
-      band,
+  // Analytics: a real booking action (call / email / directions / Viber-WhatsApp).
+  // Standardised on the Appendix-F name `cta_booking_click` (Phase 3.12) so the
+  // taxonomy matches the v2 results CTA. PII-free + score-free — exactly
+  // {locale, path}; the `band` prop is no longer forwarded (cognitive outcomes
+  // never reach GA). A no-op until Analytics consent + the GA id are present.
+  const trackBookingClick = () =>
+    track('cta_booking_click', {
       locale,
       path: typeof window === 'undefined' ? undefined : window.location.pathname
     });
@@ -149,7 +149,7 @@ export function TrialBooking({
               asChild
               className="h-13 min-h-[3.25rem] gap-2.5 rounded-full bg-hero px-6 text-base font-bold text-hero-ink shadow-[var(--shadow-hero)] hover:bg-hero-strong"
             >
-              <a href={telHref} onClick={trackTrialClick}>
+              <a href={telHref} onClick={trackBookingClick}>
                 <Phone className="size-5" aria-hidden="true" />
                 {copy.callCta}
               </a>
@@ -160,7 +160,7 @@ export function TrialBooking({
               variant="secondary"
               className="h-13 min-h-[3.25rem] gap-2.5 rounded-full px-6 text-base font-bold"
             >
-              <a href={mailHref} onClick={trackTrialClick}>
+              <a href={mailHref} onClick={trackBookingClick}>
                 <Mail className="size-5" aria-hidden="true" />
                 {copy.emailCta}
               </a>
@@ -175,7 +175,7 @@ export function TrialBooking({
                 href={directionsHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={trackTrialClick}
+                onClick={trackBookingClick}
               >
                 <Navigation className="size-5" aria-hidden="true" />
                 {copy.directionsCta}
@@ -192,7 +192,7 @@ export function TrialBooking({
                   href={viber}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={trackTrialClick}
+                  onClick={trackBookingClick}
                 >
                   <MessageCircle className="size-5" aria-hidden="true" />
                   {messageLabel('Viber')}
@@ -210,7 +210,7 @@ export function TrialBooking({
                   href={whatsapp}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={trackTrialClick}
+                  onClick={trackBookingClick}
                 >
                   <MessageCircle className="size-5" aria-hidden="true" />
                   {messageLabel('WhatsApp')}

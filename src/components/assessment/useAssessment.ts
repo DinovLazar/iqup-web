@@ -24,6 +24,8 @@ import {DOMAINS, type Domain, type Item, type Response} from '@/lib/engine/types
 import {evaluateValidity, type ValiditySummary} from '@/lib/validity';
 import {toResponseOutcomes} from '@/lib/scoring/v2';
 import {createTaskItemProvider, type TaskItemProvider} from '@/content/tasks';
+import {track, type TrackEvent, type TrackParams} from '@/lib/analytics/track';
+import type {Locale} from '@/content/locale';
 import {persistHandoff, generateSeed, type AssessmentHandoff} from './session';
 import type {AnswerTelemetry, FlowPhase} from './types';
 import {useItemTimer} from './telemetry';
@@ -36,6 +38,8 @@ export interface AssessmentOptions {
   calibrationBaselineMs?: number;
   /** Called once the SessionRun + validity are assembled (analytics seam, 3.12). */
   onComplete?: (handoff: AssessmentHandoff) => void;
+  /** The UI locale — attached to the PII-free funnel events (Phase 3.12). */
+  locale?: Locale;
 }
 
 /** Everything the flow UI needs from the orchestrator. */
@@ -82,6 +86,16 @@ export function useAssessment(opts: AssessmentOptions = {}): AssessmentState {
   const provider = useMemo<TaskItemProvider>(() => createTaskItemProvider(), []);
   const timer = useItemTimer();
 
+  // PII-free funnel events (Phase 3.12) — consent/env-gated inside `track()`, a
+  // no-op in SSR/tests (no `window`). The locale rides along on every event.
+  const locale = opts.locale;
+  const emit = useCallback(
+    (event: TrackEvent, params: TrackParams = {}) => {
+      track(event, {...params, ...(locale ? {locale} : {})});
+    },
+    [locale]
+  );
+
   const [phase, setPhase] = useState<FlowPhase>('setup');
   const [age, setAgeState] = useState<number | null>(null);
   const [seed, setSeed] = useState<string | null>(opts.seed ?? null);
@@ -120,10 +134,13 @@ export function useAssessment(opts: AssessmentOptions = {}): AssessmentState {
     (next: number) => {
       setAgeState(next);
       setSeed((s) => s ?? generateSeed(next));
+      // `age_set` — fired at the age-setup step (Appendix F). Age is the only
+      // number allowed through the PII-free sanitiser.
+      emit('age_set', {age: next});
       if (needsParentAssist(next)) setPhase('assist');
       else enterPractice(0);
     },
-    [enterPractice]
+    [enterPractice, emit]
   );
 
   const confirmAssist = useCallback(() => {
@@ -149,9 +166,12 @@ export function useAssessment(opts: AssessmentOptions = {}): AssessmentState {
     controllerRef.current = controller;
     setPracticeItem(null);
     setCurrentItem(controller.peek());
+    // `test_start` — the first task of the session begins (Appendix F). Only the
+    // first domain's run start counts as the session start.
+    if (domainIndex === 0) emit('test_start');
     setPhase('task');
     timer.start();
-  }, [age, seed, baseline, opts.calibrationBaselineMs, domainIndex, provider, timer]);
+  }, [age, seed, baseline, opts.calibrationBaselineMs, domainIndex, provider, timer, emit]);
 
   /** Assemble the run + validity, persist, and route to complete/retry. */
   const finalize = useCallback(() => {
@@ -177,12 +197,14 @@ export function useAssessment(opts: AssessmentOptions = {}): AssessmentState {
       setPhase('retry');
     } else {
       // valid / gentle_note → persist the hand-off and reward the child.
+      // `test_complete` — the session reached the completion badge (Appendix F).
+      emit('test_complete');
       // HANDOFF (3.06): the completion screen's "continue to your report" action
       // sends the parent into the form, which reads this persisted run.
       persistHandoff(handoff);
       setPhase('complete');
     }
-  }, [age, seed, baseline, opts]);
+  }, [age, seed, baseline, opts, emit]);
 
   /** Advance to the next domain's practice, or finalize after the last domain. */
   const advanceDomain = useCallback(() => {
@@ -214,6 +236,9 @@ export function useAssessment(opts: AssessmentOptions = {}): AssessmentState {
 
       if (controller.done) {
         runsRef.current[controller.domain] = controller.result();
+        // `section_complete` — this task-domain finished (Appendix F). The
+        // language-neutral domain id (e.g. `Gf`) is the non-PII `section`.
+        emit('section_complete', {section: controller.domain});
         setCompletedDomains((prev) => {
           const nextSet = new Set(prev);
           nextSet.add(controller.domain);
@@ -228,10 +253,13 @@ export function useAssessment(opts: AssessmentOptions = {}): AssessmentState {
         timer.start();
       }
     },
-    [currentItem, timer, advanceDomain]
+    [currentItem, timer, advanceDomain, emit]
   );
 
   const retry = useCallback(() => {
+    // `retest_start` — the parent/child chose to take the assessment again
+    // (Appendix F; the not-representative retry path + any "take again" entry).
+    emit('retest_start');
     // Fresh seed → a fresh item set on the same age (determinism gives new tasks).
     runsRef.current = {};
     controllerRef.current = null;
@@ -240,7 +268,7 @@ export function useAssessment(opts: AssessmentOptions = {}): AssessmentState {
     setCurrentItem(null);
     if (age != null) setSeed(generateSeed(age));
     enterPractice(0);
-  }, [age, enterPractice]);
+  }, [age, enterPractice, emit]);
 
   return {
     phase,

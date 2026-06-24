@@ -586,3 +586,24 @@ Installed with `npm install @react-pdf/renderer --save-exact`. **Smoke-tested** 
 **New OG route in the build:** `/[locale]/report/opengraph-image` (mk + en) — generic, name-free, auto-wired to `/report`'s metadata by Next's file convention (mirrors `/result` + `/trial`). All other routes unchanged; `/report` stays SSG + `robots: noindex`.
 
 **Seam wired:** the certificate renders **inline** at `// SEAM (3.11)` — `ResultsScreen` gains an optional `certificate?: ReactNode` slot that `ReportFlow` fills with `<CertificatePanel>`. No certificate route. `// SEAM (3.10)` + `// SEAM (3.12)` untouched. **Scoped `.iqc-*` CSS** appended to `globals.css` (panel chrome only; the artwork uses inline styles for html-to-image fidelity; uses only DEFINED tokens).
+
+---
+
+## 2026-06-24 — Phase 3.12 analytics + consent + Meta CAPI (Code)
+
+**No new npm dependency.** GA4/Pixel stay as the 2.04 consent-gated loaders (no SDK package). The server CAPI sender uses the platform `fetch` + Node `crypto` (`createHash`). Nothing added to `package.json`.
+
+**New env vars (documented in `.env.local.example`; the prior 2.04 PUBLIC tracker ids are unchanged):**
+- `META_CAPI_ACCESS_TOKEN` — **SECRET, server-only** (never prefix `NEXT_PUBLIC`, never commit a value). Read in `src/lib/meta/capi.ts` only; on a successful submit the server fires a Meta `Lead` with **hashed contact only**, gated on the parent's Marketing **cookie** consent. **Unset → a clean logged no-op.** Generated in Meta Events Manager → dataset → Conversions API → Generate access token.
+- `META_CAPI_TEST_EVENT_CODE` — optional; routes CAPI events to Meta's Test Events tool for QA. Leave unset in production.
+- The CAPI **dataset id is the existing `NEXT_PUBLIC_META_PIXEL_ID`** (the Pixel id doubles as the dataset id).
+
+**Pinned external version:** **Meta Graph API `v21.0`** (`GRAPH_API_VERSION` in `src/lib/meta/capi.ts`) — POST `https://graph.facebook.com/v21.0/{dataset_id}/events?access_token=…`. Bump deliberately (Meta supports each version ~2 years).
+
+**The v2 GA4 funnel event set (Appendix F)** is wired through the existing consent-gated GA loader, PII-free + **SCORE-free**: `age_set`, `test_start`, `section_complete`, `test_complete` (in `useAssessment`), `form_view` + `lead_submit` (in `ReportFlow`), `cta_booking_click` (the results CTA + the live `/trial` surface, replacing the v1 `trial_cta_click`), `retest_start` (the retry path). `page_view` (2.04) is unchanged. `track()`'s allow-list is now `{age, section, locale, path}` — **`band` is dropped** (cognitive outcomes never reach GA4).
+
+**Consent:** the server CAPI fire is gated on the **Marketing** grant read **server-side** from the `iqup_consent` cookie (`cookies()` + the existing pure `parseConsent`). **Consent Mode v2 was already complete** in the 2.04 GA loader (`analytics_storage` ← Analytics; `ad_storage` + `ad_user_data` + `ad_personalization` ← Marketing) — verified, no change. The cookie/tracking consent stays entirely separate from the parent's form consents.
+
+**Dedup:** one client-minted `event_id` per submission (`crypto.randomUUID()`) is shared by the server CAPI `Lead` and the browser Pixel `Lead` (`fbq('track','Lead',{},{eventID})`) so Meta deduplicates; the Pixel stays optional (no-op when not loaded).
+
+**No new store write / Brevo call / schema change / migration / processor on either store.** The transient CAPI inputs (`event_id`, `fbp`, `fbc`, the consent read) touch **neither store**, never appear in a URL, and are never logged with PII. Privacy disclosure: a CAPI processor line + a `_fbc` cookie row added to `src/content/privacy/{mk,en}.ts` (MK provisional; flagged for IqUp legal). Route table unchanged (`/report` SSG, `/test` dynamic).

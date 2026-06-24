@@ -10,8 +10,9 @@
  */
 'use client';
 
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useReducedMotion} from 'framer-motion';
+import type {Locale} from '@/content/locale';
 import {useRouter} from '@/i18n/navigation';
 import {MotionProvider} from '@/components/landing/MotionProvider';
 import {correctAnswerFor, specOf} from '@/content/tasks';
@@ -31,11 +32,14 @@ export type DevMode = 'off' | 'finish' | 'retry';
 
 export function AssessmentFlow({
   copy,
+  locale,
   initialAge,
   dev = false,
   options
 }: {
   copy: AssessmentCopy;
+  /** UI locale — threaded into the PII-free funnel events (Phase 3.12). */
+  locale: Locale;
   /** Optional age from `/test?age=N` — auto-starts setup so the picker is skipped. */
   initialAge?: number;
   /** Non-production QA autopilot (stripped in prod by the server shell). */
@@ -45,7 +49,13 @@ export function AssessmentFlow({
 }) {
   const reducedMotion = useReducedMotion() ?? false;
   const router = useRouter();
-  const a = useAssessment(options);
+  // Inject the locale so the orchestrator's funnel events carry it; the spread
+  // keeps any test/dev overrides. Memoised so `useAssessment`'s callbacks stay stable.
+  const assessmentOptions = useMemo<AssessmentOptions>(
+    () => ({...options, locale}),
+    [options, locale]
+  );
+  const a = useAssessment(assessmentOptions);
   const {
     phase,
     currentDomain,

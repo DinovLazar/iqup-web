@@ -26,6 +26,8 @@ import {
 } from '@/components/assessment/session';
 import {buildAnonymousScore, type ScoreGender} from '@/lib/scores/anonymous-score';
 import {submitAssessment} from '@/lib/leads/submit-assessment';
+import {track} from '@/lib/analytics/track';
+import {firePixelLead, readFbCookies} from '@/lib/analytics/pixel-lead';
 import {
   LEAD_CONTEXT_V2_STORAGE_KEY,
   isLeadContextV2,
@@ -70,6 +72,21 @@ function readRawLeadContext(): string {
 /** Mirror of the schema's email rule for instant client feedback (server re-checks). */
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_NAME = 80;
+
+/**
+ * One dedup `event_id` per submission (Phase 3.12) — shared by the server CAPI
+ * `Lead` and the browser Pixel `Lead` so Meta deduplicates. Uses the Web Crypto
+ * UUID (no `Math.random`); a `getRandomValues` fallback covers older runtimes.
+ */
+function newEventId(): string {
+  const c = globalThis.crypto;
+  if (c?.randomUUID) return c.randomUUID();
+  if (c?.getRandomValues) {
+    const bytes = c.getRandomValues(new Uint8Array(16));
+    return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+  }
+  return `lead-${Date.now()}`;
+}
 
 type GenderValue = '' | ScoreGender;
 
@@ -182,6 +199,7 @@ export function ReportFlow({
   const emailRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
   const cityRef = useRef<HTMLSelectElement>(null);
+  const formViewedRef = useRef(false);
 
   // Defensive guard: never render the form without a valid run — send the parent
   // back to the assessment. `raw === null` is the pre-hydration server snapshot
@@ -191,6 +209,17 @@ export function ReportFlow({
   useEffect(() => {
     if (missing) router.replace('/test');
   }, [missing, router]);
+
+  // `form_view` (Phase 3.12 / Appendix F) — fired ONCE when the capture form is
+  // actually presented. Deliberately NOT fired on a refresh that re-reveals results
+  // (`reportCtx` set), so a returning parent doesn't re-count as a new form view.
+  useEffect(() => {
+    if (formViewedRef.current) return;
+    if (profile && !reportCtx) {
+      formViewedRef.current = true;
+      track('form_view', {locale});
+    }
+  }, [profile, reportCtx, locale]);
 
   const submitting = status === 'submitting';
 
@@ -295,6 +324,13 @@ export function ReportFlow({
       language: locale
     });
 
+    // SEAM (3.12): one dedup id per submission, plus the PII-free Meta browser ids.
+    // These are TRANSIENT match data — they touch neither store and never hit a URL.
+    const eventId = newEventId();
+    const {fbp, fbc} = readFbCookies();
+    const eventSourceUrl =
+      typeof window === 'undefined' ? undefined : window.location.href;
+
     try {
       const res = await submitAssessment({
         lead: {
@@ -314,14 +350,23 @@ export function ReportFlow({
         honeypot,
         // SEAM (3.10): hand the run + the shared submit time to the server so it
         // reproduces the SAME report and emails the PDF. Never persisted.
-        report: run ? {run, generatedAt: submittedAt} : undefined
+        report: run ? {run, generatedAt: submittedAt} : undefined,
+        // SEAM (3.12): the Meta-match data for the server CAPI `Lead`. The fire is
+        // gated server-side on the Marketing-consent cookie (not on this object).
+        meta: {eventId, fbp, fbc, eventSourceUrl}
       });
 
       // Reveal results regardless of the write outcome — the parent is never
       // trapped. Persist the minimal 3.09 context, then reveal the results.
       writeLeadContextV2({parentFirstName: nextName, city, submittedAt});
 
-      if (!res.ok) {
+      if (res.ok) {
+        // `lead_submit` (GA) + the browser Pixel `Lead` sharing the SAME `event_id`
+        // as the server CAPI `Lead` (Meta dedup). Both are consent/env-gated and
+        // no-op when their tracker isn't loaded — CAPI alone still carries the Lead.
+        track('lead_submit', {locale});
+        firePixelLead(eventId);
+      } else {
         // A hard server failure (rare — the action is non-trapping). The lead is
         // logged recoverably server-side; still reveal results to the parent.
         console.error('[ReportFlow] submitAssessment returned not-ok');
