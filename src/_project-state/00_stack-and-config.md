@@ -607,3 +607,26 @@ Installed with `npm install @react-pdf/renderer --save-exact`. **Smoke-tested** 
 **Dedup:** one client-minted `event_id` per submission (`crypto.randomUUID()`) is shared by the server CAPI `Lead` and the browser Pixel `Lead` (`fbq('track','Lead',{},{eventID})`) so Meta deduplicates; the Pixel stays optional (no-op when not loaded).
 
 **No new store write / Brevo call / schema change / migration / processor on either store.** The transient CAPI inputs (`event_id`, `fbp`, `fbc`, the consent read) touch **neither store**, never appear in a URL, and are never logged with PII. Privacy disclosure: a CAPI processor line + a `_fbc` cookie row added to `src/content/privacy/{mk,en}.ts` (MK provisional; flagged for IqUp legal). Route table unchanged (`/report` SSG, `/test` dynamic).
+
+---
+
+## 2026-06-24 — Phase 3.13 admin base (Code)
+
+**One new dependency (pinned exact, no caret):**
+
+| Package | Version | Scope |
+|---|---|---|
+| @supabase/ssr | 0.12.0 | dependency (cookie-session helper for Supabase Auth in the App Router) |
+
+Installed with `npm install @supabase/ssr --save-exact`. It is the ONLY new dependency this phase. The install also bumped the transitive **`@supabase/supabase-js` 2.107.0 → 2.108.2** — an in-range patch under the existing `^2.107.0` caret (not a deliberate change). **Production audit is unchanged** (the 2 pre-existing `postcss`/`next` moderate advisories; the dev-tree advisories — supabase CLI / tsx — are pre-existing and not shipped).
+
+**No new env var.** The admin REUSES the existing vars (documented in `.env.local.example`):
+- **Login (Supabase Auth):** `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` (anon key + the user session — NEVER the service-role key). Unset → the login shows a clean "not configured" state and the gate redirects every `/admin` path to `/admin/login`.
+- **Statistics (Store A, aggregate-only):** `SUPABASE_SERVICE_ROLE_KEY` via the existing `server-only` service-role client. Unset → a clean empty stats state.
+- **Contacts (Store B, read-only):** `BREVO_API_KEY` (+ `BREVO_LEADS_LIST_ID` to scope the read). Unset → a clean empty contacts state.
+
+**Proxy (`src/proxy.ts`) — the one non-admin code edit.** The next-intl middleware now coexists with the admin session gate: the proxy dispatches `/admin/**` to `updateAdminSession` (Supabase cookie refresh + redirect-if-unauthenticated) and everything else to `createMiddleware(routing)`. So `/admin` is EXCLUDED from locale routing; public locale routing is unchanged. The matcher is unchanged (it already matches `/admin/**`, which the dispatch branch handles).
+
+**New routes (all DYNAMIC `ƒ`, outside `[locale]`, single-locale English, `noindex`):** `/admin` (→ `/admin/contacts`), `/admin/login`, `/admin/contacts`, `/admin/contacts/export` (CSV route handler), `/admin/statistics`, `/admin/statistics/export` (CSV route handler), `/admin/auth/signout` (POST). The admin owns its OWN root layout (`src/app/admin/layout.tsx` renders `<html>` — it does not pass through the next-intl `[locale]` layout; multiple-root-layout pattern). The PUBLIC route table is unchanged (`/[locale]/report` SSG, `/[locale]/test` dynamic untouched).
+
+**No i18n change** (the admin is single-locale English, no `next-intl` namespace). **No schema migration, no new Store A column, no new Store B attribute, no change to either write path.** Build/lint/typecheck clean; `npm test` 775/775 (75 files) = 737 prior + 38 new admin/guardrail tests.

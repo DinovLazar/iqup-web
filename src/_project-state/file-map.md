@@ -477,6 +477,49 @@
 | `.env.local.example` | **Modified (3.12)** — documents the secret `META_CAPI_ACCESS_TOKEN` (server-only; never `NEXT_PUBLIC`) + optional `META_CAPI_TEST_EVENT_CODE`; notes the Pixel id doubles as the CAPI dataset id. |
 | `tests/e2e/consent.spec.ts` | **Modified (3.12)** — adds an Accept-loads-trackers assertion on the v2 `/test` assessment surface. |
 
+## Admin back-office (phase 3.13)
+
+> Internal `/admin` — outside `[locale]`, single-locale English, `noindex`, no analytics/consent UI. READS the two existing stores via two **structurally isolated** paths (contacts = Brevo / Store B; statistics = Supabase / Store A). Additive: the only non-admin code edit is `src/proxy.ts`.
+
+| Path | Description |
+|---|---|
+| `src/lib/admin/auth/env.ts` | **New (3.13)** — isomorphic: `adminAuthEnv()`/`isAdminAuthConfigured()` (public Supabase URL + anon key, or `null`) + the canonical admin paths (`ADMIN_LOGIN_PATH`/`ADMIN_HOME_PATH`/`isAdminLoginPath`). No service-role key here. |
+| `src/lib/admin/auth/client.ts` | **New (3.13)** — browser auth client: `createAdminBrowserClient()` via `@supabase/ssr` `createBrowserClient` (anon key + cookie session). Imported only by the login form. |
+| `src/lib/admin/auth/server.ts` | **New (3.13)** — `server-only` per-route gate: `createAdminServerClient()` (cookie-bound, anon key), `getAdminUser()` (resilient → `null` on unconfigured/failure), `requireAdminUser()` (→ redirect to login). |
+| `src/lib/admin/auth/middleware.ts` | **New (3.13)** — `updateAdminSession(request)` for the proxy: refreshes the Supabase cookie session + redirects unauthenticated `/admin/**` to login. Unset env / failing Supabase → treated as unauthenticated; never throws. |
+| `src/lib/admin/auth/middleware.test.ts` | **New (3.13)** — gate proof: redirects to `/admin/login` when unconfigured AND when a configured Supabase reports no session; sends a signed-in user off the login page; a failing Supabase still redirects (never throws). |
+| `src/lib/admin/contacts/contact-fields.ts` | **New (3.13)** — pure: `toLeadContactRow` (allow-list mapping, drops `TOP_INDEX`/any cognitive field) + `CONTACT_ATTRIBUTE_ALLOW_LIST` / `FORBIDDEN_CONTACT_ATTRIBUTES` + view helpers `filterRowsByCity`/`paginateRows`. |
+| `src/lib/admin/contacts/contact-fields.test.ts` | **New (3.13)** — mapping drops TOP_INDEX (no cognitive value/key); allow-list excludes the forbidden set; filter + pagination; CSV has no cognitive column + a BOM. |
+| `src/lib/admin/contacts/brevo-contacts-read.ts` | **New (3.13)** — `server-only` thin `fetch` READ transport (`fetchContactsPage`, list-scoped or all, paged via limit/offset). Read-only; no SDK. |
+| `src/lib/admin/contacts/read-contacts.ts` | **New (3.13)** — `server-only` orchestrator `fetchLeadContacts()`: scopes to `BREVO_LEADS_LIST_ID`, pages up to `CONTACTS_FETCH_CAP` (logs if larger), maps rows. Clean no-op without `BREVO_API_KEY`; never throws. |
+| `src/lib/admin/contacts/contacts-csv.ts` | **New (3.13)** — pure `contactsToCsv` (contact + consent + source + date columns; no cognitive column). |
+| `src/lib/admin/stats/aggregate.ts` | **New (3.13)** — pure aggregation: `StatsRow`/`AggregateStats` + `aggregateStats` (counts + distributions; city slug→label; bands via `bandFor`; `isoWeekStart`) + `emptyAggregateStats`. Returns only the summarised shape. |
+| `src/lib/admin/stats/aggregate.test.ts` | **New (3.13)** — counts/distributions/band-bucketing/ISO-week; asserts aggregate-only output (no raw rows, no PII keys). |
+| `src/lib/admin/stats/read-stats.ts` | **New (3.13)** — `server-only` `readAggregateStats()` via the service-role client: non-PII column projection (no `id`), newest-first paging to `STATS_FETCH_CAP`, aggregates server-side — raw rows never escape. Clean empty state without config; never throws. |
+| `src/lib/admin/stats/stats-csv.ts` | **New (3.13)** — pure `statsToCsv` (long-format `category,key,count`; aggregate only). |
+| `src/lib/admin/csv.ts` | **New (3.13)** — pure CSV utility: `escapeCsvCell`/`toCsv` (BOM + CRLF + RFC-4180) + `csvResponse`. Shared by both exports. |
+| `src/lib/admin/csv.test.ts` | **New (3.13)** — escaping + BOM + Cyrillic preservation. |
+| `src/lib/admin/unlinkability.test.ts` | **New (3.13)** — the unlinkability proof: import-edge scan — contacts path ✗ stats/Supabase; stats path ✗ Brevo/contacts; no module imports both readers (no joined path). |
+| `src/lib/admin/server-boundary.test.ts` | **New (3.13)** — service-role client is `server-only`; the stats reader sits behind it; no `'use client'` admin file imports a server reader / service-role / Brevo; the contacts page renders no cognitive token. |
+| `src/lib/admin/resilience.test.ts` | **New (3.13)** — both readers are clean no-ops without config and never throw on failure. |
+| `src/lib/admin/page-render.test.tsx` | **New (3.13)** — renders the contacts + statistics pages (empty + populated) to static markup; asserts no cognitive value leaks into contacts. |
+| `src/app/admin/layout.tsx` | **New (3.13)** — admin ROOT layout (`<html lang="en">`, Montserrat, `noindex`). Outside `[locale]` — owns its own document. |
+| `src/app/admin/login/page.tsx` | **New (3.13)** — login screen (server): redirects a signed-in user to `/admin`; else renders the form (or the "not configured" state). |
+| `src/app/admin/login/AdminLoginForm.tsx` | **New (3.13)** — `'use client'` invite-only email+password login, completes a TOTP challenge when a factor is enrolled; clean disabled state when unconfigured. |
+| `src/app/admin/(authed)/layout.tsx` | **New (3.13)** — gated layout: `requireAdminUser()` (layer-2 gate) + the `AdminShell` chrome. |
+| `src/app/admin/(authed)/page.tsx` | **New (3.13)** — `/admin` → redirect to `/admin/contacts`. |
+| `src/app/admin/(authed)/contacts/page.tsx` | **New (3.13)** — paginated, city-filterable contacts table (Store B); clean empty states; Export CSV link. No `TOP_INDEX`/cognitive column. |
+| `src/app/admin/(authed)/contacts/export/route.ts` | **New (3.13)** — contacts CSV (Brevo). Independently gated (`getAdminUser` → 401). |
+| `src/app/admin/(authed)/statistics/page.tsx` | **New (3.13)** — aggregate-only stats (Store A): total, completions-by-week, by age/gender/city/language/validity, band-by-index; clean empty states; Export CSV link. |
+| `src/app/admin/(authed)/statistics/export/route.ts` | **New (3.13)** — aggregate-stats CSV (Supabase). Independently gated. |
+| `src/app/admin/auth/signout/route.ts` | **New (3.13)** — POST sign-out → clears the session → 303 to `/admin/login`. |
+| `src/components/admin/AdminShell.tsx` | **New (3.13)** — authenticated chrome: skip link + header (signed-in email + sign-out) + nav + `<main>`. |
+| `src/components/admin/AdminNav.tsx` | **New (3.13)** — `'use client'` section nav (Contacts/Statistics) with `aria-current`. |
+| `src/components/admin/StatBars.tsx` | **New (3.13)** — accessible styled-`<div>` bar distribution (no charting lib); population counts/percentages only. |
+| `src/proxy.ts` | **Modified (3.13)** — dispatches `/admin/**` → `updateAdminSession` (Supabase gate) and everything else → `createMiddleware(routing)`; `/admin` excluded from locale routing, public routing unchanged. |
+| `package.json` / `package-lock.json` | **Modified (3.13)** — adds `@supabase/ssr@0.12.0` (pinned; the only new dependency). |
+| `.env.local.example` | **Modified (3.13)** — documents that the admin reuses the existing Supabase + Brevo vars (no new env var) + the invite-only / EU-residency dashboard step. |
+
 ## Project-state docs
 
 | Path | Description |
