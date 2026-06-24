@@ -6,6 +6,7 @@ import type {Locale} from '@/content/locale';
 import {SiteHeader} from '@/components/landing/SiteHeader';
 import {SiteFooter} from '@/components/landing/SiteFooter';
 import {CookieSettingsButton} from '@/components/consent/CookieSettingsButton';
+import {HonestNote} from '@/components/common/HonestNote';
 import {getPrivacyContent} from '@/content/privacy';
 import type {PrivacyBlock} from '@/content/privacy';
 
@@ -54,6 +55,7 @@ export default async function PrivacyPage({params}: Props) {
 
   const tA11y = await getTranslations({locale, namespace: 'A11y'});
   const t = await getTranslations({locale, namespace: 'Privacy'});
+  const tDisc = await getTranslations({locale, namespace: 'Disclaimer'});
   const content = getPrivacyContent(locale as Locale);
 
   const cookiesSectionId = 'cookies';
@@ -90,6 +92,16 @@ export default async function PrivacyPage({params}: Props) {
           >
             {t('draftNote')}
           </div>
+
+          {/* The shared honest-framing notice (Phase 3.14) — a restatement from the
+              one `Disclaimer` source, consistent with every other surface. */}
+          <HonestNote
+            variant="inset"
+            ariaLabel={tDisc('ariaLabel')}
+            notice={tDisc('notice')}
+            provisional={tDisc('provisional')}
+            className="mt-4"
+          />
 
           <div className="mt-12 flex flex-col gap-12">
             {content.sections.map((section) => (

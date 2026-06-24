@@ -86,6 +86,7 @@
       "tagline": "Education that inspires.",
       "org": "The first Macedonian educational franchise for children.",
       "rights": "© {year} IqUp. All rights reserved.",
+      "about": "About the test",
       "privacy": "Privacy policy",
       "cookieSettings": "Cookie settings",
       "legalNavLabel": "Legal links"
@@ -523,6 +524,25 @@
     "og": {
       "headline": "An IqUp Explorer!",
       "tagline": "Discover how your child thinks and learns."
+    }
+  },
+  "Disclaimer": {
+    "notice": "IqUp is informative and indicative — a warm picture of how a child approached these activities on the day. It is not a clinical assessment, an IQ score, or a diagnosis.",
+    "provisional": "It rests on provisional, age-based reference values that keep improving over time, so the picture is always shown in words and pictures, never as a number.",
+    "ariaLabel": "About these results"
+  },
+  "About": {
+    "meta": {
+      "title": "About the test",
+      "description": "What the IqUp brain games are — and what they are not. A free, playful look at how your child thinks, shown as strengths and a friendly picture, never as a number."
+    },
+    "lead": "IqUp is a free, playful set of thinking activities for children aged five to thirteen. Here is exactly what it is, what it isn't, and what you and your child get out of it.",
+    "noticeAriaLabel": "How to read the IqUp result",
+    "cta": {
+      "heading": "Ready to try it?",
+      "body": "The whole thing takes about ten minutes and there is nothing to sign up for. You can also come and meet us at a free demo class.",
+      "primary": "Start the free test",
+      "secondary": "Book a free demo class"
     }
   }
 }

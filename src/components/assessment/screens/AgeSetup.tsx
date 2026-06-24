@@ -7,6 +7,7 @@
 
 import {useState} from 'react';
 import {cn} from '@/lib/utils';
+import {HonestNote} from '@/components/common/HonestNote';
 import {ConfirmAction} from '../renderers/ConfirmAction';
 import type {AssessmentCopy} from '../copy';
 
@@ -65,6 +66,10 @@ export function AgeSetup({
         disabled={age === null}
         onConfirm={() => age !== null && onAge(age)}
       />
+
+      {/* The shared honest-framing notice (Phase 3.14) — a quiet, parent-facing
+          expectation-setting line, sourced from the one `Disclaimer` namespace. */}
+      <HonestNote notice={copy.notice} className="text-center" />
     </div>
   );
 }

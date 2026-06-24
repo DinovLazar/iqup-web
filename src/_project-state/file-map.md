@@ -520,6 +520,34 @@
 | `package.json` / `package-lock.json` | **Modified (3.13)** — adds `@supabase/ssr@0.12.0` (pinned; the only new dependency). |
 | `.env.local.example` | **Modified (3.13)** — documents that the admin reuses the existing Supabase + Brevo vars (no new env var) + the invite-only / EU-residency dashboard step. |
 
+## Supporting pages + the honest-framing notice (phase 3.14)
+
+| Path | Description |
+|---|---|
+| `src/components/common/HonestNote.tsx` | **New (3.14)** — the ONE shared honest-framing notice: a presentational, props-driven component (`notice`/`provisional`/`ariaLabel`, `plain`\|`inset` variants) reading the single `Disclaimer` i18n source. Muted AA text (`text-ink-soft`). Reused on every chrome surface. |
+| `src/components/common/honest-notice.test.tsx` | **New (3.14)** — renders HonestNote + AboutArticle + AgeSetup + CertificatePanel with the real `Disclaimer` copy (both locales) and asserts the notice appears; source-level assertion that the 5 chrome surfaces render `HonestNote` and the frozen results/PDF surfaces still render `report.disclaimer`. |
+| `src/content/about/types.ts` | **New (3.14)** — typed About content shape: `AboutBlock`/`AboutSection` (with `withNotice`)/`AboutContent`. |
+| `src/content/about/en.ts` | **New (3.14)** — EN About content (what-it-is / what-it-isn't / credibility / what-you-receive). No number/score/IQ/clinical vocabulary. |
+| `src/content/about/mk.ts` | **New (3.14)** — MK About content (mirror; provisional MK). |
+| `src/content/about/index.ts` | **New (3.14)** — `getAboutContent(locale)` accessor. |
+| `src/content/about/about.test.ts` | **New (3.14)** — MK/EN structural parity (ids/order/block-kinds/list-lengths/notice-flag) + strict forbidden-vocab scan (no score/IQ/rank/grade/points/weak/fail/clinical/diagnostic, no digit), non-vacuous. |
+| `src/components/about/AboutArticle.tsx` | **New (3.14)** — pure presentational About article: renders the structured content + injects the shared `HonestNote` at the `withNotice` section. Directly renderable in tests. |
+| `src/app/[locale]/about-test/page.tsx` | **New (3.14)** — the public `/about-test` (+ `/en/about-test`) **SSG, indexable** page: per-locale `generateMetadata` (canonical + hreflang + alternates), skip-link + header/footer, Montserrat headings, the `About` chrome namespace + content-as-data + the shared notice + a free-test/demo CTA. Slug provisional (`// TODO(mk-slug)`). |
+| `src/components/landing/Hero.tsx` | **Modified (3.14)** — adds the shared `HonestNote` footnote near the hero CTA (resolves the `Disclaimer` namespace). |
+| `src/components/landing/SiteFooter.tsx` | **Modified (3.14)** — adds the **About the test** link (`/about-test`, `Landing.footer.about`) alongside Privacy + Cookie settings. |
+| `src/components/assessment/screens/AgeSetup.tsx` | **Modified (3.14)** — renders the shared `HonestNote` (a parent-facing expectation-setting line) below the start button; `notice` threaded via `AssessmentCopy.setup`. |
+| `src/components/assessment/copy.ts` | **Modified (3.14)** — adds `setup.notice` to `AssessmentCopy`. |
+| `src/app/[locale]/test/page.tsx` | **Modified (3.14)** — resolves the `Disclaimer` namespace and threads `setup.notice` into the assessment copy. |
+| `src/components/report/CertificatePanel.tsx` | **Modified (3.14)** — adds a brief shared `HonestNote` line in the panel CHROME (the rasterised `CertificateArt` artboard is untouched). |
+| `src/components/report/certificate-copy.ts` | **Modified (3.14)** — adds `notice` to `CertificateCopy`. |
+| `src/components/report/certificate.test.tsx` | **Modified (3.14)** — the `COPY` fixture now carries the shared `Disclaimer.notice`. |
+| `src/app/[locale]/report/page.tsx` | **Modified (3.14)** — `resolveCertificateCopy` now also resolves the `Disclaimer` notice. |
+| `src/app/[locale]/privacy/page.tsx` | **Modified (3.14)** — renders the shared `HonestNote` (a restatement) after the draft note. |
+| `src/content/privacy/{en,mk}.ts` | **Modified (3.14)** — brought to the v2 data model (4 new sections: two-stores · emailed-report · consents · internal-access; rewritten what-we-collect/childrens-data/retention/processors). Version → `privacy-v2-draft-2026-06`. Cookie table + 3.12 CAPI disclosure preserved; MK↔EN parity held. |
+| `src/messages/{en,mk}.json` | **Modified (3.14)** — new `Disclaimer` + `About` namespaces + `Landing.footer.about` (MK + EN exact parity, MK provisional). |
+| `src/messages/messages.test.ts` | **Modified (3.14)** — Disclaimer + About key parity; permissive Disclaimer scan (requires the clinical negation, forbids digit/%); strict About-chrome forbidden scan. |
+| `tests/e2e/a11y.spec.ts` | **Modified (3.14)** — adds `@axe-core/playwright` scans for `/about-test` + a re-scan of the v2 `/privacy` (both locales, with a settle-wait). |
+
 ## Project-state docs
 
 | Path | Description |

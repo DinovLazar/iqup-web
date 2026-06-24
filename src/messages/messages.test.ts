@@ -361,6 +361,65 @@ describe('i18n message parity (mk ↔ en)', () => {
     }
   });
 
+  it('includes the new Disclaimer + About namespaces (phase 3.14) in both locales', () => {
+    const required = [
+      'Disclaimer.notice',
+      'Disclaimer.provisional',
+      'Disclaimer.ariaLabel',
+      'About.meta.title',
+      'About.meta.description',
+      'About.lead',
+      'About.noticeAriaLabel',
+      'About.cta.heading',
+      'About.cta.body',
+      'About.cta.primary',
+      'About.cta.secondary',
+      'Landing.footer.about'
+    ];
+    for (const key of required) {
+      expect(mkPaths.has(key), `mk missing ${key}`).toBe(true);
+      expect(enPaths.has(key), `en missing ${key}`).toBe(true);
+    }
+  });
+
+  it('the shared Disclaimer notice negates clinical/diagnosis and carries no number (EN + MK, non-vacuous)', () => {
+    // The `Disclaimer` namespace is the ONE permitted place clinical/diagnostic
+    // words (and the IQ-hook reframe) may appear — but ONLY to negate them. So here
+    // we do NOT ban those words; we REQUIRE the negation is present (non-vacuous),
+    // and still forbid any literal number / % in the notice itself.
+    const NEGATES_EN = /not a clinical/i;
+    const NEGATES_MK = /не е клиничка/i;
+    expect(NEGATES_EN.test('a warm picture of how a child approached today')).toBe(false);
+
+    expect(NEGATES_EN.test(enPaths.get('Disclaimer.notice') as string)).toBe(true);
+    expect(NEGATES_MK.test(mkPaths.get('Disclaimer.notice') as string)).toBe(true);
+    for (const [key, value] of [...enPaths, ...mkPaths]) {
+      if (!key.startsWith('Disclaimer.')) continue;
+      expect(/\d/.test(value), `literal digit in ${key}: "${value}"`).toBe(false);
+      expect(/%/.test(value), `percent sign in ${key}: "${value}"`).toBe(false);
+    }
+  });
+
+  it('no About chrome string uses a forbidden score/IQ/%/rank token or a literal digit (EN + MK, non-vacuous)', () => {
+    // The About page's CHROME (title, lead, CTA) follows the no-number rule strictly;
+    // the clinical/IQ/diagnosis negation comes only from the shared notice above.
+    const FORBIDDEN_EN = /\b(iq|score|scores|percentile|percent|rank|ranking|band)\b|%/i;
+    const FORBIDDEN_MK = /(поен|ранг|процент|коефициент|перцентил)|%/i;
+    expect(FORBIDDEN_EN.test('your IQ score is in the 90th percentile')).toBe(true);
+    expect(FORBIDDEN_MK.test('вашиот коефициент е во 90-тиот перцентил')).toBe(true);
+
+    for (const [key, value] of enPaths) {
+      if (!key.startsWith('About.')) continue;
+      expect(FORBIDDEN_EN.test(value), `forbidden EN token in ${key}: "${value}"`).toBe(false);
+      expect(/\d/.test(value), `literal digit in ${key}: "${value}"`).toBe(false);
+    }
+    for (const [key, value] of mkPaths) {
+      if (!key.startsWith('About.')) continue;
+      expect(FORBIDDEN_MK.test(value), `forbidden MK token in ${key}: "${value}"`).toBe(false);
+      expect(/\d/.test(value), `literal digit in ${key}: "${value}"`).toBe(false);
+    }
+  });
+
   it('the Form never asks to collect a child name (no-child-name invariant)', () => {
     // The form collects the PARENT first name + (optional) child GENDER only — never
     // a child's name. No form string may request the child's name.

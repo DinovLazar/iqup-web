@@ -1,7 +1,14 @@
 /**
- * English privacy / cookie-policy content (Phase 2.04).
+ * English privacy / cookie-policy content.
  *
- * PROVISIONAL GDPR baseline — pending IqUp legal sign-off.
+ * Phase 2.04 baseline; brought to the **v2 data model** in Phase 3.14 (two
+ * unlinkable stores · child-data minimisation · on-device-only child name ·
+ * emailed-not-stored PDF via Brevo · three parental consents vs. cookie consent ·
+ * the internal back-office access surface · retention). The 3.12 Meta CAPI
+ * processor disclosure + the `_fbc` cookie row are preserved.
+ *
+ * PROVISIONAL GDPR baseline — pending IqUp legal sign-off. The whole v2 narrative
+ * is flagged for the legal reviewer.
  * Section ids are stable and language-neutral; they MUST stay in 1:1 structural
  * parity with `mk.ts` (same ids, same order, same block kinds in order, same
  * cookie rows). Enforced by `privacy.test.ts`.
@@ -9,8 +16,8 @@
 import type {PrivacyContent} from './types';
 
 export const PRIVACY_EN: PrivacyContent = {
-  version: 'privacy-v1-draft-2026-06',
-  lastUpdated: '2026-06-19',
+  version: 'privacy-v2-draft-2026-06',
+  lastUpdated: '2026-06-25',
   sections: [
     {
       id: 'who-we-are',
@@ -33,7 +40,7 @@ export const PRIVACY_EN: PrivacyContent = {
       blocks: [
         {
           kind: 'p',
-          text: 'IqUp is a free, age-banded set of playful brain games for children. A child answers a short series of original puzzle-style activities chosen for their age.'
+          text: 'IqUp is a free, playful set of thinking activities for children. A child works through a short series of original, age-appropriate puzzle-style games.'
         },
         {
           kind: 'p',
@@ -47,23 +54,43 @@ export const PRIVACY_EN: PrivacyContent = {
       blocks: [
         {
           kind: 'p',
-          text: 'We keep the data we collect to a minimum. With the parent’s consent, we collect:'
+          text: 'We keep the data we collect to a minimum, and we never ask for more than we need. With the parent’s consent, we collect:'
         },
         {
           kind: 'list',
           items: [
-            'the parent’s email address, so we can send the strengths profile and (if asked) help arrange a trial;',
-            'the child’s first name, used to personalise the encouraging profile and certificate;',
-            'the child’s age, which simply selects the right age band of activities;',
-            'the derived strengths summary — we do not store the individual answers the child gave, only the warm summary of strengths;',
-            'the language you used;',
-            'the parental consent, together with the date and time it was given and the version of this policy it relates to;',
-            'an optional, separate marketing opt-in, only if the parent chooses it.'
+            'the parent’s first name, so the report and any follow-up can be addressed to a real person;',
+            'the parent’s email address, so we can send the strengths profile and (if asked) help arrange a free demo class;',
+            'the parent’s phone number and city, so the nearest IqUp centre can follow up about a demo class;',
+            'the child’s age, which simply selects the right activities for them;',
+            'the child’s gender — optional, and only if the parent chooses to share it;',
+            'the parental consents, together with the date and time they were given and the version of this policy they relate to.'
           ]
         },
         {
           kind: 'p',
-          text: 'Our legal basis for all of the above is your consent. You can withdraw it at any time, as explained further down.'
+          text: 'We do not collect or store the child’s name, surname, address, or date of birth. Our legal basis for the above is your consent, which you can withdraw at any time.'
+        }
+      ]
+    },
+    {
+      id: 'two-stores',
+      heading: 'Two separate places, never linked',
+      blocks: [
+        {
+          kind: 'p',
+          text: 'The information above is kept in two separate stores that cannot be joined together:'
+        },
+        {
+          kind: 'list',
+          items: [
+            'Anonymous results — the strengths profile your child’s activities produce is stored without any name, email or phone number, and with only the day it was taken. On its own it cannot be traced back to a person. It is hosted with Supabase in the European Union.',
+            'Parent contact details — your name, email, phone and city are kept separately, with Brevo in the European Union, so we can follow up with you about a demo class.'
+          ]
+        },
+        {
+          kind: 'p',
+          text: 'There is no shared key between the two, so a set of results can never be matched to a particular family. This separation is deliberate.'
         }
       ]
     },
@@ -73,15 +100,57 @@ export const PRIVACY_EN: PrivacyContent = {
       blocks: [
         {
           kind: 'p',
-          text: 'A child can only take part when a parent or guardian provides the details and gives consent. We deliberately ask for as little as possible.'
+          text: 'A child can only take part when a parent or guardian provides the details and gives consent. We deliberately ask for as little as possible about the child.'
         },
         {
           kind: 'list',
           items: [
-            'We do not collect surnames, dates of birth, addresses or any other identifying details about the child.',
-            'The child’s first name stays in your browser to personalise the certificate, and is never placed in a web address (URL).',
+            'We never collect the child’s name, surname, date of birth or address. The child’s age is used only to choose suitable activities.',
+            'If you choose to add your child’s first name to the celebratory certificate, that name stays in your browser, on your own device. It is never sent to us, never stored, and never placed in a web address (URL).',
             'The limited data we do keep is hosted within the European Union.'
           ]
+        }
+      ]
+    },
+    {
+      id: 'emailed-report',
+      heading: 'The report we email you',
+      blocks: [
+        {
+          kind: 'p',
+          text: 'When your child finishes, we build their strengths report as a PDF on the spot and email it to you. We do not store the report on our side — it is generated, sent through Brevo’s email service (whose own retention then applies), and not kept by us afterwards.'
+        }
+      ]
+    },
+    {
+      id: 'consents',
+      heading: 'The consents you give',
+      blocks: [
+        {
+          kind: 'p',
+          text: 'Before the report is sent, we ask for three separate, clearly-labelled consents — none of them pre-ticked:'
+        },
+        {
+          kind: 'list',
+          items: [
+            'permission to process your details and send you the report (required);',
+            'confirmation that you are the child’s parent or guardian (required);',
+            'an optional agreement to receive occasional news and offers — you can say no and still get the report.'
+          ]
+        },
+        {
+          kind: 'p',
+          text: 'These parental consents are entirely separate from the cookie and tracking choices described below — agreeing to one does not affect the other.'
+        }
+      ]
+    },
+    {
+      id: 'internal-access',
+      heading: 'Who at IqUp can see your data',
+      blocks: [
+        {
+          kind: 'p',
+          text: 'A small number of IqUp staff can view parent contact details and overall, anonymous statistics through a private internal tool, used only to follow up about demo classes and to understand how the activities are used. The two stores stay separate there too: a staff member never sees a particular child’s results next to that family’s contact details.'
         }
       ]
     },
@@ -96,8 +165,8 @@ export const PRIVACY_EN: PrivacyContent = {
         {
           kind: 'list',
           items: [
-            'Supabase (EU, Frankfurt) — hosts our database.',
-            'Brevo (EU) — sends our emails and stores contact details for follow-up.',
+            'Supabase (EU, Frankfurt) — hosts our database, including the anonymous results.',
+            'Brevo (EU) — sends our emails and stores the parent contact details for follow-up.',
             'Google (Google Analytics 4) — measures how the site is used. Loaded only with your Analytics consent.',
             'Microsoft (Clarity) — anonymous usage insights and heatmaps. Loaded only with your Analytics consent.',
             'Meta (Pixel) — measures the effect of our ads. Loaded only with your Marketing consent.',
@@ -131,7 +200,7 @@ export const PRIVACY_EN: PrivacyContent = {
         },
         {
           kind: 'p',
-          text: 'We keep parent contact details and the strengths summary for as long as needed to follow up about a possible trial, and until the parent asks us to delete them or they are no longer needed — whichever comes first. When data is no longer needed, we delete it.'
+          text: 'We keep parent contact details with Brevo for as long as needed to follow up about a possible demo class, and until you ask us to delete them or they are no longer needed — whichever comes first. The anonymous results carry no contact information and are kept to understand and improve the activities. The emailed report is not stored at all. When data is no longer needed, we delete it.'
         }
       ]
     },

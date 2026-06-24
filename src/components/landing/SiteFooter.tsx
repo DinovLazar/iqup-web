@@ -22,9 +22,15 @@ export function SiteFooter() {
             </p>
           </div>
           <div className="flex flex-col items-start gap-4 sm:items-end">
-            {/* Privacy policy (Phase 2.04) + Cookie settings (re-opens the
-                consent Manage dialog). About/locations land in a later phase. */}
+            {/* About the test (Phase 3.14) + Privacy policy (Phase 2.04) +
+                Cookie settings (re-opens the consent Manage dialog). */}
             <nav aria-label={t('legalNavLabel')} className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+              <Link
+                href="/about-test"
+                className="font-semibold text-secondary-ink underline-offset-4 hover:underline"
+              >
+                {t('about')}
+              </Link>
               <Link
                 href="/privacy"
                 className="font-semibold text-secondary-ink underline-offset-4 hover:underline"

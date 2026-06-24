@@ -170,6 +170,7 @@ async function resolveResultsCopy(locale: string): Promise<ResultsCopy> {
  *  child-facing one-liner per index lives here. */
 async function resolveCertificateCopy(locale: string): Promise<CertificateCopy> {
   const t = await getTranslations({locale, namespace: 'Certificate'});
+  const tDisc = await getTranslations({locale, namespace: 'Disclaimer'});
   const INDICES: IndexId[] = [
     'logical',
     'spatial',
@@ -183,6 +184,7 @@ async function resolveCertificateCopy(locale: string): Promise<CertificateCopy> 
 
   return {
     intro: t('intro'),
+    notice: tDisc('notice'),
     addName: t('addName'),
     nameLabel: t('nameLabel'),
     namePlaceholder: t('namePlaceholder'),

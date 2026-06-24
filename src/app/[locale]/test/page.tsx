@@ -101,6 +101,7 @@ export default async function TestPage({params, searchParams}: Props) {
 /** Resolve the whole flow's copy server-side (the island ships no i18n runtime). */
 async function resolveAssessmentCopy(locale: string): Promise<AssessmentCopy> {
   const t = await getTranslations({locale, namespace: 'Assessment'});
+  const tDisc = await getTranslations({locale, namespace: 'Disclaimer'});
   const instructions = Object.fromEntries(
     TASK_TYPES.map((tt) => [tt, t(`instructions.${tt}`)])
   ) as Record<TaskType, string>;
@@ -113,7 +114,10 @@ async function resolveAssessmentCopy(locale: string): Promise<AssessmentCopy> {
       ageHint: t('setup.ageHint'),
       start: t('setup.start'),
       // Raw template — the `{age}` token is filled client-side in AgeSetup.
-      ariaAge: t.raw('setup.ariaAge') as string
+      ariaAge: t.raw('setup.ariaAge') as string,
+      // The shared honest-framing notice (Phase 3.14), from the one `Disclaimer`
+      // source — a short expectation-setting line shown before the child begins.
+      notice: tDisc('notice')
     },
     assist: {
       forParent: t('assist.forParent'),

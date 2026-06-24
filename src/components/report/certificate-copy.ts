@@ -17,6 +17,9 @@ import type {IndexId} from '@/lib/scoring/v2';
 export interface CertificateCopy {
   /** The panel intro paragraph under the section heading. */
   intro: string;
+  /** The shared honest-framing notice (Phase 3.14) — a brief honest line in the
+   *  panel chrome (NOT the rasterised artboard), from the one `Disclaimer` source. */
+  notice: string;
   /** The opt-in toggle label ("add your child's name", off by default). */
   addName: string;
   /** The on-device-only name field label. */

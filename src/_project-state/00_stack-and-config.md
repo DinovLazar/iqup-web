@@ -630,3 +630,24 @@ Installed with `npm install @supabase/ssr --save-exact`. It is the ONLY new depe
 **New routes (all DYNAMIC `ƒ`, outside `[locale]`, single-locale English, `noindex`):** `/admin` (→ `/admin/contacts`), `/admin/login`, `/admin/contacts`, `/admin/contacts/export` (CSV route handler), `/admin/statistics`, `/admin/statistics/export` (CSV route handler), `/admin/auth/signout` (POST). The admin owns its OWN root layout (`src/app/admin/layout.tsx` renders `<html>` — it does not pass through the next-intl `[locale]` layout; multiple-root-layout pattern). The PUBLIC route table is unchanged (`/[locale]/report` SSG, `/[locale]/test` dynamic untouched).
 
 **No i18n change** (the admin is single-locale English, no `next-intl` namespace). **No schema migration, no new Store A column, no new Store B attribute, no change to either write path.** Build/lint/typecheck clean; `npm test` 775/775 (75 files) = 737 prior + 38 new admin/guardrail tests.
+
+---
+
+## 2026-06-25 — Phase 3.14 supporting pages + the honest-framing notice (Code)
+
+**No new dependency.** No charting library, no new runtime package. Build/lint/typecheck clean.
+
+**No new env var.** No schema migration, no Store A column, no Store B attribute, no change to either write path — this phase ships content pages + a presentational notice; it collects nothing and writes nothing.
+
+**New i18n namespaces (MK + EN, exact parity, MK provisional):**
+- **`Disclaimer`** — the ONE shared honest-framing source: `notice` (the clinical/IQ/diagnosis-negating sentence, textually consistent with the frozen `report.disclaimer.body`), `provisional` (the improving-norms line), `ariaLabel`. It is the single documented place clinical/diagnostic/IQ words may appear, only to negate them — covered by a dedicated permissive scan in `messages.test.ts`.
+- **`About`** — the About-page chrome: `meta.{title,description}`, `lead`, `noticeAriaLabel`, `cta.{heading,body,primary,secondary}`.
+- **`Landing.footer.about`** — the new footer link label.
+
+**New route:** `/[locale]/about-test` (MK `/about-test`, EN `/en/about-test`) — **SSG (`●`), indexable**, in the locale layout, per-locale `generateMetadata` with canonical + hreflang + alternates (the established per-page pattern; the repo has **no generated `sitemap.ts`** — discoverability is the per-page `alternates` metadata + the footer link, same as `/privacy` + `/trial`). The public route table is otherwise unchanged: `/[locale]/report` stays **SSG + `noindex`**, `/[locale]/test` stays dynamic. No admin/route-table change.
+
+**`/privacy` content version bump:** `privacy-v1-draft-2026-06` → **`privacy-v2-draft-2026-06`**, `lastUpdated` → `2026-06-25` (display-only; the stored parental-consent version `v2-draft-2026-06` in the frozen form/submit path is a separate string and is unchanged).
+
+**Honest-framing surfaces (one shared source, `HonestNote` + `Disclaimer`):** landing hero · assessment age-setup · certificate panel chrome · About page · privacy page. The frozen results screen + emailed PDF keep `report.disclaimer` (verify-only, unchanged). `CertificateArt` (the rasterised artboard) is untouched.
+
+**Quality:** typecheck + lint clean, `next build` green (route table: `/[locale]/about-test` mk+en SSG added; all else unchanged), `npm test` **797/797 (77 files) = 775 prior + 22 new** (3 messages-parity/scan, 8 About-content, 11 honest-notice render + presence). `@axe-core/playwright` **axe-clean** on `/about-test` + re-scanned `/privacy`, both locales, mobile + desktop (8 scans). Browser-smoked `/about-test` + `/privacy` (both locales): on-brand Montserrat headings + palette, the shared notice renders, mobile 375px no overflow, ≥44px CTA, **zero console errors**.

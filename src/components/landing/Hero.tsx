@@ -2,6 +2,7 @@ import {useTranslations} from 'next-intl';
 import {Clock, Gift, Sparkles} from 'lucide-react';
 import {Card} from '@/components/ui/card';
 import {AGES, BANDS} from '@/lib/bands';
+import {HonestNote} from '@/components/common/HonestNote';
 import {AgeStart, type AgeStartProps} from './AgeStart';
 import {HeroArt} from './HeroArt';
 import {Reveal} from './Reveal';
@@ -13,6 +14,7 @@ import {Reveal} from './Reveal';
 export function Hero() {
   const t = useTranslations('Landing.hero');
   const tAge = useTranslations('Landing.age');
+  const tDisc = useTranslations('Disclaimer');
 
   const trust = [
     {icon: Gift, label: t('trust.free')},
@@ -78,6 +80,10 @@ export function Hero() {
               </li>
             ))}
           </ul>
+
+          {/* The shared honest-framing notice (Phase 3.14) — a concise footnote
+              near the hero CTA, sourced from the one `Disclaimer` namespace. */}
+          <HonestNote notice={tDisc('notice')} className="mt-6 max-w-prose" />
         </div>
 
         <Reveal delay={0.1} className="hidden lg:block">

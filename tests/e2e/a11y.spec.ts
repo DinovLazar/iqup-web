@@ -102,6 +102,24 @@ test.describe('WCAG 2.2 AA — axe automated scans', () => {
       await scan(page, `trial-selected-${locale}`);
     });
 
+    test(`about-test page (${locale})`, async ({page}) => {
+      await page.goto(localePath(locale, '/about-test'));
+      await page.getByRole('heading', {level: 1}).first().waitFor();
+      // Settle wait (the documented 1.11 flake guard) so no transient entrance
+      // state composites a false-positive contrast finding.
+      await page.waitForTimeout(700);
+      await scan(page, `about-test-${locale}`);
+    });
+
+    test(`privacy page — v2 content (${locale})`, async ({page}) => {
+      // Re-scanned after the Phase 3.14 v2 data-model content edit + the added
+      // shared honest-framing notice.
+      await page.goto(localePath(locale, '/privacy'));
+      await page.getByRole('heading', {level: 1}).first().waitFor();
+      await page.waitForTimeout(700);
+      await scan(page, `privacy-${locale}`);
+    });
+
     test(`test first question (${locale})`, async ({page}) => {
       await page.goto(localePath(locale, '/test?age=8'));
       // Start screen → first question (the only button on the start screen).

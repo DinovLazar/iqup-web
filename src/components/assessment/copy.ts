@@ -18,6 +18,9 @@ export interface AssessmentCopy {
     start: string;
     /** ICU `{age}` aria template for an age button. */
     ariaAge: string;
+    /** The shared honest-framing notice (Phase 3.14) — a short, parent-facing
+     *  expectation-setting line shown before the child begins (`Disclaimer.notice`). */
+    notice: string;
   };
   /** 5–7 parent-assist gate (technical-help-only + checkbox). */
   assist: {

@@ -12,8 +12,8 @@ import {CertificatePanel} from './CertificatePanel';
 import type {CertificateCopy} from './certificate-copy';
 
 const COPY: Record<Locale, CertificateCopy> = {
-  en: en.Certificate as unknown as CertificateCopy,
-  mk: mk.Certificate as unknown as CertificateCopy
+  en: {...(en.Certificate as unknown as CertificateCopy), notice: en.Disclaimer.notice},
+  mk: {...(mk.Certificate as unknown as CertificateCopy), notice: mk.Disclaimer.notice}
 };
 
 /** A minimal ReportContent fixture whose only knobs are the top strength + date. */

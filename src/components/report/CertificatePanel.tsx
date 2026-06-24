@@ -4,6 +4,7 @@ import {useEffect, useId, useRef, useState} from 'react';
 import {Check, Download, Info, Loader2, Share2} from 'lucide-react';
 import type {Locale} from '@/content/locale';
 import type {ReportContent} from '@/lib/report';
+import {HonestNote} from '@/components/common/HonestNote';
 import {CertificateArt} from './CertificateArt';
 import type {CertificateCopy} from './certificate-copy';
 
@@ -265,6 +266,11 @@ export function CertificatePanel({
           </>
         ) : null}
       </p>
+
+      {/* The shared honest-framing notice (Phase 3.14) — a brief honest line in the
+          panel CHROME (the rasterised artboard stays number-free + clean), sourced
+          from the one `Disclaimer` namespace. */}
+      <HonestNote notice={copy.notice} className="mx-auto max-w-[42ch] text-center text-[13px]" />
     </div>
   );
 }
